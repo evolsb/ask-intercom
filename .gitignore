@@ -1,3 +1,6 @@
 _private/
 _private/
 .obsidian
+.env
+.env.local
+.env.*.local

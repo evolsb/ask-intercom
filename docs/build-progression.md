@@ -1,5 +1,7 @@
 # Build Progression – Risk-First Development
 
+> **What this document is:** The technical roadmap for building Ask-Intercom. Breaks down development into phases that de-risk the hardest problems first. Use this as your implementation guide with clear success criteria for each phase.
+
 > _Prioritize the riskiest technical challenges first to prove viability, then layer on user experience._
 
 ---
@@ -58,7 +60,7 @@
 **Technical scope:**
 - Add pgvector to Postgres database
 - Implement conversation chunking and embedding
-- RAG pipeline: retrieve → context → generate  
+- RAG pipeline: retrieve → context → generate
 - Support follow-up questions with memory
 
 **Success criteria:**
@@ -73,20 +75,21 @@
 ### 💬 **Phase 2: Slack Integration** _(Week 4)_
 **Goal:** Prove users will actually use it in their workflow
 
-**Deliverable:** Working `/askintercom` Slack command
+**Deliverable:** Working `/askintercom` Slack command with Docker deployment
 
 **Technical scope:**
 - FastAPI web server for Slack webhooks
 - Slack app installation flow with proper OAuth scopes
 - Bot token management per workspace
 - Threaded responses for better UX
-- Deploy to Railway/Render for testing
+- Docker containerization for easy deployment
+- Environment variable configuration (no external dependencies)
 
 **Success criteria:**
 - Test team uses it 3+ times per week
 - Average response time < 5 seconds
 - Positive feedback on answer quality
-- Slack app installation flow works smoothly
+- Docker deployment works on first try
 
 **Risk mitigation:** If Slack is complex, use simple webhook without fancy OAuth first
 
@@ -111,22 +114,30 @@
 
 ---
 
-### 🏪 **Phase 4: Agent Marketplace** _(Future)_
-**Goal:** Scale distribution through agent platforms
+### 🏪 **Phase 4: Scaling & Monetization** _(Future)_
+**Goal:** Multiple paths to scale and generate revenue
 
-**Deliverable:** Ask-Intercom available as installable agents
+**Deliverable:** Choose between managed hosting and/or agent marketplace
 
-**Technical scope:**
+**Option A - Managed Hosting:**
+- Multi-tenant SaaS version with billing
+- Simplified installation for non-technical users
+- Usage-based pricing model
+
+**Option B - Agent Marketplace:**
 - Package core API as agents for OpenAI GPT Store, Anthropic Claude Apps, etc.
 - User credential management (secure Intercom API key handling)
 - Revenue sharing integration with platforms
 - Multi-platform agent wrappers
 
+**Option C - Hybrid:**
+- Both managed hosting AND agent marketplace presence
+- Self-hosted remains free and open source
+
 **Success criteria:**
-- Listed on 2+ major agent marketplaces
-- Users can install and use with their own Intercom keys
-- Generating revenue through platform distribution
-- AI-powered usage insights help users understand their query costs and patterns
+- Clear revenue stream from chosen path(s)
+- Self-hosted version continues to thrive
+- Community contributions and adoption growing
 
 ---
 
@@ -155,10 +166,11 @@
 Each phase must pass before proceeding:
 
 - **Phase 0 Gate:** Demo one perfect answer to a real question
-- **Phase 1 Gate:** Answers improve measurably with more context  
-- **Phase 2 Gate:** Team uses it organically without prompting
-- **Build-in-public Gate:** After CLI success, consider sharing progress publicly to gauge external interest
+- **Phase 1 Gate:** Answers improve measurably with more context
+- **Phase 2 Gate:** Docker deployment works + team uses it organically
+- **Build-in-public Gate:** After Docker success, share progress publicly for community feedback
 - **Phase 3 Gate:** First scheduled report saves manual work
+- **Phase 4 Gate:** Choose monetization path based on community feedback and usage patterns
 
 ---
 
@@ -167,11 +179,13 @@ Each phase must pass before proceeding:
 ```
 Phase 0: Python CLI + OpenAI + MCP
          ↓
-Phase 1: + pgvector + embeddings  
+Phase 1: + pgvector + embeddings
          ↓
-Phase 2: + FastAPI + Slack SDK
+Phase 2: + FastAPI + Slack SDK + Docker
          ↓
-Phase 3: + Celery + Redis + deployment
+Phase 3: + Celery + Redis + scheduling
+         ↓
+Phase 4: + SaaS hosting OR agent marketplace (user choice)
 ```
 
 **Key principle:** Add complexity only when the previous layer is proven and working well.
