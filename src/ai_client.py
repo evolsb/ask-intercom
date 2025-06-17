@@ -22,9 +22,10 @@ class AIClient:
         "gpt-3.5-turbo": {"input": 0.0005, "output": 0.0015},
     }
 
-    def __init__(self, api_key: str, model: str = "gpt-4"):
+    def __init__(self, api_key: str, model: str = "gpt-4", app_id: str = None):
         self.client = AsyncOpenAI(api_key=api_key)
         self.model = model
+        self.app_id = app_id
 
     async def analyze_conversations(
         self, conversations: List[Conversation], query: str
@@ -109,14 +110,15 @@ class AIClient:
         - Focus on patterns, trends, and actionable insights
         - Structure each insight with: [CATEGORY] Description (X customers affected, Y% of total)
         - Categories: BUG, FEATURE_REQUEST, CONFUSION, COMPLAINT, PROCESS_ISSUE, OTHER
-        - Reference specific customer emails as examples (e.g., "reported by user@example.com")
+        - Reference specific customer emails as examples with clickable links (e.g., "reported by user@example.com [View](https://app.intercom.com/a/inbox/{app_id}/inbox/shared/all/conversation/{conv_id})")
         - Include metrics: number of customers affected, percentage of conversations, trend direction
         - Mention total messages analyzed at the end
         - Prioritize by impact (most customers affected first)
         - Keep each bullet point to 1-2 sentences maximum
+        - When referencing customers, include a clickable "View" link next to their email
 
         Example format:
-        - [BUG] Login verification failing for mobile users (12 customers, 24% of conversations). Examples: user1@email.com, user2@email.com
+        - [BUG] Login verification failing for mobile users (12 customers, 24% of conversations). Examples: user1@email.com [View](conversation_url), user2@email.com [View](conversation_url)
         - [FEATURE_REQUEST] Dark mode requested by enterprise customers (8 customers, 16% of conversations). Trending up from last week.
 
         End with: "Analyzed X conversations containing Y total messages."
@@ -133,21 +135,36 @@ class AIClient:
         conv_summaries = []
         for conv in conversations[:50]:  # Limit to prevent token overflow
             customer_id = conv.customer_email or f"anonymous-{conv.id[:8]}"
-            summary = f"Conversation from {customer_id} ({conv.created_at.strftime('%Y-%m-%d')}):\n"
+            summary = f"Conversation from {customer_id} ({conv.created_at.strftime('%Y-%m-%d')}) [ID: {conv.id}]:\n"
             for msg in conv.messages[:5]:  # Limit messages per conversation
                 author = "Customer" if msg.author_type == "user" else "Support"
                 summary += f"  {author}: {msg.body[:200]}...\n"
             conv_summaries.append(summary)
 
-        return f"""
+        # Build conversation mapping for URLs
+        conv_mapping = "\n\nConversation URLs for reference:\n"
+        for conv in conversations[:50]:
+            if self.app_id:
+                customer_id = conv.customer_email or f"anonymous-{conv.id[:8]}"
+                conv_mapping += f"- {customer_id}: {conv.get_url(self.app_id)}\n"
+
+        analysis_prompt = f"""
         Query: {query}
 
         Analyze these {len(conversations)} customer support conversations (containing {total_messages} total messages):
 
         {chr(10).join(conv_summaries)}
-
-        Provide a clear analysis addressing the original query. Remember to mention the total message count at the end.
         """
+
+        if self.app_id:
+            analysis_prompt += (
+                conv_mapping
+                + "\n\nWhen referencing customers in your analysis, include clickable [View] links using the URLs above.\n\n"
+            )
+
+        analysis_prompt += "Provide a clear analysis addressing the original query. Remember to mention the total message count at the end."
+
+        return analysis_prompt
 
     def _calculate_cost(self, usage) -> CostInfo:
         """Calculate the cost of the API call."""

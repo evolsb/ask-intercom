@@ -18,7 +18,8 @@ class QueryProcessor:
     def __init__(self, config: Config):
         self.config = config
         self.intercom_client = IntercomClient(config.intercom_token)
-        self.ai_client = AIClient(config.openai_key, config.model)
+        # AI client will be initialized with app_id during query processing
+        self.ai_client = None
 
     async def process_query(self, query: str) -> AnalysisResult:
         """Process a natural language query and return analysis."""
@@ -27,6 +28,18 @@ class QueryProcessor:
         logger.info("Starting query processing", extra={"query_length": len(query)})
 
         try:
+            # Step 0: Initialize AI client with dynamically fetched app ID
+            if not self.ai_client:
+                logger.info("Fetching Intercom app ID for conversation links...")
+                app_id = await self.intercom_client.get_app_id()
+                if app_id:
+                    logger.info(f"Using app ID: {app_id}")
+                else:
+                    logger.info("No app ID found - conversation links will be disabled")
+                self.ai_client = AIClient(
+                    self.config.openai_key, self.config.model, app_id
+                )
+
             # Step 1: Interpret timeframe from query
             logger.info("Interpreting query timeframe...")
             timeframe_start = time()

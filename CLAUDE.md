@@ -40,6 +40,7 @@ INTERCOM_ACCESS_TOKEN=your_token_here
 OPENAI_API_KEY=your_key_here
 
 # Optional with defaults
+INTERCOM_APP_ID=your_app_id_here  # Auto-fetched if not provided
 OPENAI_MODEL=gpt-4
 MAX_CONVERSATIONS=50
 DEBUG=false

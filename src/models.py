@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Optional
+from urllib.parse import quote
 
 
 @dataclass
@@ -37,6 +38,15 @@ class Conversation:
     def __post_init__(self):
         if self.tags is None:
             self.tags = []
+
+    def get_url(self, app_id: str) -> str:
+        """Generate clickable Intercom URL for this conversation."""
+        base_url = f"https://app.intercom.com/a/inbox/{app_id}/inbox/search/conversation/{self.id}"
+        if self.customer_email:
+            # Add customer email as query parameter (URL-encoded)
+            encoded_email = quote(self.customer_email)
+            return f"{base_url}?query={encoded_email}"
+        return base_url
 
 
 @dataclass

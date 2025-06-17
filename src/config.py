@@ -11,6 +11,10 @@ class Config(BaseModel):
 
     intercom_token: str = Field(..., description="Intercom access token")
     openai_key: str = Field(..., description="OpenAI API key")
+    intercom_app_id: str = Field(
+        default="",
+        description="Intercom app/workspace ID for generating conversation URLs",
+    )
     model: str = Field(default="gpt-4", description="OpenAI model to use")
     max_conversations: int = Field(
         default=50, description="Max conversations to analyze"
@@ -33,6 +37,14 @@ class Config(BaseModel):
             raise ValueError("Invalid OpenAI API key")
         return v
 
+    @field_validator("intercom_app_id")
+    @classmethod
+    def validate_intercom_app_id(cls, v):
+        # Allow empty string - conversation links will be disabled
+        if v and len(v) < 5:
+            raise ValueError("Invalid Intercom app ID")
+        return v
+
     @field_validator("max_conversations")
     @classmethod
     def validate_max_conversations(cls, v):
@@ -48,6 +60,9 @@ class Config(BaseModel):
         return cls(
             intercom_token=os.getenv("INTERCOM_ACCESS_TOKEN", ""),
             openai_key=os.getenv("OPENAI_API_KEY", ""),
+            intercom_app_id=os.getenv(
+                "INTERCOM_APP_ID", ""
+            ),  # Optional - will be fetched dynamically if not provided
             model=os.getenv("OPENAI_MODEL", "gpt-4"),
             max_conversations=int(os.getenv("MAX_CONVERSATIONS", "50")),
             debug=os.getenv("DEBUG", "false").lower() == "true",

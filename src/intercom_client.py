@@ -22,6 +22,82 @@ class IntercomClient:
             "Accept": "application/json",
             "Content-Type": "application/json",
         }
+        self._cached_app_id = None
+
+    async def get_app_id(self) -> Optional[str]:
+        """Fetch the workspace/app ID from Intercom API."""
+        if self._cached_app_id:
+            return self._cached_app_id
+
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                # Try the /me endpoint first
+                try:
+                    response = await client.get(
+                        f"{self.base_url}/me",
+                        headers=self.headers,
+                    )
+                    if response.status_code == 200:
+                        data = response.json()
+                        # The app ID is in the nested "app" object with key "id_code"
+                        if data.get("app") and data["app"].get("id_code"):
+                            app_id = data["app"]["id_code"]
+                            self._cached_app_id = str(app_id)
+                            logger.info(f"Found app ID via /me endpoint: {app_id}")
+                            return self._cached_app_id
+
+                except Exception as e:
+                    logger.debug(f"/me endpoint failed: {e}")
+
+                # Try the admins endpoint (often includes workspace info)
+                try:
+                    response = await client.get(
+                        f"{self.base_url}/admins",
+                        headers=self.headers,
+                    )
+                    if response.status_code == 200:
+                        data = response.json()
+                        # Look for app_id in admin data
+                        if data.get("admins") and len(data["admins"]) > 0:
+                            admin = data["admins"][0]
+                            app_id = admin.get("app_id") or admin.get("workspace_id")
+                            if app_id:
+                                self._cached_app_id = str(app_id)
+                                logger.info(
+                                    f"Found app ID via /admins endpoint: {app_id}"
+                                )
+                                return self._cached_app_id
+
+                except Exception as e:
+                    logger.debug(f"/admins endpoint failed: {e}")
+
+                # As a fallback, try to extract from any conversation data we can get
+                try:
+                    # Get a small sample of conversations to see if we can extract app ID from URLs or data
+                    response = await client.get(
+                        f"{self.base_url}/conversations",
+                        headers=self.headers,
+                        params={"per_page": 1},
+                    )
+                    if response.status_code == 200:
+                        data = response.json()
+                        # This is a stretch, but sometimes workspace info is embedded in responses
+                        # We might find it in links or metadata
+                        # For now, just log that we tried
+                        logger.debug(
+                            "Tried to extract app ID from conversations endpoint, no success"
+                        )
+
+                except Exception as e:
+                    logger.debug(f"/conversations endpoint failed: {e}")
+
+        except Exception as e:
+            logger.warning(f"Failed to fetch app ID: {e}")
+
+        logger.warning(
+            "Could not determine app ID from Intercom API - conversation links will be disabled"
+        )
+        return None
 
     async def fetch_conversations(
         self, filters: ConversationFilters
