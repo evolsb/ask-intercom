@@ -166,6 +166,8 @@ class IntercomClient:
 
             # Parse messages from conversation_parts (already included in search response)
             messages = []
+            has_customer_message = False
+
             conversation_parts = conv_data.get("conversation_parts", {})
             if isinstance(conversation_parts, dict):
                 parts_list = conversation_parts.get("conversation_parts", [])
@@ -182,13 +184,18 @@ class IntercomClient:
                     if not part.get("body"):
                         continue
 
+                    author_type = (
+                        "admin"
+                        if part.get("author", {}).get("type") == "admin"
+                        else "user"
+                    )
+
+                    if author_type == "user":
+                        has_customer_message = True
+
                     message = Message(
                         id=str(part.get("id", "unknown")),
-                        author_type=(
-                            "admin"
-                            if part.get("author", {}).get("type") == "admin"
-                            else "user"
-                        ),
+                        author_type=author_type,
                         body=part.get("body", ""),
                         created_at=datetime.fromtimestamp(part.get("created_at", 0)),
                     )
@@ -203,6 +210,12 @@ class IntercomClient:
                     created_at=datetime.fromtimestamp(conv_data["created_at"]),
                 )
                 messages.insert(0, initial_message)
+                has_customer_message = True
+
+            # Skip conversations with only admin messages
+            if not has_customer_message:
+                logger.debug(f"Skipping admin-only conversation {conv_data.get('id')}")
+                return None
 
             # Get customer email from source.author
             customer_email = None
@@ -248,17 +261,24 @@ class IntercomClient:
 
             # Parse messages
             messages = []
+            has_customer_message = False
+
             for part in parts_data.get("conversation_parts", {}).get(
                 "conversation_parts", []
             ):
                 if part.get("part_type") in ["comment", "note"]:
+                    author_type = (
+                        "admin"
+                        if part.get("author", {}).get("type") == "admin"
+                        else "user"
+                    )
+
+                    if author_type == "user":
+                        has_customer_message = True
+
                     message = Message(
                         id=part["id"],
-                        author_type=(
-                            "admin"
-                            if part.get("author", {}).get("type") == "admin"
-                            else "user"
-                        ),
+                        author_type=author_type,
                         body=part.get("body", ""),
                         created_at=datetime.fromtimestamp(part["created_at"]),
                     )
@@ -273,6 +293,12 @@ class IntercomClient:
                     created_at=datetime.fromtimestamp(conv_data["created_at"]),
                 )
                 messages.insert(0, initial_message)
+                has_customer_message = True
+
+            # Skip conversations with only admin messages
+            if not has_customer_message:
+                logger.debug(f"Skipping admin-only conversation {conv_data.get('id')}")
+                return None
 
             # Get customer email from source.author or contacts
             customer_email = None

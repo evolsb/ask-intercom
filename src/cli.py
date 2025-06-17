@@ -19,6 +19,7 @@ from .logger import (
     set_request_context,
     setup_logging,
 )
+from .models import SessionState
 from .query_processor import QueryProcessor
 
 
@@ -72,7 +73,11 @@ Examples:
 
 
 async def run_query(
-    query: str, config: Config, console: Console, request_id: str = None
+    query: str,
+    config: Config,
+    console: Console,
+    request_id: str = None,
+    session: SessionState = None,
 ) -> bool:
     """Execute a single query and display results."""
     start_time = datetime.now()
@@ -83,9 +88,25 @@ async def run_query(
         log_query_start(request_id, query)
 
     try:
-        with console.status("[bold green]Processing your query..."):
+        # Show different status based on whether it's a follow-up
+        if session and session.last_conversations:
+            # Check if it's a follow-up question
             processor = QueryProcessor(config)
-            result = await processor.process_query(query)
+            if processor._is_followup_question(query):
+                status_text = (
+                    "[bold green]Analyzing cached conversations for follow-up..."
+                )
+            else:
+                status_text = "[bold green]Fetching new conversations and analyzing..."
+        else:
+            status_text = (
+                "[bold green]Interpreting timeframe and fetching conversations..."
+            )
+
+        with console.status(status_text):
+            if "processor" not in locals():
+                processor = QueryProcessor(config)
+            result = await processor.process_query(query, session)
 
         duration = (datetime.now() - start_time).total_seconds()
 
@@ -100,11 +121,29 @@ async def run_query(
                 result.cost_info.estimated_cost_usd,
             )
 
+        # Determine query type and session info
+        is_followup = False
+        query_type_label = ""
+
+        if session and session.last_conversations:
+            processor = (
+                QueryProcessor(config) if "processor" not in locals() else processor
+            )
+            is_followup = processor._is_followup_question(query)
+            if is_followup:
+                query_type_label = " (Follow-up)"
+
         # Display results with rich formatting
         if not request_id:  # Full output for single query mode
             console.print("\n" + "=" * 60)
-            console.print(f"[bold blue]Query:[/bold blue] {query}")
+            console.print(f"[bold blue]Query:[/bold blue] {query}{query_type_label}")
             console.print("=" * 60)
+        else:  # Interactive mode - show session info
+            session_info = f"[bold blue]Session {request_id}:[/bold blue] {query}"
+            if is_followup:
+                session_info += " [dim yellow](Follow-up)[/dim yellow]"
+            console.print(f"\n{session_info}")
+            console.print("─" * 60)
 
         # Main results
         console.print(
@@ -143,21 +182,29 @@ Estimated cost: ${result.cost_info.estimated_cost_usd:.3f}[/dim]
 
 async def interactive_mode(config: Config, console: Console) -> None:
     """Run in interactive mode with persistent session."""
+    # Generate session ID
+    import uuid
+
+    session_id = str(uuid.uuid4())[:8]
+
     console.print(
         Panel(
-            "[bold]Ask-Intercom Interactive Mode[/bold]\n\n"
+            f"[bold]Ask-Intercom Interactive Mode[/bold]\n\n"
+            f"Session ID: [cyan]{session_id}[/cyan]\n\n"
             "Enter your queries to analyze Intercom conversations.\n"
+            "Ask follow-up questions like 'tell me more about verification issues'.\n"
             "Type 'quit' to exit.",
             border_style="blue",
         )
     )
 
-    request_id = 1
+    message_id = 1
+    session = SessionState()  # Create session state for memory
 
     while True:
         try:
             # Prompt for query
-            query = console.input(f"\n[{request_id:03d}] Query: ").strip()
+            query = console.input(f"\n[{session_id}:{message_id:03d}] Query: ").strip()
 
             if not query:
                 continue
@@ -170,13 +217,16 @@ async def interactive_mode(config: Config, console: Console) -> None:
             console.print("Processing... ", end="")
             start_time = datetime.now()
 
-            success = await run_query(query, config, console, f"{request_id:03d}")
+            # Create request ID with session and message info
+            request_id = f"{session_id}:{message_id:03d}"
+
+            success = await run_query(query, config, console, request_id, session)
 
             if success:
                 duration = (datetime.now() - start_time).total_seconds()
                 console.print(f"[dim]({duration:.1f}s)[/dim]")
 
-            request_id += 1
+            message_id += 1
 
         except KeyboardInterrupt:
             console.print("\n[yellow]Query cancelled[/yellow]")
