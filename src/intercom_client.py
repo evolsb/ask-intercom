@@ -165,31 +165,88 @@ class IntercomClient:
             else:
                 query = {"operator": "AND", "value": search_filters}
 
-            # Build request body
-            request_body = {
-                "query": query,
-                "pagination": {
-                    "per_page": min(filters.limit, 150)  # Search API max is 150
-                },
-            }
+            # Pagination loop to get ALL conversations within the timeframe
+            page = 1
+            per_page = 150  # Search API max is 150 - use full page size for efficiency
+            max_conversations = 1000  # Safety limit to prevent infinite loops
 
-            # Make search request
-            response = await client.post(
-                f"{self.base_url}/conversations/search",
-                headers=self.headers,
-                json=request_body,
+            while len(conversations) < max_conversations:
+                # Build request body with pagination and sorting
+                request_body = {
+                    "query": query,
+                    "pagination": {"per_page": per_page, "page": page},
+                    "sort": {
+                        "field": "created_at",
+                        "order": "desc",  # Consistent ordering
+                    },
+                }
+
+                logger.debug(f"Fetching Search API page {page} (per_page={per_page})")
+
+                # Make search request
+                response = await client.post(
+                    f"{self.base_url}/conversations/search",
+                    headers=self.headers,
+                    json=request_body,
+                )
+                response.raise_for_status()
+
+                data = response.json()
+                page_conversations = data.get("conversations", [])
+
+                # No more results
+                if not page_conversations:
+                    logger.debug(
+                        f"No more conversations on page {page}, stopping pagination"
+                    )
+                    break
+
+                # Parse conversations from this page
+                page_count = 0
+                for conv_data in page_conversations:
+                    if len(conversations) >= max_conversations:
+                        break
+                    conversation = self._parse_conversation_from_search(conv_data)
+                    if conversation:
+                        conversations.append(conversation)
+                        page_count += 1
+
+                logger.info(
+                    f"Page {page}: Parsed {page_count} conversations (total: {len(conversations)})"
+                )
+
+                # Check if this was the last page
+                total_count = data.get("total_count", len(page_conversations))
+                if (
+                    len(page_conversations) < per_page
+                    or (page * per_page) >= total_count
+                ):
+                    logger.info(
+                        f"Reached end of results (page_size={len(page_conversations)}, total={total_count})"
+                    )
+                    break
+
+                page += 1
+
+                # Rate limiting - Intercom allows 83 requests per 10 seconds
+                # Add small delay to be safe (aim for ~60 requests/10s)
+                if page > 1:
+                    import asyncio
+
+                    await asyncio.sleep(
+                        0.2
+                    )  # 200ms between requests = ~5 requests/second
+
+        # Trim to requested limit while preserving all conversations found
+        if len(conversations) > filters.limit:
+            logger.info(
+                f"Trimming {len(conversations)} conversations to requested limit of {filters.limit}"
             )
-            response.raise_for_status()
+            conversations = conversations[: filters.limit]
 
-            data = response.json()
-
-            # Parse conversations directly from search results
-            for conv_data in data.get("conversations", []):
-                conversation = self._parse_conversation_from_search(conv_data)
-                if conversation:
-                    conversations.append(conversation)
-
-        logger.info(f"Fetched {len(conversations)} conversations via Search API")
+        logger.info(
+            f"Fetched {len(conversations)} conversations via Search API (paginated)"
+        )
         return conversations
 
     async def _fetch_via_list_and_details(

@@ -1,6 +1,6 @@
 """OpenAI integration for conversation analysis."""
 
-import json
+import re
 from datetime import datetime, timedelta
 from typing import List
 
@@ -78,39 +78,97 @@ class AIClient:
         )
 
     async def _interpret_timeframe(self, query: str) -> TimeFrame:
-        """Use AI to interpret timeframe from natural language."""
-        prompt = f"""
-        Extract the timeframe from this query: "{query}"
+        """Deterministically interpret timeframe from natural language."""
+        return self._parse_timeframe_deterministic(query)
 
-        Return JSON with:
-        - start_date: ISO date string
-        - end_date: ISO date string
-        - description: human description
+    def _parse_timeframe_deterministic(self, query: str) -> TimeFrame:
+        """Parse timeframes deterministically to ensure consistency."""
+        query_lower = query.lower()
+        now = datetime.now()
 
-        If no timeframe is specified, assume "last 30 days".
-        Today is {datetime.now().strftime('%Y-%m-%d')}.
-        """
+        # Use consistent timezone-naive datetime for deterministic results
+        end_time = now.replace(microsecond=0)
 
-        response = await self.client.chat.completions.create(
-            model=self.timeframe_model,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0,
-            max_tokens=200,
-        )
+        logger.info(f"Parsing timeframe from query: '{query}'")
 
-        try:
-            timeframe_data = json.loads(response.choices[0].message.content)
-            return TimeFrame(
-                start_date=datetime.fromisoformat(timeframe_data["start_date"]),
-                end_date=datetime.fromisoformat(timeframe_data["end_date"]),
-                description=timeframe_data["description"],
+        # 1. Hour patterns
+        if re.search(r"\b(last|past)\s+(1\s+)?hour\b", query_lower):
+            start_time = end_time - timedelta(hours=1)
+            description = "Last 1 hour"
+
+        # 2. Day patterns - CRITICAL: all "day" queries should be rolling 24 hours
+        elif re.search(r"\b(last|past)\s+(24\s+hours?|1\s+days?|days?)\b", query_lower):
+            start_time = end_time - timedelta(days=1)
+            description = "Last 24 hours"
+
+        # 3. "Today" - current calendar day only
+        elif re.search(r"\btoday\b", query_lower):
+            start_time = end_time.replace(hour=0, minute=0, second=0)
+            end_time = start_time + timedelta(days=1) - timedelta(seconds=1)
+            description = "Today"
+
+        # 4. Week patterns - rolling 7 days
+        elif re.search(r"\b(last|past)\s+(7\s+days?|1\s+weeks?|weeks?)\b", query_lower):
+            start_time = end_time - timedelta(days=7)
+            description = "Last 7 days"
+
+        # 5. "This week" - current calendar week
+        elif re.search(r"\bthis\s+week\b", query_lower):
+            days_since_monday = end_time.weekday()
+            start_time = (end_time - timedelta(days=days_since_monday)).replace(
+                hour=0, minute=0, second=0
             )
-        except Exception as e:
-            logger.warning(f"Failed to parse timeframe, using default: {e}")
-            # Default to last 30 days
-            end_date = datetime.now()
-            start_date = end_date - timedelta(days=30)
-            return TimeFrame(start_date, end_date, "last 30 days")
+            description = f"This week (since {start_time.strftime('%B %d')})"
+
+        # 6. Month patterns - rolling 30 days (consistent)
+        elif re.search(
+            r"\b(last|past)\s+(30\s+days?|1\s+months?|months?)\b", query_lower
+        ):
+            start_time = end_time - timedelta(days=30)
+            description = "Last 30 days"
+
+        # 7. "This month" - current calendar month
+        elif re.search(r"\bthis\s+month\b", query_lower):
+            start_time = end_time.replace(day=1, hour=0, minute=0, second=0)
+            description = f"This month ({start_time.strftime('%B %Y')})"
+
+        # 8. Specific numeric patterns
+        elif match := re.search(
+            r"\b(last|past)\s+(\d+)\s+(hours?|days?|weeks?|months?)\b", query_lower
+        ):
+            quantity = int(match.group(2))
+            unit = match.group(3)
+
+            if "hour" in unit:
+                start_time = end_time - timedelta(hours=quantity)
+                description = f"Last {quantity} hours"
+            elif "day" in unit:
+                start_time = end_time - timedelta(days=quantity)
+                description = f"Last {quantity} days"
+            elif "week" in unit:
+                start_time = end_time - timedelta(weeks=quantity)
+                description = f"Last {quantity} weeks"
+            elif "month" in unit:
+                start_time = end_time - timedelta(days=quantity * 30)  # Approximate
+                description = f"Last {quantity} months"
+            else:
+                # Default fallback
+                start_time = end_time - timedelta(days=30)
+                description = "Last 30 days (default)"
+        else:
+            # Default: last 30 days
+            start_time = end_time - timedelta(days=30)
+            description = "Last 30 days (default)"
+
+        # Ensure timezone consistency - remove tzinfo for deterministic behavior
+        start_time = start_time.replace(tzinfo=None)
+        end_time = end_time.replace(tzinfo=None)
+
+        logger.info(f"Parsed timeframe: {description} ({start_time} to {end_time})")
+
+        return TimeFrame(
+            start_date=start_time, end_date=end_time, description=description
+        )
 
     def _get_system_prompt(self) -> str:
         """Get the system prompt for conversation analysis."""

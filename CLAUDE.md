@@ -42,6 +42,23 @@ Ask-Intercom is an AI-powered tool that turns raw Intercom conversations into ac
 - **Search logs**: `grep "ERROR\|error" .ask-intercom-dev/debug.log`
 - **Debug mode**: Add `--debug` flag to CLI commands for verbose console output
 
+### Pre-commit Workflow
+- **Run hooks before committing**: `~/.local/bin/poetry run pre-commit run --all-files`
+- **Quick file fixes**: `~/.local/bin/poetry run pre-commit run --files src/file.py`
+- **Skip hooks for WIP**: `git commit --no-verify -m "wip: message"`
+- **Auto-fix then commit**: Let hooks fix issues, then `git add -A && git commit` again
+- **Critical hooks**: `detect-secrets` (security), `black`/`ruff` (code quality)
+
+### Testing & Quality Assurance
+- **Unit tests**: `~/.local/bin/poetry run pytest tests/unit/`
+- **Integration tests**: `~/.local/bin/poetry run pytest tests/integration/`
+- **Timeframe consistency**: `~/.local/bin/poetry run python tests/integration/test_timeframe_consistency.py`
+- **All tests**: `~/.local/bin/poetry run pytest -v`
+
+**⚠️ KNOWN ISSUES**: 
+1. **FIXED**: Timeframe interpretation inconsistency - replaced AI-based parsing with deterministic regex parser
+2. **ACTIVE**: Intercom Search API pagination/filtering causes containment violations (1 day may return more conversations than 1 week due to API limits and different filtering behavior)
+
 ### Environment Variables
 ```bash
 # Required in .env file
