@@ -77,6 +77,10 @@ class IntercomClient:
     ) -> Optional[Conversation]:
         """Parse a conversation from API response."""
         try:
+            logger.debug(f"Parsing conversation: {conv_data.get('id')}")
+            logger.debug(
+                f"Conv data keys: {list(conv_data.keys()) if isinstance(conv_data, dict) else type(conv_data)}"
+            )
             # Get conversation parts (messages)
             parts_response = await client.get(
                 f"{self.base_url}/conversations/{conv_data['id']}",
@@ -121,7 +125,10 @@ class IntercomClient:
                 .get("delivered_as", {})
                 .get("contact", {})
                 .get("email"),
-                tags=conv_data.get("tags", {}).get("tags", []),
+                tags=[
+                    tag.get("name", tag) if isinstance(tag, dict) else tag
+                    for tag in conv_data.get("tags", {}).get("tags", [])
+                ],
             )
 
         except Exception as e:

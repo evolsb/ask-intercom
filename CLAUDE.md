@@ -26,6 +26,13 @@ Ask-Intercom is an AI-powered tool that turns raw Intercom conversations into ac
 
 ## Development Environment
 
+### Dependencies & Commands
+- **Python**: 3.13.3 available at `/opt/homebrew/bin/python3`
+- **Poetry**: Available at `~/.local/bin/poetry` (version 2.1.3)
+- **Testing**: `~/.local/bin/poetry run pytest -v`
+- **CLI**: `~/.local/bin/poetry run python -m src.cli "your query"`
+- **Dependencies**: `~/.local/bin/poetry install` (installs from pyproject.toml)
+
 ### Environment Variables
 ```bash
 # Required in .env file
@@ -83,7 +90,16 @@ src/
 
 ### Current: Phase 0 (CLI Prototype)
 **Goal**: Prove AI + MCP integration works
-**Tech**: Python CLI + OpenAI + MCP
+**Tech**: Python CLI + OpenAI + REST API (MCP planned)
+
+### Phase 0.5: MCP Integration (High Priority)
+**Goal**: Replace REST API with Intercom's official MCP server
+**Why**: Better performance, real-time data, standardized protocol
+**Tech**: [Intercom MCP Server](https://modelcontextprotocol.io/specification/2025-03-26/basic/authorization)
+- Implement MCP client with proper authorization
+- Keep REST API as graceful fallback
+- Performance comparison testing
+- Update documentation and examples
 
 ### Future Phases
 - **Phase 1**: + pgvector + embeddings (Context & Memory)
