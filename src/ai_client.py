@@ -22,26 +22,38 @@ class AIClient:
         "gpt-3.5-turbo": {"input": 0.0005, "output": 0.0015},
     }
 
-    def __init__(self, api_key: str, model: str = "gpt-4", app_id: str = None):
+    def __init__(
+        self,
+        api_key: str,
+        model: str = "gpt-4",
+        app_id: str = None,
+        timeframe_model: str = "gpt-3.5-turbo",
+    ):
         self.client = AsyncOpenAI(api_key=api_key)
         self.model = model
         self.app_id = app_id
+        self.timeframe_model = timeframe_model
 
     async def analyze_conversations(
-        self, conversations: List[Conversation], query: str
+        self, conversations: List[Conversation], query: str, timeframe: TimeFrame
     ) -> AnalysisResult:
         """Analyze conversations and generate insights."""
-        # First, interpret the timeframe from the query
-        timeframe = await self._interpret_timeframe(query)
-
         # Build the analysis prompt
         prompt = self._build_analysis_prompt(conversations, query)
 
-        # Call OpenAI
+        # Determine if this is a follow-up question
+        is_followup = "Answer this specific follow-up question:" in prompt
+        system_prompt = (
+            self._get_followup_system_prompt()
+            if is_followup
+            else self._get_system_prompt()
+        )
+
+        # Call OpenAI for analysis
         response = await self.client.chat.completions.create(
             model=self.model,
             messages=[
-                {"role": "system", "content": self._get_system_prompt()},
+                {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt},
             ],
             temperature=0.1,  # Low temperature for consistent results
@@ -80,7 +92,7 @@ class AIClient:
         """
 
         response = await self.client.chat.completions.create(
-            model=self.model,
+            model=self.timeframe_model,
             messages=[{"role": "user", "content": prompt}],
             temperature=0,
             max_tokens=200,
@@ -103,43 +115,117 @@ class AIClient:
     def _get_system_prompt(self) -> str:
         """Get the system prompt for conversation analysis."""
         return """
-        You are an expert customer support analyst. Your job is to analyze Intercom conversations and provide clear, actionable insights.
+        Analyze customer support conversations. Provide 3-5 bullet points sorted by urgency/impact:
 
-        Guidelines:
-        - Provide exactly 3-5 bullet points summarizing key findings
-        - Focus on patterns, trends, and actionable insights
-        - Structure each insight with: [CATEGORY] Description (X customers affected, Y% of total)
-        - Categories: BUG, FEATURE_REQUEST, CONFUSION, COMPLAINT, PROCESS_ISSUE, OTHER
-        - Reference specific customer emails as examples with clickable links (e.g., "reported by user@example.com [View](https://app.intercom.com/a/inbox/{app_id}/inbox/shared/all/conversation/{conv_id})")
-        - Include metrics: number of customers affected, percentage of conversations, trend direction
-        - Mention total messages analyzed at the end
-        - Prioritize by impact (most customers affected first)
-        - Keep each bullet point to 1-2 sentences maximum
-        - When referencing customers, include a clickable "View" link next to their email
+        Format each insight as:
+        - [CATEGORY] Title (X customers, Y% of total)
 
-        Example format:
-        - [BUG] Login verification failing for mobile users (12 customers, 24% of conversations). Examples: user1@email.com [View](conversation_url), user2@email.com [View](conversation_url)
-        - [FEATURE_REQUEST] Dark mode requested by enterprise customers (8 customers, 16% of conversations). Trending up from last week.
+          Detailed description with customer examples (email1@domain.com [View](url), email2@domain.com [View](url)).
+
+        Categories: BUG, FEATURE_REQUEST, CONFUSION, COMPLAINT, PROCESS_ISSUE, OTHER
+
+        Sort by: 1) Customer impact (more customers = higher priority), 2) Severity (BUG > COMPLAINT > CONFUSION > FEATURE_REQUEST)
+
+        Add blank lines between insights for readability.
+        When referencing customers, include clickable [View] links next to their email addresses.
 
         End with: "Analyzed X conversations containing Y total messages."
+        """
+
+    def _get_followup_system_prompt(self) -> str:
+        """Get the system prompt for follow-up question analysis."""
+        return """
+        Answer the follow-up question about a specific issue from the previous analysis.
+
+        CRITICAL CONSISTENCY RULES:
+        - You MUST use the exact same conversation data and customer counts as the previous analysis
+        - If the previous analysis said "7 customers" had an issue, you must find and analyze all 7
+        - Do NOT re-filter or change the customer count - maintain consistency with previous results
+        - Focus only on the specific topic they're asking about, but include ALL customers who had that issue
+        - Reference the previous analysis context provided to ensure consistency
+
+        Format: [CATEGORY] Detailed analysis (X customers, consistent with previous)
+        Include ALL customer emails that were mentioned in the previous analysis for this issue.
+
+        End with: "Analyzed X customers with this specific issue from cached data."
         """
 
     def _build_analysis_prompt(
         self, conversations: List[Conversation], query: str
     ) -> str:
         """Build the prompt for conversation analysis."""
-        # Count total messages
-        total_messages = sum(len(conv.messages) for conv in conversations)
+        # Filter conversations that have customer interactions
+        relevant_conversations = []
+        for conv in conversations:
+            # Check if conversation has any customer messages
+            customer_messages = [m for m in conv.messages if m.author_type == "user"]
+            if customer_messages:
+                relevant_conversations.append(conv)
+
+        # Count total messages (before filtering)
+        total_messages = sum(len(conv.messages) for conv in relevant_conversations)
+
+        # Count filtered messages
+        filtered_messages = 0
 
         # Summarize conversations to fit within token limits
         conv_summaries = []
-        for conv in conversations[:50]:  # Limit to prevent token overflow
+        for conv in relevant_conversations[:50]:  # Limit to prevent token overflow
             customer_id = conv.customer_email or f"anonymous-{conv.id[:8]}"
             summary = f"Conversation from {customer_id} ({conv.created_at.strftime('%Y-%m-%d')}) [ID: {conv.id}]:\n"
-            for msg in conv.messages[:5]:  # Limit messages per conversation
+
+            # Filter and include only meaningful messages
+            message_count = 0
+            for msg in conv.messages[:10]:  # Increased limit to see more context
+                # Skip very short messages
+                if len(msg.body.strip()) < 10:
+                    filtered_messages += 1
+                    continue
+
+                # Skip common auto-responses and boilerplate
+                lower_body = msg.body.lower().strip()
+                if any(
+                    pattern in lower_body
+                    for pattern in [
+                        "this conversation has been closed",
+                        "conversation was closed automatically",
+                        "thanks for contacting",
+                        "we'll get back to you",
+                        "your request has been received",
+                        "ticket has been created",
+                        "this is an automated message",
+                        "do not reply to this email",
+                        "case has been escalated",
+                        "merged with another conversation",
+                    ]
+                ):
+                    filtered_messages += 1
+                    continue
+
+                # Skip admin-only messages if no customer response follows
+                if msg.author_type == "admin":
+                    # Check if there's a customer message after this
+                    msg_index = conv.messages.index(msg)
+                    has_customer_response = any(
+                        m.author_type == "user" for m in conv.messages[msg_index + 1 :]
+                    )
+                    if not has_customer_response and message_count > 0:
+                        filtered_messages += 1
+                        continue
                 author = "Customer" if msg.author_type == "user" else "Support"
                 summary += f"  {author}: {msg.body[:200]}...\n"
-            conv_summaries.append(summary)
+                message_count += 1
+
+                if message_count >= 5:  # Limit messages shown per conversation
+                    break
+
+            if message_count > 0:  # Only include conversations with meaningful content
+                conv_summaries.append(summary)
+
+        actual_messages = total_messages - filtered_messages
+        logger.info(
+            f"Filtered {filtered_messages} low-value messages from {total_messages} total"
+        )
 
         # Build conversation mapping for URLs
         conv_mapping = "\n\nConversation URLs for reference:\n"
@@ -151,7 +237,7 @@ class AIClient:
         analysis_prompt = f"""
         Query: {query}
 
-        Analyze these {len(conversations)} customer support conversations (containing {total_messages} total messages):
+        Analyze these {len(relevant_conversations)} customer support conversations (containing {actual_messages} meaningful messages after filtering):
 
         {chr(10).join(conv_summaries)}
         """
@@ -166,9 +252,10 @@ class AIClient:
 
         return analysis_prompt
 
-    def _calculate_cost(self, usage) -> CostInfo:
+    def _calculate_cost(self, usage, model: str = None) -> CostInfo:
         """Calculate the cost of the API call."""
-        model_costs = self.COSTS.get(self.model, self.COSTS["gpt-4"])
+        model_name = model or self.model
+        model_costs = self.COSTS.get(model_name, self.COSTS["gpt-4"])
 
         input_cost = (usage.prompt_tokens / 1000) * model_costs["input"]
         output_cost = (usage.completion_tokens / 1000) * model_costs["output"]
@@ -177,7 +264,7 @@ class AIClient:
         return CostInfo(
             tokens_used=usage.total_tokens,
             estimated_cost_usd=total_cost,
-            model_used=self.model,
+            model_used=model_name,
         )
 
     def _extract_insights(self, analysis_text: str) -> List[str]:

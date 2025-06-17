@@ -78,3 +78,13 @@ class ConversationFilters:
     tags: Optional[List[str]] = None
     customer_email: Optional[str] = None
     limit: int = 50
+
+
+@dataclass
+class SessionState:
+    """State for interactive sessions with conversation memory."""
+
+    last_query: Optional[str] = None
+    last_conversations: Optional[List[Conversation]] = None
+    last_analysis: Optional[AnalysisResult] = None
+    last_timeframe: Optional[TimeFrame] = None

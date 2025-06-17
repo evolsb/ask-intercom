@@ -171,7 +171,9 @@ def setup_logging(
 
     # Create console handler
     console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setLevel(level)
+    # In interactive mode, only show warnings and errors on console
+    console_level = logging.WARNING if interactive else level
+    console_handler.setLevel(console_level)
 
     if structured:
         # Use JSON formatter for structured logging

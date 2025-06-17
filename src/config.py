@@ -1,6 +1,7 @@
 """Configuration management for Ask-Intercom."""
 
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -21,7 +22,10 @@ class Config(BaseModel):
     )
     debug: bool = Field(default=False, description="Enable debug mode")
 
-    model_config = ConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = ConfigDict(
+        env_file=[".env", str(Path(__file__).parent.parent / ".env")],
+        env_file_encoding="utf-8",
+    )
 
     @field_validator("intercom_token")
     @classmethod
@@ -55,7 +59,21 @@ class Config(BaseModel):
     @classmethod
     def from_env(cls) -> "Config":
         """Load configuration from environment variables."""
-        load_dotenv()
+        # Find the .env file - check current directory and project root
+        env_paths = [
+            Path.cwd() / ".env",  # Current working directory
+            Path(__file__).parent.parent
+            / ".env",  # Project root (one level up from src/)
+        ]
+
+        # Load from the first .env file found
+        for env_path in env_paths:
+            if env_path.exists():
+                load_dotenv(env_path)
+                break
+        else:
+            # Fallback - try to load without specifying path
+            load_dotenv()
 
         return cls(
             intercom_token=os.getenv("INTERCOM_ACCESS_TOKEN", ""),
