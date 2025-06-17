@@ -32,14 +32,14 @@ class IntercomClient:
             logger.info("MCP not implemented yet, using REST API")
             return await self._fetch_via_rest(filters)
         except Exception as e:
-            logger.error(f"Failed to fetch conversations: {e}")
+            logger.error(f"Failed to fetch conversations: {e}", exc_info=True)
             raise
 
     async def _fetch_via_rest(self, filters: ConversationFilters) -> List[Conversation]:
         """Fetch conversations via REST API."""
         conversations = []
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             # Build query parameters
             params = {
                 "per_page": min(filters.limit, 50),  # Intercom max is 50
@@ -117,14 +117,19 @@ class IntercomClient:
                 )
                 messages.insert(0, initial_message)
 
+            # Get customer email from source.author or contacts
+            customer_email = None
+            source = conv_data.get("source", {})
+            if isinstance(source, dict):
+                author = source.get("author", {})
+                if isinstance(author, dict):
+                    customer_email = author.get("email")
+
             return Conversation(
                 id=conv_data["id"],
                 created_at=datetime.fromtimestamp(conv_data["created_at"]),
                 messages=messages,
-                customer_email=conv_data.get("source", {})
-                .get("delivered_as", {})
-                .get("contact", {})
-                .get("email"),
+                customer_email=customer_email,
                 tags=[
                     tag.get("name", tag) if isinstance(tag, dict) else tag
                     for tag in conv_data.get("tags", {}).get("tags", [])
@@ -132,5 +137,12 @@ class IntercomClient:
             )
 
         except Exception as e:
-            logger.warning(f"Failed to parse conversation {conv_data.get('id')}: {e}")
+            logger.warning(
+                f"Failed to parse conversation {conv_data.get('id') if isinstance(conv_data, dict) else 'unknown'}: {e}"
+            )
+            logger.debug(f"Conv data type: {type(conv_data)}")
+            logger.debug(f"Error type: {type(e).__name__}")
+            import traceback
+
+            logger.debug(f"Traceback: {traceback.format_exc()}")
             return None
