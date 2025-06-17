@@ -179,19 +179,27 @@ class QueryProcessor:
             f"Processing follow-up on {len(conversations)} cached conversations"
         )
 
-        # Create a follow-up specific prompt that filters conversations
+        # Reference the previous analysis for consistency
+        previous_summary = (
+            session.last_analysis.summary if session.last_analysis else ""
+        )
+
+        # Create a follow-up specific prompt that maintains consistency
         followup_prompt = f"""
-        Answer this specific follow-up question: {query}
+        This is a follow-up question about the previous analysis: {query}
 
-        IMPORTANT: Only analyze conversations and messages that are directly related to what the user is asking about.
-        Ignore all other issues, complaints, or topics that don't match the follow-up question.
+        PREVIOUS ANALYSIS CONTEXT:
+        {previous_summary}
 
-        If the user asks about "verification issues", only show verification-related problems.
-        If they ask about "access to funds", only show fund access problems.
-        If they ask about "business accounts", only show business account requests.
+        IMPORTANT INSTRUCTIONS:
+        - Use the SAME conversation data that was analyzed before
+        - Focus only on the specific topic the user is asking about from that previous analysis
+        - If they reference a specific issue category (like "access to funds" or "verification"), find ALL customers who had that issue
+        - Maintain consistency with the previous analysis - if you said "7 customers" before, make sure you analyze all 7
+        - Provide detailed information only about the specific topic they're drilling into
+        - Include ALL customer examples that relate to their specific question
 
-        Provide 2-3 focused bullet points maximum, only about the specific topic they're asking about.
-        Include customer examples and specific details from relevant conversations only.
+        Provide detailed analysis only about: {query}
         """
 
         # Analyze with the follow-up context

@@ -129,17 +129,19 @@ class AIClient:
     def _get_followup_system_prompt(self) -> str:
         """Get the system prompt for follow-up question analysis."""
         return """
-        Answer the specific follow-up question by analyzing only the relevant conversations.
+        Answer the follow-up question about a specific issue from the previous analysis.
 
-        Rules:
-        - Only focus on conversations/messages directly related to the user's specific question
-        - Ignore all other topics, issues, or complaints not mentioned in the follow-up
-        - Provide 2-3 focused bullet points maximum
-        - Format: [CATEGORY] Specific issue (X customers affected)
-        - Include customer email examples from relevant conversations only
-        - Be detailed about the specific issue they asked about
+        CRITICAL CONSISTENCY RULES:
+        - You MUST use the exact same conversation data and customer counts as the previous analysis
+        - If the previous analysis said "7 customers" had an issue, you must find and analyze all 7
+        - Do NOT re-filter or change the customer count - maintain consistency with previous results
+        - Focus only on the specific topic they're asking about, but include ALL customers who had that issue
+        - Reference the previous analysis context provided to ensure consistency
 
-        End with: "Analyzed X relevant conversations from cached data."
+        Format: [CATEGORY] Detailed analysis (X customers, consistent with previous)
+        Include ALL customer emails that were mentioned in the previous analysis for this issue.
+
+        End with: "Analyzed X customers with this specific issue from cached data."
         """
 
     def _build_analysis_prompt(
