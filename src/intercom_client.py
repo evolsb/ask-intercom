@@ -52,7 +52,9 @@ class IntercomClient:
         """Fetch conversations using the Search API (much faster)."""
         conversations = []
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        # Optimize HTTP client for better performance
+        limits = httpx.Limits(max_keepalive_connections=5, max_connections=10)
+        async with httpx.AsyncClient(timeout=30.0, limits=limits) as client:
             # Build search query
             search_filters = []
 
