@@ -107,22 +107,33 @@ class AIClient:
         Guidelines:
         - Provide exactly 3-5 bullet points summarizing key findings
         - Focus on patterns, trends, and actionable insights
-        - Be specific with numbers and percentages when possible
-        - Prioritize customer pain points and frequently mentioned issues
+        - Structure each insight with: [CATEGORY] Description (X customers affected, Y% of total)
+        - Categories: BUG, FEATURE_REQUEST, CONFUSION, COMPLAINT, PROCESS_ISSUE, OTHER
+        - Reference specific customer emails as examples (e.g., "reported by user@example.com")
+        - Include metrics: number of customers affected, percentage of conversations, trend direction
+        - Mention total messages analyzed at the end
+        - Prioritize by impact (most customers affected first)
         - Keep each bullet point to 1-2 sentences maximum
-        - Use professional but accessible language
+
+        Example format:
+        - [BUG] Login verification failing for mobile users (12 customers, 24% of conversations). Examples: user1@email.com, user2@email.com
+        - [FEATURE_REQUEST] Dark mode requested by enterprise customers (8 customers, 16% of conversations). Trending up from last week.
+
+        End with: "Analyzed X conversations containing Y total messages."
         """
 
     def _build_analysis_prompt(
         self, conversations: List[Conversation], query: str
     ) -> str:
         """Build the prompt for conversation analysis."""
+        # Count total messages
+        total_messages = sum(len(conv.messages) for conv in conversations)
+
         # Summarize conversations to fit within token limits
         conv_summaries = []
         for conv in conversations[:50]:  # Limit to prevent token overflow
-            summary = (
-                f"Conversation {conv.id} ({conv.created_at.strftime('%Y-%m-%d')}):\n"
-            )
+            customer_id = conv.customer_email or f"anonymous-{conv.id[:8]}"
+            summary = f"Conversation from {customer_id} ({conv.created_at.strftime('%Y-%m-%d')}):\n"
             for msg in conv.messages[:5]:  # Limit messages per conversation
                 author = "Customer" if msg.author_type == "user" else "Support"
                 summary += f"  {author}: {msg.body[:200]}...\n"
@@ -131,11 +142,11 @@ class AIClient:
         return f"""
         Query: {query}
 
-        Analyze these {len(conversations)} customer support conversations:
+        Analyze these {len(conversations)} customer support conversations (containing {total_messages} total messages):
 
         {chr(10).join(conv_summaries)}
 
-        Provide a clear analysis addressing the original query.
+        Provide a clear analysis addressing the original query. Remember to mention the total message count at the end.
         """
 
     def _calculate_cost(self, usage) -> CostInfo:
