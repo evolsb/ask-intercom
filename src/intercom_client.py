@@ -1,0 +1,129 @@
+"""Intercom API client with MCP fallback."""
+
+import logging
+from datetime import datetime
+from typing import List, Optional
+
+import httpx
+
+from .models import Conversation, ConversationFilters, Message
+
+logger = logging.getLogger(__name__)
+
+
+class IntercomClient:
+    """Intercom API client with MCP support and REST fallback."""
+
+    def __init__(self, access_token: str):
+        self.access_token = access_token
+        self.base_url = "https://api.intercom.io"
+        self.headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+        }
+
+    async def fetch_conversations(
+        self, filters: ConversationFilters
+    ) -> List[Conversation]:
+        """Fetch conversations based on filters."""
+        try:
+            # TODO: Implement MCP client when available
+            logger.info("MCP not implemented yet, using REST API")
+            return await self._fetch_via_rest(filters)
+        except Exception as e:
+            logger.error(f"Failed to fetch conversations: {e}")
+            raise
+
+    async def _fetch_via_rest(self, filters: ConversationFilters) -> List[Conversation]:
+        """Fetch conversations via REST API."""
+        conversations = []
+
+        async with httpx.AsyncClient() as client:
+            # Build query parameters
+            params = {
+                "per_page": min(filters.limit, 50),  # Intercom max is 50
+                "order": "desc",
+                "sort": "created_at",
+            }
+
+            if filters.start_date:
+                params["created_at_after"] = int(filters.start_date.timestamp())
+            if filters.end_date:
+                params["created_at_before"] = int(filters.end_date.timestamp())
+
+            response = await client.get(
+                f"{self.base_url}/conversations",
+                headers=self.headers,
+                params=params,
+            )
+            response.raise_for_status()
+
+            data = response.json()
+
+            for conv_data in data.get("conversations", []):
+                conversation = await self._parse_conversation(client, conv_data)
+                if conversation:
+                    conversations.append(conversation)
+
+                    if len(conversations) >= filters.limit:
+                        break
+
+        logger.info(f"Fetched {len(conversations)} conversations")
+        return conversations
+
+    async def _parse_conversation(
+        self, client: httpx.AsyncClient, conv_data: dict
+    ) -> Optional[Conversation]:
+        """Parse a conversation from API response."""
+        try:
+            # Get conversation parts (messages)
+            parts_response = await client.get(
+                f"{self.base_url}/conversations/{conv_data['id']}",
+                headers=self.headers,
+            )
+            parts_response.raise_for_status()
+            parts_data = parts_response.json()
+
+            # Parse messages
+            messages = []
+            for part in parts_data.get("conversation_parts", {}).get(
+                "conversation_parts", []
+            ):
+                if part.get("part_type") in ["comment", "note"]:
+                    message = Message(
+                        id=part["id"],
+                        author_type=(
+                            "admin"
+                            if part.get("author", {}).get("type") == "admin"
+                            else "user"
+                        ),
+                        body=part.get("body", ""),
+                        created_at=datetime.fromtimestamp(part["created_at"]),
+                    )
+                    messages.append(message)
+
+            # Add the initial message
+            if conv_data.get("source", {}).get("body"):
+                initial_message = Message(
+                    id=conv_data["id"] + "_initial",
+                    author_type="user",
+                    body=conv_data["source"]["body"],
+                    created_at=datetime.fromtimestamp(conv_data["created_at"]),
+                )
+                messages.insert(0, initial_message)
+
+            return Conversation(
+                id=conv_data["id"],
+                created_at=datetime.fromtimestamp(conv_data["created_at"]),
+                messages=messages,
+                customer_email=conv_data.get("source", {})
+                .get("delivered_as", {})
+                .get("contact", {})
+                .get("email"),
+                tags=conv_data.get("tags", {}).get("tags", []),
+            )
+
+        except Exception as e:
+            logger.warning(f"Failed to parse conversation {conv_data.get('id')}: {e}")
+            return None
