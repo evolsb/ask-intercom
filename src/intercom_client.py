@@ -1,14 +1,14 @@
 """Intercom API client with MCP fallback."""
 
-import logging
 from datetime import datetime
 from typing import List, Optional
 
 import httpx
 
+from .logger import get_logger
 from .models import Conversation, ConversationFilters, Message
 
-logger = logging.getLogger(__name__)
+logger = get_logger("intercom_client")
 
 
 class IntercomClient:

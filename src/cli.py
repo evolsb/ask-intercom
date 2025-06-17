@@ -6,23 +6,14 @@ Usage: ask-intercom "What are the top customer complaints this month?"
 
 import argparse
 import asyncio
-import logging
 import sys
 
 from rich.console import Console
 from rich.panel import Panel
 
 from .config import Config
+from .logger import setup_logging
 from .query_processor import QueryProcessor
-
-
-def setup_logging(debug: bool = False) -> None:
-    """Configure logging for the application."""
-    level = logging.DEBUG if debug else logging.INFO
-    logging.basicConfig(
-        level=level,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    )
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -43,6 +34,12 @@ Examples:
     )
 
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
+
+    parser.add_argument(
+        "--structured-logs",
+        action="store_true",
+        help="Output structured JSON logs instead of human-readable format",
+    )
 
     parser.add_argument(
         "--model",
@@ -103,7 +100,7 @@ def main() -> None:
     args = parser.parse_args()
 
     # Setup
-    setup_logging(args.debug)
+    setup_logging(args.debug, structured=args.structured_logs)
     console = Console()
 
     try:

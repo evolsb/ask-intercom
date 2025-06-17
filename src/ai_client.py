@@ -1,15 +1,15 @@
 """OpenAI integration for conversation analysis."""
 
 import json
-import logging
 from datetime import datetime, timedelta
 from typing import List
 
 from openai import AsyncOpenAI
 
+from .logger import get_logger
 from .models import AnalysisResult, Conversation, CostInfo, TimeFrame
 
-logger = logging.getLogger(__name__)
+logger = get_logger("ai_client")
 
 
 class AIClient:
