@@ -220,69 +220,18 @@ class AIClient:
             if customer_messages:
                 relevant_conversations.append(conv)
 
-        # Count total messages (before filtering)
-        total_messages = sum(len(conv.messages) for conv in relevant_conversations)
-
-        # Count filtered messages
-        filtered_messages = 0
-
-        # Summarize conversations to fit within token limits
+        # Compress conversations to fit within token limits while preserving context
         conv_summaries = []
-        for conv in relevant_conversations[:50]:  # Limit to prevent token overflow
+        for conv in relevant_conversations:  # Use all relevant conversations
             customer_id = conv.customer_email or f"anonymous-{conv.id[:8]}"
-            summary = f"Conversation from {customer_id} ({conv.created_at.strftime('%Y-%m-%d')}) [ID: {conv.id}]:\n"
 
-            # Filter and include only meaningful messages
-            message_count = 0
-            for msg in conv.messages[:10]:  # Increased limit to see more context
-                # Skip very short messages
-                if len(msg.body.strip()) < 10:
-                    filtered_messages += 1
-                    continue
+            # Use compression method that preserves context
+            compressed = self._compress_conversation(conv, customer_id)
+            if compressed:  # Only include if there's meaningful content
+                conv_summaries.append(compressed)
 
-                # Skip common auto-responses and boilerplate
-                lower_body = msg.body.lower().strip()
-                if any(
-                    pattern in lower_body
-                    for pattern in [
-                        "this conversation has been closed",
-                        "conversation was closed automatically",
-                        "thanks for contacting",
-                        "we'll get back to you",
-                        "your request has been received",
-                        "ticket has been created",
-                        "this is an automated message",
-                        "do not reply to this email",
-                        "case has been escalated",
-                        "merged with another conversation",
-                    ]
-                ):
-                    filtered_messages += 1
-                    continue
-
-                # Skip admin-only messages if no customer response follows
-                if msg.author_type == "admin":
-                    # Check if there's a customer message after this
-                    msg_index = conv.messages.index(msg)
-                    has_customer_response = any(
-                        m.author_type == "user" for m in conv.messages[msg_index + 1 :]
-                    )
-                    if not has_customer_response and message_count > 0:
-                        filtered_messages += 1
-                        continue
-                author = "Customer" if msg.author_type == "user" else "Support"
-                summary += f"  {author}: {msg.body[:200]}...\n"
-                message_count += 1
-
-                if message_count >= 5:  # Limit messages shown per conversation
-                    break
-
-            if message_count > 0:  # Only include conversations with meaningful content
-                conv_summaries.append(summary)
-
-        actual_messages = total_messages - filtered_messages
         logger.info(
-            f"Filtered {filtered_messages} low-value messages from {total_messages} total"
+            f"Compressed {len(conv_summaries)} conversations from {len(relevant_conversations)} total"
         )
 
         # Build conversation mapping for URLs
@@ -295,7 +244,7 @@ class AIClient:
         analysis_prompt = f"""
         Query: {query}
 
-        Analyze these {len(relevant_conversations)} customer support conversations (containing {actual_messages} meaningful messages after filtering):
+        Analyze these {len(conv_summaries)} customer support conversations:
 
         {chr(10).join(conv_summaries)}
         """
@@ -335,3 +284,57 @@ class AIClient:
                 insights.append(line[1:].strip())
 
         return insights[:5]  # Limit to 5 insights
+
+    def _compress_conversation(self, conv: Conversation, customer_id: str) -> str:
+        """Compress a conversation into a meaningful snippet while preserving context."""
+        if not conv.messages:
+            return ""
+
+        # Start with conversation header
+        summary = f"Conversation from {customer_id} ({conv.created_at.strftime('%Y-%m-%d')}) [ID: {conv.id}]:\n"
+
+        # Find the main customer issue (usually in first few customer messages)
+        customer_messages = [m for m in conv.messages if m.author_type == "user"]
+        if not customer_messages:
+            return ""  # Skip admin-only conversations
+
+        # Get the primary issue from the first customer message
+        primary_issue = customer_messages[0].body
+        summary += f"  Issue: {primary_issue[:150]}{'...' if len(primary_issue) > 150 else ''}\n"
+
+        # Add key customer responses (yes/no answers, additional details, etc.)
+        key_responses = []
+        for msg in customer_messages[1:4]:  # Next 3 customer messages
+            if msg.body.strip():
+                # Even short responses like "yes" or "no" provide context
+                response = msg.body.strip()[:100]
+                key_responses.append(
+                    f"Customer: {response}{'...' if len(msg.body) > 100 else ''}"
+                )
+
+        if key_responses:
+            summary += "  " + " | ".join(key_responses) + "\n"
+
+        # Add final resolution/status if available from support
+        admin_messages = [m for m in conv.messages if m.author_type == "admin"]
+        if admin_messages:
+            # Look for resolution-indicating messages
+            last_admin = admin_messages[-1]
+            if any(
+                keyword in last_admin.body.lower()
+                for keyword in [
+                    "resolved",
+                    "closed",
+                    "fixed",
+                    "completed",
+                    "solved",
+                    "workaround",
+                ]
+            ):
+                resolution = last_admin.body[:100]
+                summary += f"  Resolution: {resolution}{'...' if len(last_admin.body) > 100 else ''}\n"
+
+        # Add conversation metadata
+        summary += f"  Messages: {len(conv.messages)} | Customer responses: {len(customer_messages)}\n"
+
+        return summary

@@ -331,23 +331,26 @@ class IntercomClient:
                         else "user"
                     )
 
+                    body = part.get("body", "")
+
                     if author_type == "user":
                         has_customer_message = True
 
                     message = Message(
                         id=str(part.get("id", "unknown")),
                         author_type=author_type,
-                        body=part.get("body", ""),
+                        body=body,
                         created_at=datetime.fromtimestamp(part.get("created_at", 0)),
                     )
                     messages.append(message)
 
             # Add the initial message from source
             if conv_data.get("source", {}).get("body"):
+                body = conv_data["source"]["body"]
                 initial_message = Message(
                     id=conv_data["id"] + "_initial",
                     author_type="user",
-                    body=conv_data["source"]["body"],
+                    body=body,
                     created_at=datetime.fromtimestamp(conv_data["created_at"]),
                 )
                 messages.insert(0, initial_message)
@@ -414,23 +417,26 @@ class IntercomClient:
                         else "user"
                     )
 
+                    body = part.get("body", "")
+
                     if author_type == "user":
                         has_customer_message = True
 
                     message = Message(
                         id=part["id"],
                         author_type=author_type,
-                        body=part.get("body", ""),
+                        body=body,
                         created_at=datetime.fromtimestamp(part["created_at"]),
                     )
                     messages.append(message)
 
             # Add the initial message
             if conv_data.get("source", {}).get("body"):
+                body = conv_data["source"]["body"]
                 initial_message = Message(
                     id=conv_data["id"] + "_initial",
                     author_type="user",
-                    body=conv_data["source"]["body"],
+                    body=body,
                     created_at=datetime.fromtimestamp(conv_data["created_at"]),
                 )
                 messages.insert(0, initial_message)
