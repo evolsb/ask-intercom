@@ -16,3 +16,6 @@ __pycache__/
 .Python
 *.so
 .pytest_cache/
+
+# Claude Code settings
+.claude/
