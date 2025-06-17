@@ -31,7 +31,16 @@ Ask-Intercom is an AI-powered tool that turns raw Intercom conversations into ac
 - **Poetry**: Available at `~/.local/bin/poetry` (version 2.1.3)
 - **Testing**: `~/.local/bin/poetry run pytest -v`
 - **CLI**: `~/.local/bin/poetry run python -m src.cli "your query"`
+- **Interactive CLI**: `~/.local/bin/poetry run python -m src.cli --interactive`
 - **Dependencies**: `~/.local/bin/poetry install` (installs from pyproject.toml)
+
+### Debugging & Logs
+- **Debug logs**: `.ask-intercom-dev/debug.log` (structured JSON, rotated at 10MB)
+- **Query logs**: `.ask-intercom-dev/queries.jsonl` (query start events)
+- **Result logs**: `.ask-intercom-dev/results.jsonl` (query completion events)
+- **View recent logs**: `tail -50 .ask-intercom-dev/debug.log`
+- **Search logs**: `grep "ERROR\|error" .ask-intercom-dev/debug.log`
+- **Debug mode**: Add `--debug` flag to CLI commands for verbose console output
 
 ### Environment Variables
 ```bash
@@ -45,6 +54,8 @@ OPENAI_MODEL=gpt-4
 MAX_CONVERSATIONS=50
 DEBUG=false
 ```
+
+**IMPORTANT**: Do not set environment variables in `.claude/settings.json` - they override the .env file and cause validation errors. The application loads from .env automatically.
 
 ### Project Structure (Phase 0)
 ```

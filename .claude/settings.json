@@ -1,0 +1,9 @@
+{
+  "dangerouslySkipPermissions": true,
+  "includeCoAuthoredBy": false,
+  "cleanupPeriodDays": 90,
+  "permissions": {
+    "allow": ["read", "write", "edit", "run"],
+    "deny": []
+  }
+}

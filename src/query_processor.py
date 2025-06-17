@@ -184,6 +184,14 @@ class QueryProcessor:
         start_time = time()
         request_context = get_request_context()
 
+        # Initialize AI client if not already done
+        if not self.ai_client:
+            logger.info("Initializing AI client for follow-up analysis...")
+            app_id = await self.intercom_client.get_app_id()
+            self.ai_client = AIClient(
+                self.config.openai_key, self.config.model, app_id, "gpt-3.5-turbo"
+            )
+
         # Use cached conversations for follow-up analysis
         conversations = session.last_conversations
         timeframe = session.last_timeframe

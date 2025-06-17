@@ -37,7 +37,7 @@ class Config(BaseModel):
     @field_validator("openai_key")
     @classmethod
     def validate_openai_key(cls, v):
-        if not v or not v.startswith(("sk-", "pk-")):
+        if not v or not (v.startswith(("sk-", "pk-")) or v.startswith("sk-proj-")):
             raise ValueError("Invalid OpenAI API key")
         return v
 
