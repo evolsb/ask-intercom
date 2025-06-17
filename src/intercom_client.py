@@ -237,16 +237,24 @@ class IntercomClient:
                         0.2
                     )  # 200ms between requests = ~5 requests/second
 
-        # Trim to requested limit while preserving all conversations found
+        # Log total found
+        total_found = len(conversations)
+        logger.info(
+            f"Found {total_found} total conversations in the specified timeframe"
+        )
+
+        # Only trim if we exceed safety limit
         if len(conversations) > filters.limit:
-            logger.info(
-                f"Trimming {len(conversations)} conversations to requested limit of {filters.limit}"
+            logger.warning(
+                f"Found {len(conversations)} conversations, exceeding safety limit of {filters.limit}. Trimming to limit."
             )
             conversations = conversations[: filters.limit]
+            logger.info(
+                f"Fetched {len(conversations)} conversations (trimmed from {total_found})"
+            )
+        else:
+            logger.info(f"Fetched all {len(conversations)} conversations found")
 
-        logger.info(
-            f"Fetched {len(conversations)} conversations via Search API (paginated)"
-        )
         return conversations
 
     async def _fetch_via_list_and_details(

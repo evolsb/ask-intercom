@@ -18,7 +18,7 @@ class Config(BaseModel):
     )
     model: str = Field(default="gpt-4", description="OpenAI model to use")
     max_conversations: int = Field(
-        default=50, description="Max conversations to analyze"
+        default=1000, description="Max conversations to analyze (safety limit)"
     )
     debug: bool = Field(default=False, description="Enable debug mode")
 
@@ -52,8 +52,8 @@ class Config(BaseModel):
     @field_validator("max_conversations")
     @classmethod
     def validate_max_conversations(cls, v):
-        if v <= 0 or v > 200:
-            raise ValueError("max_conversations must be between 1 and 200")
+        if v <= 0 or v > 10000:
+            raise ValueError("max_conversations must be between 1 and 10000")
         return v
 
     @classmethod
@@ -82,7 +82,7 @@ class Config(BaseModel):
                 "INTERCOM_APP_ID", ""
             ),  # Optional - will be fetched dynamically if not provided
             model=os.getenv("OPENAI_MODEL", "gpt-4"),
-            max_conversations=int(os.getenv("MAX_CONVERSATIONS", "50")),
+            max_conversations=int(os.getenv("MAX_CONVERSATIONS", "1000")),
             debug=os.getenv("DEBUG", "false").lower() == "true",
         )
 

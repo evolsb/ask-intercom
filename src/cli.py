@@ -60,7 +60,13 @@ Examples:
         "--max-conversations",
         type=int,
         default=None,
-        help="Maximum number of conversations to analyze",
+        help="Maximum number of conversations to analyze (default: 1000)",
+    )
+
+    parser.add_argument(
+        "--no-limit",
+        action="store_true",
+        help="Analyze all conversations found (no limit)",
     )
 
     parser.add_argument(
@@ -72,12 +78,68 @@ Examples:
     return parser
 
 
+async def check_large_dataset(
+    query: str,
+    processor: "QueryProcessor",
+    console: Console,
+    interactive: bool = False,
+) -> bool:
+    """Check if query will analyze many conversations and ask for confirmation."""
+    try:
+        conversation_count, timeframe = await processor.count_conversations_for_query(
+            query
+        )
+
+        if conversation_count <= 100:
+            # Small dataset, proceed without warning
+            return True
+
+        # Calculate estimates
+        estimated_time = processor._estimate_processing_time(conversation_count)
+        estimated_cost = processor._estimate_processing_cost(conversation_count)
+
+        # Show warning
+        console.print("\n⚠️  [yellow]Large dataset detected![/yellow]")
+        console.print(
+            f"📊 Found [bold]{conversation_count}[/bold] conversations in {timeframe.description}"
+        )
+        console.print(
+            f"⏱️  Estimated processing time: [bold]{estimated_time:.1f} seconds[/bold] ({estimated_time/60:.1f} minutes)"
+        )
+        console.print(f"💰 Estimated cost: [bold]${estimated_cost:.2f}[/bold]")
+
+        if not interactive:
+            # Non-interactive mode: proceed with warning
+            console.print(
+                "\n🤖 [dim]Proceeding automatically in non-interactive mode...[/dim]"
+            )
+            return True
+
+        # Interactive mode: ask for confirmation
+        console.print("\n❓ Do you want to continue? [Y/n]", end=" ")
+        response = console.input().strip().lower()
+
+        if response in ["", "y", "yes"]:
+            console.print("✅ [green]Proceeding with analysis...[/green]")
+            return True
+        else:
+            console.print("❌ [red]Analysis cancelled by user[/red]")
+            return False
+
+    except Exception as e:
+        # If count fails, proceed anyway but log warning
+        console.print(f"\n⚠️  [yellow]Could not estimate dataset size: {e}[/yellow]")
+        console.print("Proceeding with analysis...")
+        return True
+
+
 async def run_query(
     query: str,
     config: Config,
     console: Console,
     request_id: str = None,
     session: SessionState = None,
+    interactive: bool = False,
 ) -> bool:
     """Execute a single query and display results."""
     start_time = datetime.now()
@@ -103,13 +165,22 @@ async def run_query(
                 "[bold green]Interpreting timeframe and fetching conversations..."
             )
 
+        # Initialize processor first
+        if "processor" not in locals():
+            processor = QueryProcessor(config)
+
+        # Check for large datasets and get user confirmation
+        should_proceed = await check_large_dataset(
+            query, processor, console, interactive
+        )
+        if not should_proceed:
+            return False
+
         # Show initial status
         console.print(f"\n{status_text}", style="bold green")
         console.print("⏳ Processing...", end="", style="dim")
         sys.stdout.flush()
 
-        if "processor" not in locals():
-            processor = QueryProcessor(config)
         result = await processor.process_query(query, session)
 
         # Clear the processing indicator
@@ -227,7 +298,9 @@ async def interactive_mode(config: Config, console: Console) -> None:
             # Create request ID with session and message info
             request_id = f"{session_id}:{message_id:03d}"
 
-            success = await run_query(query, config, console, request_id, session)
+            success = await run_query(
+                query, config, console, request_id, session, interactive=True
+            )
 
             if success:
                 duration = (datetime.now() - start_time).total_seconds()
@@ -261,6 +334,8 @@ def main() -> None:
             config.model = args.model
         if args.max_conversations:
             config.max_conversations = args.max_conversations
+        if args.no_limit:
+            config.max_conversations = 10000  # Effectively no limit
         if args.debug:
             config.debug = True
 
@@ -273,7 +348,7 @@ def main() -> None:
             # Single query mode
             if not args.query:
                 parser.error("Query is required in non-interactive mode")
-            asyncio.run(run_query(args.query, config, console))
+            asyncio.run(run_query(args.query, config, console, interactive=False))
 
     except KeyboardInterrupt:
         console.print("\n[yellow]Cancelled by user[/yellow]")

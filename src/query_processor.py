@@ -3,11 +3,13 @@
 import asyncio
 from time import time
 
+import httpx
+
 from .ai_client import AIClient
 from .config import Config
 from .intercom_client import IntercomClient
 from .logger import MetricsLogger, get_logger, get_request_context
-from .models import AnalysisResult, ConversationFilters, SessionState
+from .models import AnalysisResult, ConversationFilters, SessionState, TimeFrame
 
 logger = get_logger("query_processor")
 metrics = MetricsLogger()
@@ -21,6 +23,79 @@ class QueryProcessor:
         self.intercom_client = IntercomClient(config.intercom_token)
         # AI client will be initialized with app_id during query processing
         self.ai_client = None
+
+    def _estimate_processing_time(self, conversation_count: int) -> float:
+        """Estimate processing time based on conversation count."""
+        # Based on observed performance:
+        # - API fetch: ~0.15s per conversation (batched)
+        # - AI analysis: ~0.3s per conversation
+        # - Base overhead: ~5s
+        fetch_time = min(conversation_count * 0.02, 10)  # Batched fetching
+        analysis_time = conversation_count * 0.3
+        overhead = 5
+        return fetch_time + analysis_time + overhead
+
+    def _estimate_processing_cost(self, conversation_count: int) -> float:
+        """Estimate OpenAI API cost based on conversation count."""
+        # Based on observed costs:
+        # - ~$0.004 per conversation for GPT-4
+        # - Includes both analysis and timeframe interpretation
+        cost_per_conversation = 0.004
+        base_cost = 0.01  # Timeframe interpretation
+        return base_cost + (conversation_count * cost_per_conversation)
+
+    async def count_conversations_for_query(self, query: str) -> tuple[int, TimeFrame]:
+        """Preview how many conversations would be analyzed for a query."""
+        # Initialize AI client if needed
+        if not self.ai_client:
+            app_id = await self.intercom_client.get_app_id()
+            self.ai_client = AIClient(
+                self.config.openai_key, self.config.model, app_id, "gpt-3.5-turbo"
+            )
+
+        # Interpret timeframe
+        timeframe = await self.ai_client._interpret_timeframe(query)
+
+        # Create a filters object with high limit just to count
+        from .models import ConversationFilters
+
+        filters = ConversationFilters(
+            start_date=timeframe.start_date,
+            end_date=timeframe.end_date,
+            limit=10000,  # High limit to get true count
+        )
+
+        # Quick count - just fetch first page to get total
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            search_query = {
+                "query": {
+                    "operator": "AND",
+                    "value": [
+                        {
+                            "field": "created_at",
+                            "operator": ">",
+                            "value": int(filters.start_date.timestamp()),
+                        },
+                        {
+                            "field": "created_at",
+                            "operator": "<",
+                            "value": int(filters.end_date.timestamp()),
+                        },
+                    ],
+                },
+                "pagination": {"per_page": 1},  # Just need count
+            }
+
+            response = await client.post(
+                f"{self.intercom_client.base_url}/conversations/search",
+                headers=self.intercom_client.headers,
+                json=search_query,
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            total_count = data.get("total_count", 0)
+            return total_count, timeframe
 
     async def process_query(
         self, query: str, session: SessionState = None
@@ -102,6 +177,23 @@ class QueryProcessor:
                         estimated_cost_usd=0.0,
                         model_used=self.config.model,
                     ),
+                )
+
+            # Estimate processing metrics
+            conversation_count = len(conversations)
+            estimated_time_seconds = self._estimate_processing_time(conversation_count)
+            estimated_cost = self._estimate_processing_cost(conversation_count)
+
+            # Log warning if large dataset
+            if conversation_count > 100:
+                logger.warning(
+                    f"Large dataset detected: {conversation_count} conversations. "
+                    f"Estimated time: {estimated_time_seconds:.1f}s, cost: ${estimated_cost:.2f}"
+                )
+                print(
+                    f"\n⚠️  Found {conversation_count} conversations to analyze\n"
+                    f"📊 Estimated processing time: {estimated_time_seconds:.1f} seconds\n"
+                    f"💰 Estimated cost: ${estimated_cost:.2f}\n"
                 )
 
             # Step 3: Analyze conversations with AI
