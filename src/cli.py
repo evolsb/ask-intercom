@@ -103,10 +103,17 @@ async def run_query(
                 "[bold green]Interpreting timeframe and fetching conversations..."
             )
 
-        with console.status(status_text):
-            if "processor" not in locals():
-                processor = QueryProcessor(config)
-            result = await processor.process_query(query, session)
+        # Show initial status
+        console.print(f"\n{status_text}", style="bold green")
+        console.print("⏳ Processing...", end="", style="dim")
+        sys.stdout.flush()
+
+        if "processor" not in locals():
+            processor = QueryProcessor(config)
+        result = await processor.process_query(query, session)
+
+        # Clear the processing indicator
+        console.print("\r✅ Complete!   ", style="bold green")
 
         duration = (datetime.now() - start_time).total_seconds()
 

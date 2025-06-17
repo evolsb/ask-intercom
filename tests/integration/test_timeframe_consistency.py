@@ -9,6 +9,7 @@ This ensures the AI timeframe interpretation is consistent and deterministic.
 import asyncio
 import json
 import logging
+import signal
 import sys
 from datetime import datetime
 from typing import Dict, List, Tuple
@@ -31,15 +32,46 @@ def flush_logs():
     sys.stderr.flush()
 
 
+def format_duration(seconds: float) -> str:
+    """Format duration in human-readable format."""
+    if seconds < 60:
+        return f"{seconds:.1f}s"
+    elif seconds < 3600:
+        minutes = seconds / 60
+        return f"{minutes:.1f}m"
+    else:
+        hours = seconds / 3600
+        return f"{hours:.1f}h"
+
+
+def print_progress_bar(
+    current: int, total: int, prefix: str = "", width: int = 30
+) -> None:
+    """Print a simple progress bar."""
+    if total == 0:
+        return
+
+    filled = int(width * current / total)
+    bar = "█" * filled + "░" * (width - filled)
+    percent = 100 * current / total
+    print(f"\r{prefix} [{bar}] {percent:.1f}% ({current}/{total})", end="", flush=True)
+
+    if current == total:
+        print()  # New line when complete
+
+
 class TimeframeConsistencyTest:
     """Test timeframe consistency across different query phrasings."""
 
-    def __init__(self):
+    def __init__(self, timeout_seconds: int = 600):  # 10 minute default timeout
         self.config = Config.from_env()
         # Temporarily increase limits for thorough testing
         self.config.max_conversations = 200  # Higher limit to see true patterns
         self.processor = QueryProcessor(self.config)
         self.results = {}
+        self.timeout_seconds = timeout_seconds
+        self.start_time = None
+        self.cancelled = False
 
     async def test_equivalent_timeframes(self) -> bool:
         """Test that equivalent timeframe expressions return identical results."""
@@ -87,10 +119,18 @@ class TimeframeConsistencyTest:
 
         all_passed = True
         results_by_period = {}
+        total_test_cases = len(test_cases)
 
-        for test_case in test_cases:
-            print(f"\n📅 Testing: {test_case['period']}")
+        print(f"\n🎯 Running {total_test_cases} timeframe test groups...")
+        print("=" * 50)
+
+        for i, test_case in enumerate(test_cases, 1):
+            print(f"\n📅 [{i}/{total_test_cases}] Testing: {test_case['period']}")
             print("-" * 40)
+
+            # Show overall progress
+            print_progress_bar(i - 1, total_test_cases, "Overall progress:", 20)
+            print()
 
             success, period_results = await self._test_query_group(
                 test_case["queries"], test_case["period"]
@@ -98,6 +138,9 @@ class TimeframeConsistencyTest:
             results_by_period[test_case["period"]] = period_results
             if not success:
                 all_passed = False
+
+        # Final progress update
+        print_progress_bar(total_test_cases, total_test_cases, "Overall progress:", 20)
 
         # Test containment relationships
         print("\n🔗 Testing containment relationships...")
@@ -117,11 +160,31 @@ class TimeframeConsistencyTest:
         results = []
         timeframes = []
 
-        print(f"🔍 Testing {len(queries)} equivalent expressions for {period_name}")
+        remaining_time = self._check_timeout_remaining()
+        total_queries = len(queries)
+        print(
+            f"🔍 Testing {total_queries} equivalent expressions for {period_name} (⏱️ {remaining_time}s remaining)"
+        )
+
+        if remaining_time < 60:  # Less than 1 minute remaining
+            print(f"     ⚠️  Low on time ({remaining_time}s), may skip some tests")
+
+        # Initialize progress tracking
+        queries_completed = 0
 
         # Run each query and collect results
         for i, query in enumerate(queries):
-            print(f"  {i+1}. Testing: '{query}'")
+            # Check if we're running out of time
+            remaining_time = self._check_timeout_remaining()
+            if remaining_time < 30:  # Less than 30 seconds remaining
+                print(
+                    f"  ⏰ Skipping remaining queries due to timeout (only {remaining_time}s left)"
+                )
+                break
+
+            # Show query progress
+            print_progress_bar(i, total_queries, "  Query progress:", 15)
+            print(f"  {i+1}. Testing: '{query}' (⏱️ {remaining_time}s remaining)")
 
             try:
                 # Extract just the timeframe interpretation (without full analysis)
@@ -156,8 +219,16 @@ class TimeframeConsistencyTest:
                 )
 
                 # Get actual conversation count for this timeframe
-                print("     🔍 Fetching conversations...")
+                remaining_time = self._check_timeout_remaining()
+                print(
+                    f"     🔍 Fetching conversations... (⏱️ {remaining_time}s remaining)"
+                )
                 flush_logs()  # Ensure progress is visible
+
+                if remaining_time < 60:
+                    print(
+                        "     ⚠️  Warning: Low on time, this may be the last query processed"
+                    )
 
                 from src.models import ConversationFilters
 
@@ -189,14 +260,24 @@ class TimeframeConsistencyTest:
                 results.append(result_data)
                 timeframes.append(timeframe)
 
+                queries_completed += 1
                 print(f"     ✅ Found {len(conversations)} conversations")
                 print(
                     f"     📊 IDs: {sorted([conv.id for conv in conversations])[:3]}{'...' if len(conversations) > 3 else ''}"
                 )
+
+                # Update progress
+                print_progress_bar(
+                    queries_completed, total_queries, "  Query progress:", 15
+                )
                 flush_logs()  # Show results immediately
 
             except Exception as e:
+                queries_completed += 1
                 print(f"     ❌ Error: {e}")
+                print_progress_bar(
+                    queries_completed, total_queries, "  Query progress:", 15
+                )
                 flush_logs()
                 import traceback
 
@@ -269,6 +350,30 @@ class TimeframeConsistencyTest:
             )
             return True
 
+    def _setup_timeout_handler(self):
+        """Set up timeout handling for the test."""
+
+        def timeout_handler(signum, frame):
+            print(f"\n⏰ TEST TIMEOUT after {self.timeout_seconds} seconds")
+            print("📊 Partial results may be available in debug files")
+            self.cancelled = True
+            raise TimeoutError(f"Test exceeded {self.timeout_seconds} second timeout")
+
+        signal.signal(signal.SIGALRM, timeout_handler)
+        signal.alarm(self.timeout_seconds)
+
+    def _clear_timeout(self):
+        """Clear the timeout alarm."""
+        signal.alarm(0)
+
+    def _check_timeout_remaining(self) -> int:
+        """Check how much time remains before timeout."""
+        if self.start_time is None:
+            return self.timeout_seconds
+        elapsed = (datetime.now() - self.start_time).total_seconds()
+        remaining = max(0, self.timeout_seconds - elapsed)
+        return int(remaining)
+
     async def run_comprehensive_test(self) -> bool:
         """Run the complete timeframe consistency test suite."""
         print("🧪 TIMEFRAME CONSISTENCY INTEGRATION TEST")
@@ -276,36 +381,62 @@ class TimeframeConsistencyTest:
         print("Configuration:")
         print(f"  Model: {self.config.model}")
         print(f"  Max conversations: {self.config.max_conversations}")
+        print(
+            f"  Test timeout: {self.timeout_seconds} seconds ({self.timeout_seconds//60} minutes)"
+        )
         print(f"  Test time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print(
             "  Note: Testing with higher limits to verify true containment relationships"
         )
         flush_logs()
 
+        self.start_time = datetime.now()
+        self._setup_timeout_handler()
+
         try:
             success = await self.test_equivalent_timeframes()
+            self._clear_timeout()
 
+            # Final summary with timing
+            total_time = (datetime.now() - self.start_time).total_seconds()
             print("\n" + "=" * 60)
+            print(f"📊 TEST SUMMARY (completed in {format_duration(total_time)})")
+            print("=" * 60)
+
             if success:
                 print("🎉 ALL TIMEFRAME CONSISTENCY TESTS PASSED")
                 print("✅ Different phrasings return identical conversation sets")
                 print("✅ Containment relationships are correct")
+                print(f"⚡ Performance: {format_duration(total_time)} total runtime")
                 return True
             else:
                 print("❌ TIMEFRAME CONSISTENCY TESTS FAILED")
                 print("⚠️  Issues found in timeframe interpretation or containment")
+                print(f"⏱️  Partial run completed in {format_duration(total_time)}")
                 return False
 
+        except TimeoutError as e:
+            print(f"\n⏰ TEST SUITE TIMED OUT: {e}")
+            print(
+                f"📊 Ran for {(datetime.now() - self.start_time).total_seconds():.1f} seconds"
+            )
+            print(
+                "💡 Consider reducing test scope or increasing timeout for full results"
+            )
+            return False
         except Exception as e:
             print(f"\n❌ TEST SUITE FAILED WITH ERROR: {e}")
             import traceback
 
             traceback.print_exc()
             return False
+        finally:
+            self._clear_timeout()
 
     async def _test_containment_relationships(self, results_by_period: Dict) -> bool:
         """Test that larger timeframes contain smaller ones (1 week > 1 day > 1 hour)."""
-        print("🔗 Verifying containment relationships...")
+        print("\n🔗 Verifying containment relationships...")
+        print("=" * 40)
 
         # Extract representative results for each period
         period_data = {}
@@ -340,8 +471,13 @@ class TimeframeConsistencyTest:
         ]
 
         all_passed = True
+        total_tests = len(containment_tests)
 
-        for larger_period, smaller_period, description in containment_tests:
+        print(f"🧪 Running {total_tests} containment tests...\n")
+
+        for test_idx, (larger_period, smaller_period, description) in enumerate(
+            containment_tests, 1
+        ):
             if larger_period not in period_data or smaller_period not in period_data:
                 print(f"     ⚠️  Skipping: {description} (missing data)")
                 continue
@@ -352,9 +488,12 @@ class TimeframeConsistencyTest:
             larger_ids = set(larger_data["conversation_ids"])
             smaller_ids = set(smaller_data["conversation_ids"])
 
-            print(f"  🔍 Testing: {description}")
+            print(f"  🔍 [{test_idx}/{total_tests}] Testing: {description}")
             print(f"     📊 {larger_period}: {len(larger_ids)} conversations")
             print(f"     📊 {smaller_period}: {len(smaller_ids)} conversations")
+
+            # Show containment test progress
+            print_progress_bar(test_idx - 1, total_tests, "  Containment tests:", 12)
 
             # Check if larger timeframe contains all conversations from smaller timeframe
             missing_conversations = smaller_ids - larger_ids
@@ -407,12 +546,27 @@ class TimeframeConsistencyTest:
 
             print()
 
+        # Final containment progress
+        print_progress_bar(total_tests, total_tests, "  Containment tests:", 12)
+        print(
+            f"\n{'✅ All containment tests passed' if all_passed else '❌ Some containment tests failed'}"
+        )
+
         return all_passed
 
 
 async def main():
     """Run the timeframe consistency test."""
-    test = TimeframeConsistencyTest()
+    # Allow custom timeout via environment variable
+    import os
+
+    timeout = int(os.getenv("TEST_TIMEOUT", "600"))  # Default 10 minutes
+
+    print(f"🔧 Test timeout set to {timeout} seconds ({timeout//60} minutes)")
+    print("💡 Set TEST_TIMEOUT environment variable to customize")
+    print()
+
+    test = TimeframeConsistencyTest(timeout_seconds=timeout)
     success = await test.run_comprehensive_test()
 
     if not success:

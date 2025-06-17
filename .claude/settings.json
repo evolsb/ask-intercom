@@ -5,5 +5,11 @@
   "permissions": {
     "allow": ["read", "write", "edit", "run"],
     "deny": []
-  }
+  },
+  "memory": [
+    "CLAUDE.md",
+    "PROGRESS.md",
+    "docs/vision.md",
+    "docs/build-progression.md"
+  ]
 }

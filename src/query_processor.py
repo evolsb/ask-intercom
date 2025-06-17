@@ -106,11 +106,18 @@ class QueryProcessor:
 
             # Step 3: Analyze conversations with AI
             logger.info(f"Analyzing {len(conversations)} conversations...")
+            print(
+                f"\r🧠 Analyzing {len(conversations)} conversations...",
+                end="",
+                flush=True,
+            )
             analysis_start = time()
             result = await self.ai_client.analyze_conversations(
                 conversations, query, timeframe
             )
             metrics.log_api_call("openai_analysis", time() - analysis_start, True)
+            analysis_duration = time() - analysis_start
+            print(f"\r✅ Analysis complete ({analysis_duration:.1f}s)          ")
 
             # Log performance metrics
             duration = time() - start_time
@@ -131,6 +138,10 @@ class QueryProcessor:
                     0.50,
                 )
 
+            print(
+                f"\r✨ Query completed in {duration:.1f}s, cost: ${result.cost_info.estimated_cost_usd:.3f}    ",
+                flush=True,
+            )
             logger.info(
                 f"Query completed in {duration:.1f}s, cost: ${result.cost_info.estimated_cost_usd:.3f}",
                 extra={
@@ -152,6 +163,8 @@ class QueryProcessor:
             return result
 
         except Exception as e:
+            duration = time() - start_time
+            print(f"\r❌ Error after {duration:.1f}s: {str(e)}          ", flush=True)
             logger.error(f"Query processing failed: {e}")
             raise
 
@@ -187,10 +200,12 @@ class QueryProcessor:
         # Initialize AI client if not already done
         if not self.ai_client:
             logger.info("Initializing AI client for follow-up analysis...")
+            print("\r🔗 Initializing AI client...", end="", flush=True)
             app_id = await self.intercom_client.get_app_id()
             self.ai_client = AIClient(
                 self.config.openai_key, self.config.model, app_id, "gpt-3.5-turbo"
             )
+            print("\r✅ AI client ready               ")
 
         # Use cached conversations for follow-up analysis
         conversations = session.last_conversations
@@ -224,11 +239,18 @@ class QueryProcessor:
         """
 
         # Analyze with the follow-up context
+        print(
+            f"\r🔍 Re-analyzing {len(conversations)} conversations for follow-up...",
+            end="",
+            flush=True,
+        )
         analysis_start = time()
         result = await self.ai_client.analyze_conversations(
             conversations, followup_prompt, timeframe
         )
         metrics.log_api_call("openai_followup", time() - analysis_start, True)
+        followup_duration = time() - analysis_start
+        print(f"\r✅ Follow-up analysis complete ({followup_duration:.1f}s)    ")
 
         # Log metrics
         duration = time() - start_time
@@ -241,6 +263,10 @@ class QueryProcessor:
             model=result.cost_info.model_used,
         )
 
+        print(
+            f"\r✨ Follow-up completed in {duration:.1f}s, cost: ${result.cost_info.estimated_cost_usd:.3f}    ",
+            flush=True,
+        )
         logger.info(
             f"Follow-up completed in {duration:.1f}s, cost: ${result.cost_info.estimated_cost_usd:.3f}",
             extra={
