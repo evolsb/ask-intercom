@@ -5,6 +5,9 @@ _private/
 .env.local
 .env.*.local
 
+# Development testing data
+.ask-intercom-dev/
+
 # Python cache files
 __pycache__/
 *.pyc

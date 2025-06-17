@@ -22,6 +22,7 @@ ruff = "^0.1.0"
 
 [tool.poetry.scripts]
 ask-intercom = "src.cli:main"
+ask-intercom-interactive = "src.cli:interactive_main"
 
 [build-system]
 requires = ["poetry-core"]

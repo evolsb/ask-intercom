@@ -3,8 +3,24 @@
 import json
 import logging
 import sys
+import threading
 from datetime import datetime
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
 from typing import Optional
+
+# Thread-local storage for request context
+_context = threading.local()
+
+
+def set_request_context(request_id: str) -> None:
+    """Set the current request ID for logging context."""
+    _context.request_id = request_id
+
+
+def get_request_context() -> Optional[str]:
+    """Get the current request ID from context."""
+    return getattr(_context, "request_id", None)
 
 
 class StructuredFormatter(logging.Formatter):
@@ -18,6 +34,11 @@ class StructuredFormatter(logging.Formatter):
             "logger": record.name,
             "message": record.getMessage(),
         }
+
+        # Add request context if available
+        request_id = get_request_context()
+        if request_id:
+            log_entry["request_id"] = request_id
 
         # Add extra fields if present
         if hasattr(record, "extra"):
@@ -38,6 +59,21 @@ class StructuredFormatter(logging.Formatter):
             log_entry["exception"] = self.formatException(record.exc_info)
 
         return json.dumps(log_entry, default=str)
+
+
+class HumanReadableFormatter(logging.Formatter):
+    """Human-readable formatter with request ID."""
+
+    def format(self, record: logging.LogRecord) -> str:
+        """Format log record for human reading."""
+        # Get request context
+        request_id = get_request_context()
+        request_prefix = f"[{request_id}] " if request_id else ""
+
+        # Format base message
+        formatted = super().format(record)
+
+        return f"{request_prefix}{formatted}"
 
 
 class MetricsLogger:
@@ -103,7 +139,9 @@ class MetricsLogger:
         )
 
 
-def setup_logging(debug: bool = False, structured: bool = True) -> None:
+def setup_logging(
+    debug: bool = False, structured: bool = True, interactive: bool = False
+) -> None:
     """Configure logging for the application."""
     # Determine log level
     level = logging.DEBUG if debug else logging.INFO
@@ -113,23 +151,42 @@ def setup_logging(debug: bool = False, structured: bool = True) -> None:
     for handler in root_logger.handlers[:]:
         root_logger.removeHandler(handler)
 
+    # Ensure dev directory exists
+    dev_dir = Path(".ask-intercom-dev")
+    dev_dir.mkdir(exist_ok=True)
+
+    # Always set up file logging for debugging
+    file_handler = RotatingFileHandler(
+        dev_dir / "debug.log",
+        maxBytes=10 * 1024 * 1024,  # 10MB
+        backupCount=5,
+        encoding="utf-8",
+    )
+    file_handler.setLevel(logging.DEBUG)  # Always capture debug info to file
+    file_handler.setFormatter(StructuredFormatter())
+
+    # Configure root logger with file handler
+    root_logger.setLevel(logging.DEBUG)  # Capture everything at root level
+    root_logger.addHandler(file_handler)
+
     # Create console handler
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(level)
 
     if structured:
         # Use JSON formatter for structured logging
-        formatter = StructuredFormatter()
+        console_formatter = StructuredFormatter()
     else:
-        # Use simple formatter for human-readable logs
-        formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
+        # Use human-readable formatter
+        if interactive:
+            # Minimal formatting for interactive mode
+            console_formatter = HumanReadableFormatter("%(levelname)s: %(message)s")
+        else:
+            console_formatter = HumanReadableFormatter(
+                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            )
 
-    console_handler.setFormatter(formatter)
-
-    # Configure root logger
-    root_logger.setLevel(level)
+    console_handler.setFormatter(console_formatter)
     root_logger.addHandler(console_handler)
 
     # Set specific logger levels
@@ -148,3 +205,45 @@ def log_with_context(
 ) -> None:
     """Log a message with additional context."""
     logger.log(level, message, extra=context)
+
+
+def append_jsonl(filepath: Path, data: dict) -> None:
+    """Append a line to a JSONL file."""
+    filepath.parent.mkdir(exist_ok=True)
+    with open(filepath, "a", encoding="utf-8") as f:
+        f.write(json.dumps(data, default=str) + "\n")
+
+
+def log_query_start(request_id: str, query: str) -> None:
+    """Log the start of a query to JSONL."""
+    data = {
+        "id": request_id,
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "query": query,
+        "event": "query_start",
+    }
+    append_jsonl(Path(".ask-intercom-dev/queries.jsonl"), data)
+
+
+def log_query_result(
+    request_id: str,
+    success: bool,
+    duration: float,
+    conversation_count: int = 0,
+    tokens: int = 0,
+    cost: float = 0.0,
+    error: str = None,
+) -> None:
+    """Log the result of a query to JSONL."""
+    data = {
+        "id": request_id,
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "success": success,
+        "duration": duration,
+        "conversation_count": conversation_count,
+        "tokens": tokens,
+        "cost": cost,
+        "error": error,
+        "event": "query_result",
+    }
+    append_jsonl(Path(".ask-intercom-dev/results.jsonl"), data)

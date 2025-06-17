@@ -7,12 +7,18 @@ Usage: ask-intercom "What are the top customer complaints this month?"
 import argparse
 import asyncio
 import sys
+from datetime import datetime
 
 from rich.console import Console
 from rich.panel import Panel
 
 from .config import Config
-from .logger import setup_logging
+from .logger import (
+    log_query_result,
+    log_query_start,
+    set_request_context,
+    setup_logging,
+)
 from .query_processor import QueryProcessor
 
 
@@ -30,7 +36,9 @@ Examples:
     )
 
     parser.add_argument(
-        "query", help="Natural language question about your Intercom conversations"
+        "query",
+        nargs="?",  # Make query optional
+        help="Natural language question about your Intercom conversations",
     )
 
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
@@ -54,20 +62,49 @@ Examples:
         help="Maximum number of conversations to analyze",
     )
 
+    parser.add_argument(
+        "--interactive",
+        action="store_true",
+        help="Run in interactive mode with persistent session",
+    )
+
     return parser
 
 
-async def run_query(query: str, config: Config, console: Console) -> None:
+async def run_query(
+    query: str, config: Config, console: Console, request_id: str = None
+) -> bool:
     """Execute a single query and display results."""
+    start_time = datetime.now()
+
+    # Set request context if provided
+    if request_id:
+        set_request_context(request_id)
+        log_query_start(request_id, query)
+
     try:
         with console.status("[bold green]Processing your query..."):
             processor = QueryProcessor(config)
             result = await processor.process_query(query)
 
+        duration = (datetime.now() - start_time).total_seconds()
+
+        # Log success
+        if request_id:
+            log_query_result(
+                request_id,
+                True,
+                duration,
+                result.conversation_count,
+                result.cost_info.tokens_used,
+                result.cost_info.estimated_cost_usd,
+            )
+
         # Display results with rich formatting
-        console.print("\n" + "=" * 60)
-        console.print(f"[bold blue]Query:[/bold blue] {query}")
-        console.print("=" * 60)
+        if not request_id:  # Full output for single query mode
+            console.print("\n" + "=" * 60)
+            console.print(f"[bold blue]Query:[/bold blue] {query}")
+            console.print("=" * 60)
 
         # Main results
         console.print(
@@ -88,10 +125,65 @@ Estimated cost: ${result.cost_info.estimated_cost_usd:.3f}[/dim]
         """
         console.print(metadata.strip())
 
+        return True
+
     except Exception as e:
+        duration = (datetime.now() - start_time).total_seconds()
+
+        # Log failure
+        if request_id:
+            log_query_result(request_id, False, duration, error=str(e))
+
         console.print(f"[bold red]Error:[/bold red] {str(e)}")
         if config.debug:
             raise
+
+        return False
+
+
+async def interactive_mode(config: Config, console: Console) -> None:
+    """Run in interactive mode with persistent session."""
+    console.print(
+        Panel(
+            "[bold]Ask-Intercom Interactive Mode[/bold]\n\n"
+            "Enter your queries to analyze Intercom conversations.\n"
+            "Type 'quit' to exit.",
+            border_style="blue",
+        )
+    )
+
+    request_id = 1
+
+    while True:
+        try:
+            # Prompt for query
+            query = console.input(f"\n[{request_id:03d}] Query: ").strip()
+
+            if not query:
+                continue
+
+            if query.lower() in ["quit", "exit", "q"]:
+                console.print("[yellow]Goodbye![/yellow]")
+                break
+
+            # Process query
+            console.print("Processing... ", end="")
+            start_time = datetime.now()
+
+            success = await run_query(query, config, console, f"{request_id:03d}")
+
+            if success:
+                duration = (datetime.now() - start_time).total_seconds()
+                console.print(f"[dim]({duration:.1f}s)[/dim]")
+
+            request_id += 1
+
+        except KeyboardInterrupt:
+            console.print("\n[yellow]Query cancelled[/yellow]")
+            continue
+        except EOFError:
+            console.print("\n[yellow]Goodbye![/yellow]")
+            break
 
 
 def main() -> None:
@@ -100,7 +192,9 @@ def main() -> None:
     args = parser.parse_args()
 
     # Setup
-    setup_logging(args.debug, structured=args.structured_logs)
+    setup_logging(
+        args.debug, structured=args.structured_logs, interactive=args.interactive
+    )
     console = Console()
 
     try:
@@ -115,15 +209,35 @@ def main() -> None:
 
         config.validate()
 
-        # Run the query
-        asyncio.run(run_query(args.query, config, console))
+        # Run in appropriate mode
+        if args.interactive:
+            asyncio.run(interactive_mode(config, console))
+        else:
+            # Single query mode
+            if not args.query:
+                parser.error("Query is required in non-interactive mode")
+            asyncio.run(run_query(args.query, config, console))
 
     except KeyboardInterrupt:
-        console.print("\n[yellow]Query cancelled by user[/yellow]")
+        console.print("\n[yellow]Cancelled by user[/yellow]")
         sys.exit(1)
     except Exception as e:
         console.print(f"[bold red]Fatal error:[/bold red] {str(e)}")
         sys.exit(1)
+
+
+def interactive_main() -> None:
+    """Entry point for interactive mode."""
+    import sys
+
+    # Override sys.argv to force interactive mode
+    original_argv = sys.argv[:]
+    sys.argv = [sys.argv[0], "--interactive"]
+
+    try:
+        main()
+    finally:
+        sys.argv = original_argv
 
 
 if __name__ == "__main__":

@@ -1,0 +1,3 @@
+#!/bin/bash
+# Simple entry point for interactive testing
+~/.local/bin/poetry run ask-intercom-interactive "$@"
