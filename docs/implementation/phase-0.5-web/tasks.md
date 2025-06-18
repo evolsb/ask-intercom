@@ -46,7 +46,7 @@
 ### React + Vite Setup
 - [ ] Configure Vite build pipeline
 - [ ] Set up TypeScript configuration
-- [ ] Install and configure Tailwind CSS
+- [ ] Install and configure Tailwind CSS + shadcn/ui (minimal macOS/iOS aesthetic)
 - [ ] Set up Zustand for state management
 - [ ] Configure development proxy to backend
 
@@ -132,7 +132,7 @@
 
 ## Technical Decisions Made
 
-- **Frontend**: React + Vite + TypeScript + Zustand + Tailwind CSS
+- **Frontend**: React + Vite + TypeScript + Zustand + Tailwind CSS + shadcn/ui
 - **Package Manager**: pnpm (faster, more reliable than npm)
 - **Real-time**: Server-Sent Events (SSE)
 - **Auth**: localStorage for SaaS, env vars for Docker
