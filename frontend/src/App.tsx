@@ -2,6 +2,7 @@ import { useAppStore } from './store/useAppStore'
 import { ApiKeySetup } from './components/ApiKeySetup'
 import { QueryInput } from './components/QueryInput'
 import { ResultsDisplay } from './components/ResultsDisplay'
+import { ThemeToggle } from './components/ThemeToggle'
 
 function App() {
   const { 
@@ -101,19 +102,26 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background transition-colors">
       <div className="container max-w-4xl mx-auto px-4 py-8">
-        <header className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Ask Intercom</h1>
-          <p className="text-muted-foreground">
-            Transform your Intercom conversations into actionable insights
-          </p>
+        <header className="mb-8">
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-purple-400">
+                Ask Intercom
+              </h1>
+              <p className="text-muted-foreground">
+                Transform your Intercom conversations into actionable insights
+              </p>
+            </div>
+            <ThemeToggle />
+          </div>
         </header>
 
         <div className="space-y-6">
           <ApiKeySetup />
           
-          <div className="bg-card border rounded-lg p-6">
+          <div className="bg-card border rounded-lg p-6 hover:shadow-lg transition-shadow duration-300">
             <QueryInput onSubmit={handleQuery} />
           </div>
           

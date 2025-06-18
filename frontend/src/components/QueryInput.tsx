@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Send } from 'lucide-react'
 import { useAppStore } from '../store/useAppStore'
 import { cn } from '../lib/utils'
 
@@ -7,10 +8,10 @@ interface QueryInputProps {
 }
 
 const EXAMPLE_QUERIES = [
-  "What are the top customer complaints this month?",
-  "Show me product feedback from the last week",
-  "What features are customers requesting most?",
-  "Summarize support issues from yesterday",
+  "Show me issues from the last 24 hours",
+  "What happened yesterday in support?",
+  "Summarize today's conversations",
+  "Show me bugs reported this week",
 ]
 
 export function QueryInput({ onSubmit }: QueryInputProps) {
@@ -25,9 +26,33 @@ export function QueryInput({ onSubmit }: QueryInputProps) {
     onSubmit(localQuery)
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Enter submits (without Ctrl/Cmd)
+    if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+      e.preventDefault()
+      handleSubmit(e as any)
+    }
+    // Ctrl+Enter or Cmd+Enter inserts new line
+    else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault()
+      const textarea = e.target as HTMLTextAreaElement
+      const start = textarea.selectionStart
+      const end = textarea.selectionEnd
+      const value = textarea.value
+      const newValue = value.substring(0, start) + '\n' + value.substring(end)
+      setLocalQuery(newValue)
+      // Restore cursor position after React re-render
+      setTimeout(() => {
+        textarea.selectionStart = textarea.selectionEnd = start + 1
+      }, 0)
+    }
+  }
+
   const handleExampleClick = (example: string) => {
     setLocalQuery(example)
     setCurrentQuery(example)
+    // Auto-submit when clicking example
+    onSubmit(example)
   }
 
   return (
@@ -41,17 +66,21 @@ export function QueryInput({ onSubmit }: QueryInputProps) {
             id="query"
             value={localQuery}
             onChange={(e) => setLocalQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder="e.g., What are the top customer complaints this month?"
             rows={3}
             className="w-full px-3 py-2 border border-input rounded-md bg-background text-sm resize-none focus:ring-2 focus:ring-ring focus:border-transparent"
             disabled={isLoading}
           />
+          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+            Press Enter to submit • Ctrl+Enter for new line
+          </p>
         </div>
         
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
-              <label htmlFor="max-conversations" className="text-sm text-muted-foreground">
+              <label htmlFor="max-conversations" className="text-sm text-gray-600 dark:text-gray-400">
                 Max conversations:
               </label>
               <input
@@ -71,9 +100,10 @@ export function QueryInput({ onSubmit }: QueryInputProps) {
             type="submit"
             disabled={!localQuery.trim() || isLoading}
             className={cn(
-              "px-6 py-2 rounded-md font-medium text-sm transition-colors",
+              "px-6 py-2 rounded-md font-medium text-sm transition-all duration-200",
               "bg-primary text-primary-foreground hover:bg-primary/90",
               "disabled:opacity-50 disabled:cursor-not-allowed",
+              "hover:shadow-lg hover:shadow-primary/25 dark:hover:shadow-primary/20",
               isLoading && "cursor-wait"
             )}
           >
@@ -90,16 +120,18 @@ export function QueryInput({ onSubmit }: QueryInputProps) {
       </form>
       
       <div className="space-y-2">
-        <p className="text-sm text-muted-foreground">Try these examples:</p>
+        <p className="text-sm text-gray-600 dark:text-gray-400">Try these examples:</p>
         <div className="flex flex-wrap gap-2">
           {EXAMPLE_QUERIES.map((example, index) => (
             <button
               key={index}
               onClick={() => handleExampleClick(example)}
               disabled={isLoading}
-              className="text-xs px-3 py-1 bg-secondary text-secondary-foreground rounded-full hover:bg-secondary/80 transition-colors disabled:opacity-50"
+              className="text-xs px-3 py-1.5 bg-secondary text-secondary-foreground rounded-full hover:bg-secondary/80 transition-all disabled:opacity-50 flex items-center space-x-1.5 group"
+              title="Click to submit this query"
             >
-              {example}
+              <span>{example}</span>
+              <Send className="w-3 h-3 opacity-50 group-hover:opacity-100 transition-opacity" />
             </button>
           ))}
         </div>

@@ -4,12 +4,16 @@ This file provides crucial guidance to Claude Code (claude.ai/code) when working
 
 ## 🚀 Quick Start for New Claude Sessions
 
-**FIRST: Always read current project state before starting work:**
+**⚠️ MANDATORY FIRST STEP - DO NOT SKIP:**
+**Claude MUST read project documentation BEFORE any coding work:**
 ```bash
-# Read docs index to understand where we are
-# docs/index.md → docs/planning/current-focus.md
-# Choose MCP track or Web track based on priorities
+# REQUIRED: Read these files first, in order:
+# 1. docs/index.md (project overview)
+# 2. docs/planning/current-focus.md (current priorities)
+# 3. Relevant docs/web/ or docs/mcp/ files based on focus
 ```
+
+**⚠️ IF YOU START CODING WITHOUT READING DOCS FIRST, YOU ARE DOING IT WRONG!**
 
 **Test the system:**
 ```bash
@@ -164,22 +168,31 @@ src/
 - No customer data persistence
 - Process conversations in memory only
 
-## 📋 Documentation Maintenance (CRITICAL)
+## 📋 Documentation Maintenance (CRITICAL - NEVER SKIP)
 
-**Claude MUST update docs before and after each coding session:**
+**🚨 CLAUDE MUST FOLLOW THIS WORKFLOW EVERY SINGLE SESSION 🚨**
 
-### Before Starting Work:
+### ⚠️ BEFORE ANY CODING (MANDATORY):
 1. **Read current state**: `docs/index.md` → `docs/planning/current-focus.md`
-2. **Choose track**: MCP integration OR Web deployment
+2. **Choose track**: MCP integration OR Web deployment  
 3. **Check tasks**: Read relevant `tasks.md` and `progress.md` files
+4. **STOP AND CONFIRM**: You understand the current project state
 
-### During Work:
-4. **Update progress**: Mark tasks in progress, add new discoveries
-5. **Document decisions**: Add to `docs/reference/decisions.md` if architectural
+### During Work (REQUIRED):
+5. **Update progress**: Mark tasks in progress, add new discoveries
+6. **Document decisions**: Add to `docs/reference/decisions.md` if architectural
 
-### After Completing Work:
-6. **Mark completion**: Update task status and add results
-7. **Update focus**: Modify `docs/planning/current-focus.md` with next steps
-8. **Log important findings**: Update relevant progress files
+### ⚠️ AFTER COMPLETING WORK (MANDATORY):
+7. **Mark completion**: Update task status and add results
+8. **Update focus**: Modify `docs/planning/current-focus.md` with next steps  
+9. **Log important findings**: Update relevant progress files
+10. **CONFIRM DOCS UPDATED**: Explicitly state you've updated documentation
+
+**🚨 FAILURE TO UPDATE DOCS IS A CRITICAL ERROR 🚨**
 
 **The documentation structure in `docs/` is the single source of truth for project state.**
+
+### Enforcement Reminders:
+- **If you code without reading docs first → YOU FAILED**
+- **If you finish work without updating docs → YOU FAILED**  
+- **Documentation updates are NOT optional → THEY ARE MANDATORY**

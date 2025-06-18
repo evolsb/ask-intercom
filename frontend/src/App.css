@@ -3,3 +3,82 @@
 .container {
   @apply max-w-4xl mx-auto px-4 py-8;
 }
+
+/* Smooth color transitions for theme switching */
+* {
+  @apply transition-colors duration-200;
+}
+
+/* Gradient animations for subtle delight */
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+/* Subtle glow effect for interactive elements */
+.glow-hover {
+  @apply hover:shadow-lg hover:shadow-primary/20 dark:hover:shadow-primary/10;
+}
+
+/* Smooth progress bar animations */
+.progress-smooth {
+  @apply transition-all duration-500 ease-out;
+}
+
+/* Beautiful focus states */
+input:focus,
+textarea:focus,
+button:focus {
+  @apply outline-none ring-2 ring-primary/50 ring-offset-2 ring-offset-background;
+}
+
+/* Dark mode adjustments for better contrast */
+.dark {
+  --primary: 217 91% 60%;
+  --primary-foreground: 0 0% 98%;
+  --card: 224 71% 4%;
+  --card-foreground: 0 0% 95%;
+  --muted: 217 33% 17%;
+  --muted-foreground: 215 20% 65%;
+}
+
+/* Refined scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-muted/30 rounded-full;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted hover:bg-muted-foreground/50 rounded-full transition-colors;
+}
+
+/* Prose styling for analysis content */
+.prose a {
+  @apply text-primary hover:text-primary/80 transition-colors;
+}
+
+/* Loading skeleton animation */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.skeleton {
+  @apply relative overflow-hidden bg-muted;
+}
+
+.skeleton::after {
+  content: "";
+  @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent;
+  animation: shimmer 2s infinite;
+}

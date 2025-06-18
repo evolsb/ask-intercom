@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware'
 
 export interface AnalysisResult {
   insights: string[]
+  summary: string
   cost: number
   response_time_ms: number
   conversation_count: number

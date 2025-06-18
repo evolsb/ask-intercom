@@ -1,13 +1,16 @@
 """
 FastAPI web application wrapping the Ask-Intercom CLI functionality.
 """
+import json
 import os
 from datetime import datetime
 from pathlib import Path
 from time import time
+from typing import AsyncGenerator
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -132,6 +135,7 @@ class AnalysisRequest(BaseModel):
 
 class AnalysisResponse(BaseModel):
     insights: list[str]
+    summary: str  # Full analysis with URLs
     cost: float
     response_time_ms: int
     conversation_count: int
@@ -147,6 +151,18 @@ class ErrorResponse(BaseModel):
     session_id: str
     request_id: str
     timestamp: str
+
+
+class ValidationRequest(BaseModel):
+    intercom_token: str
+    openai_key: str
+
+
+class ValidationResponse(BaseModel):
+    status: str  # "valid", "invalid", "error"
+    environment: dict
+    connectivity: dict
+    errors: list[str] = []
 
 
 class APIError(HTTPException):
@@ -183,6 +199,134 @@ async def debug_status():
         raise HTTPException(status_code=500, detail="Health check failed") from e
 
 
+@app.post("/api/validate", response_model=ValidationResponse)
+async def validate_api_keys(request: ValidationRequest, http_request: Request):
+    """Validate API keys and test connectivity."""
+    # Extract headers but don't use them yet (planned for future logging enhancement)
+    _ = http_request.headers.get("X-Session-ID", "unknown")  # noqa: F841
+    _ = http_request.headers.get("X-Request-ID", "unknown")  # noqa: F841
+
+    try:
+        # Log validation attempt
+        session_logger.info(
+            "API key validation requested",
+            event="validation_start",
+            data={
+                "has_intercom_token": bool(request.intercom_token),
+                "has_openai_key": bool(request.openai_key),
+            },
+        )
+
+        # Create temporary health checker with provided keys
+        from ..health import EnvironmentValidator
+
+        validator = EnvironmentValidator()
+
+        # Test key formats
+        errors = []
+        environment = {}
+
+        # Validate Intercom token format
+        if not request.intercom_token:
+            errors.append("Intercom token is missing")
+            environment["intercom_token"] = "missing"
+        elif not validator._is_valid_intercom_token(request.intercom_token):
+            errors.append("Intercom token has invalid format")
+            environment["intercom_token"] = "invalid_format"
+        else:
+            environment["intercom_token"] = "present"
+
+        # Validate OpenAI key format
+        if not request.openai_key:
+            errors.append("OpenAI API key is missing")
+            environment["openai_key"] = "missing"
+        elif not validator._is_valid_openai_key(request.openai_key):
+            errors.append("OpenAI API key has invalid format (should start with 'sk-')")
+            environment["openai_key"] = "invalid_format"
+        else:
+            environment["openai_key"] = "present"
+
+        # If format validation fails, return early
+        if errors:
+            return ValidationResponse(
+                status="invalid",
+                environment=environment,
+                connectivity={"intercom_api": "not_tested", "openai_api": "not_tested"},
+                errors=errors,
+            )
+
+        # Test actual connectivity by temporarily setting environment variables
+        old_intercom = os.environ.get("INTERCOM_ACCESS_TOKEN")
+        old_openai = os.environ.get("OPENAI_API_KEY")
+
+        try:
+            # Temporarily set the tokens for testing
+            os.environ["INTERCOM_ACCESS_TOKEN"] = request.intercom_token
+            os.environ["OPENAI_API_KEY"] = request.openai_key
+
+            # Test connectivity
+            connectivity = await validator.test_connectivity()
+
+            # Determine overall status
+            if (
+                connectivity.intercom_api == "reachable"
+                and connectivity.openai_api == "reachable"
+            ):
+                status = "valid"
+            else:
+                status = "invalid"
+                if connectivity.intercom_api != "reachable":
+                    errors.append(
+                        f"Intercom API test failed: {connectivity.intercom_api}"
+                    )
+                if connectivity.openai_api != "reachable":
+                    errors.append(f"OpenAI API test failed: {connectivity.openai_api}")
+
+            session_logger.info(
+                f"API key validation completed: {status}",
+                event="validation_complete",
+                data={
+                    "status": status,
+                    "intercom_status": connectivity.intercom_api,
+                    "openai_status": connectivity.openai_api,
+                    "errors": errors,
+                },
+            )
+
+            return ValidationResponse(
+                status=status,
+                environment=environment,
+                connectivity=connectivity.dict(),
+                errors=errors,
+            )
+
+        finally:
+            # Restore original environment
+            if old_intercom:
+                os.environ["INTERCOM_ACCESS_TOKEN"] = old_intercom
+            else:
+                os.environ.pop("INTERCOM_ACCESS_TOKEN", None)
+
+            if old_openai:
+                os.environ["OPENAI_API_KEY"] = old_openai
+            else:
+                os.environ.pop("OPENAI_API_KEY", None)
+
+    except Exception as e:
+        session_logger.error(
+            f"API key validation failed: {str(e)}",
+            event="validation_error",
+            exc_info=True,
+        )
+
+        return ValidationResponse(
+            status="error",
+            environment={"intercom_token": "error", "openai_key": "error"},
+            connectivity={"intercom_api": "error", "openai_api": "error"},
+            errors=[f"Validation failed: {str(e)}"],
+        )
+
+
 @app.get("/api/status", response_model=dict)
 async def status():
     """Status endpoint with environment info."""
@@ -192,6 +336,193 @@ async def status():
         "environment": os.getenv("ENVIRONMENT", "development"),
         "frontend_built": frontend_dir.exists(),
     }
+
+
+async def generate_sse_events(
+    query: str, config: Config, session_id: str, request_id: str
+) -> AsyncGenerator[str, None]:
+    """Generate SSE events during query processing."""
+
+    def send_event(event_type: str, data: dict) -> str:
+        """Format data as SSE event."""
+        json_data = json.dumps(data)
+        return f"event: {event_type}\ndata: {json_data}\n\n"
+
+    try:
+        # Progress: Starting
+        yield send_event(
+            "progress",
+            {
+                "stage": "starting",
+                "message": "Initializing query processor...",
+                "percent": 0,
+            },
+        )
+
+        processor = QueryProcessor(config)
+
+        # Progress: Fetching app ID
+        yield send_event(
+            "progress",
+            {
+                "stage": "initializing",
+                "message": "Fetching Intercom app configuration...",
+                "percent": 5,
+            },
+        )
+
+        # We need to capture logs to send as progress events
+        # For now, we'll add strategic yield points
+
+        # Progress: Interpreting timeframe
+        yield send_event(
+            "progress",
+            {
+                "stage": "timeframe",
+                "message": "Interpreting query timeframe...",
+                "percent": 10,
+            },
+        )
+
+        # Start processing
+        start_time = time()
+
+        # Run the actual processing
+        # TODO: Modify QueryProcessor to accept a progress callback
+        result = await processor.process_query(query)
+
+        # Progress: Fetching conversations
+        yield send_event(
+            "progress",
+            {
+                "stage": "fetching",
+                "message": f"Found {result.conversation_count} conversations to analyze...",
+                "percent": 50,
+            },
+        )
+
+        # Progress: Analyzing
+        yield send_event(
+            "progress",
+            {
+                "stage": "analyzing",
+                "message": "Analyzing conversations with AI...",
+                "percent": 75,
+            },
+        )
+
+        # Progress: Complete
+        duration_ms = int((time() - start_time) * 1000)
+
+        # Log completion
+        session_logger.log_query_complete(
+            query,
+            {
+                "conversation_count": result.conversation_count,
+                "insights": result.key_insights,
+                "cost": result.cost_info.estimated_cost_usd,
+                "tokens_used": result.cost_info.tokens_used,
+            },
+            duration_ms,
+        )
+
+        # Update session
+        session_manager.log_session_query(
+            session_id,
+            query,
+            {
+                "insights": result.key_insights,
+                "cost": result.cost_info.estimated_cost_usd,
+                "conversation_count": result.conversation_count,
+            },
+            duration_ms,
+        )
+
+        # Send final result
+        yield send_event(
+            "complete",
+            {
+                "insights": result.key_insights,
+                "summary": result.summary,  # Include full summary with URLs
+                "cost": result.cost_info.estimated_cost_usd,
+                "response_time_ms": duration_ms,
+                "conversation_count": result.conversation_count,
+                "session_id": session_id,
+                "request_id": request_id,
+            },
+        )
+
+    except Exception as e:
+        session_logger.error(
+            f"SSE processing error: {str(e)}",
+            event="sse_error",
+            data={"query": query},
+            exc_info=True,
+        )
+
+        yield send_event(
+            "error",
+            {
+                "error_category": "processing_error",
+                "message": str(e),
+                "user_action": "Please try again or contact support",
+                "retryable": True,
+                "session_id": session_id,
+                "request_id": request_id,
+            },
+        )
+
+
+@app.post("/api/analyze/stream")
+async def analyze_conversations_stream(request: AnalysisRequest, http_request: Request):
+    """Stream analysis progress using Server-Sent Events."""
+    session_id = http_request.headers.get("X-Session-ID", "unknown")
+    request_id = http_request.headers.get("X-Request-ID", "unknown")
+
+    # Log query start
+    session_logger.log_query_start(
+        request.query, {"max_conversations": request.max_conversations}
+    )
+
+    # Get tokens from request or environment
+    intercom_token = request.intercom_token or os.getenv("INTERCOM_ACCESS_TOKEN")
+    openai_key = request.openai_key or os.getenv("OPENAI_API_KEY")
+
+    # Validate tokens (same as regular endpoint)
+    if not intercom_token:
+        raise APIError(
+            category="environment_error",
+            message="Intercom access token is missing",
+            user_action="Please provide your Intercom access token in the API Key Setup section",
+            retryable=True,
+            status_code=400,
+        )
+
+    if not openai_key:
+        raise APIError(
+            category="environment_error",
+            message="OpenAI API key is missing",
+            user_action="Please provide your OpenAI API key in the API Key Setup section",
+            retryable=True,
+            status_code=400,
+        )
+
+    # Create config
+    config = Config(
+        intercom_token=intercom_token,
+        openai_key=openai_key,
+        max_conversations=min(request.max_conversations, 200),
+    )
+
+    # Return SSE response
+    return StreamingResponse(
+        generate_sse_events(request.query, config, session_id, request_id),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",  # Disable nginx buffering
+        },
+    )
 
 
 @app.post("/api/analyze", response_model=AnalysisResponse)
@@ -341,6 +672,7 @@ async def analyze_conversations(request: AnalysisRequest, http_request: Request)
         # Transform CLI result to API response
         return AnalysisResponse(
             insights=result.key_insights,
+            summary=result.summary,  # Include full analysis with URLs
             cost=result.cost_info.estimated_cost_usd,
             response_time_ms=duration_ms,
             conversation_count=result.conversation_count,
