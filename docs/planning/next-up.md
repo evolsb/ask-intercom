@@ -4,9 +4,13 @@
 
 ## 🎯 Phase 1: Universal Agent Skills Architecture
 
-**When**: After Phase 0.5 MCP integration complete  
-**Goal**: Transform monolithic CLI into Universal Agent with pluggable skills  
+**When**: After Phase 0.5 parallel development complete  
+**Goal**: Merge web + MCP learnings into Universal Agent with pluggable skills  
 **Timeline**: Rough estimate 4-6 weeks of vibe coding
+
+**Integration Note**: Phase 1 will combine insights from both Phase 0.5 tracks:
+- MCP architecture → multi-platform foundation
+- Web deployment → user experience and accessibility patterns
 
 ### 🧩 Key Components to Build
 
@@ -33,9 +37,10 @@ class UniversalCustomerAgent:
 - Cross-platform context management working (prep for Slack integration)
 
 ### 🔗 Dependencies
-- ✅ Phase 0.5 MCP integration complete (dual-mode working)
+- ✅ Phase 0.5 Track A: MCP integration complete (dual-mode working) 
+- ✅ Phase 0.5 Track B: Web deployment complete (team validation done)
 - ✅ Performance <10s target achieved
-- ✅ Universal Agent architecture validated
+- ✅ Universal Agent architecture validated in both CLI and web contexts
 
 ## 🔮 Phase 2: Multi-Platform Intelligence (Rough Ideas)
 

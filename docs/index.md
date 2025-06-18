@@ -5,13 +5,14 @@
 ## 🎯 Where You Probably Want to Go
 
 ### **Right Now** (What's happening)
-- **[Current Focus](planning/current-focus.md)** - What you're working on today
-- **[Current Phase Tasks](implementation/phase-0.5-mcp/tasks.md)** - All the MCP implementation work  
-- **[Progress Check](implementation/phase-0.5-mcp/progress.md)** - Where you left off, what's next
+- **[Current Focus](planning/current-focus.md)** - Parallel tracks: MCP + Web development
+- **[MCP Track Tasks](implementation/phase-0.5-mcp/tasks.md)** - Backend/architecture work
+- **[Web Track Tasks](implementation/phase-0.5-web/tasks.md)** - Frontend/deployment work  
+- **[Progress Check](planning/current-focus.md)** - Where you left off, what's next
 
 ### **Planning Ahead** (What's coming)
-- **[Next Up](planning/next-up.md)** - What happens after MCP implementation
-- **[Roadmap](planning/roadmap.md)** - High-level phases and rough timeline
+- **[Next Up](planning/next-up.md)** - What happens after parallel development
+- **[Roadmap](planning/roadmap.md)** - Strategic timeline with parallel tracks
 - **[Backlog](planning/backlog.md)** - Cool ideas for later
 
 ## 📚 Full Documentation Map
@@ -28,9 +29,9 @@
 - **[Icebox](planning/icebox.md)** - ❄️ Deferred/rejected ideas
 
 ### **Implementation Details**
-- **[Phase 0.5: MCP Integration](implementation/phase-0.5-mcp/overview.md)** - Current phase
-  - [Tasks](implementation/phase-0.5-mcp/tasks.md) - What needs to be done
-  - [Progress](implementation/phase-0.5-mcp/progress.md) - Current status & blockers
+- **[Phase 0.5: Parallel Development](planning/roadmap.md)** - Current phase overview
+  - **Track A - MCP**: [Overview](implementation/phase-0.5-mcp/overview.md) | [Tasks](implementation/phase-0.5-mcp/tasks.md) | [Progress](implementation/phase-0.5-mcp/progress.md)
+  - **Track B - Web**: [Overview](implementation/phase-0.5-web/overview.md) | [Tasks](implementation/phase-0.5-web/tasks.md) | [Progress](implementation/phase-0.5-web/progress.md)
 - **[Phase 1: Skills Architecture](implementation/phase-1-skills/overview.md)** - Future
 - **[Phase 2+](planning/roadmap.md)** - Later phases (high-level only)
 
@@ -42,9 +43,11 @@
 
 ## 🚀 Quick Start for New Sessions
 
-1. **Check Current Focus**: See [planning/current-focus.md](planning/current-focus.md)
-2. **Review Active Tasks**: Look at [implementation/phase-0.5-mcp/tasks.md](implementation/phase-0.5-mcp/tasks.md)
-3. **Pick Up Where You Left Off**: Check [implementation/phase-0.5-mcp/progress.md](implementation/phase-0.5-mcp/progress.md)
+1. **Check Current Focus**: See [planning/current-focus.md](planning/current-focus.md) - view both parallel tracks
+2. **Pick Your Energy Level & Track**: 
+   - **MCP Track** (backend/architecture): [tasks](implementation/phase-0.5-mcp/tasks.md) | [progress](implementation/phase-0.5-mcp/progress.md)
+   - **Web Track** (frontend/deployment): [tasks](implementation/phase-0.5-web/tasks.md) | [progress](implementation/phase-0.5-web/progress.md)
+3. **Switch tracks anytime** based on mood, energy, or when you want variety
 
 ## 🎮 Documentation Philosophy
 

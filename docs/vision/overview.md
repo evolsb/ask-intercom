@@ -86,28 +86,32 @@ Direct API        ─┘     │ Universal Customer      │
 |Phase|Deliverable|Success Signal|
 |---|---|---|
 |**0** ✅|CLI prototype with Intercom|Functional customer intelligence queries|
-|**0.5** 🔄|MCP integration + performance|<10 second response time achieved|
-|**1**|Universal Agent with pluggable skills|Cross-platform context management working|
+|**0.5** 🔄|Parallel development: MCP + Web|<10s response time + shareable web app|
+|**1**|Universal Agent with pluggable skills|Skills architecture working in CLI + web|
 |**2**|Multi-MCP support (Slack integration)|Customer + team intelligence queries|
 |**3**|Strategic intelligence (Linear integration)|Strategic roadmap correlation queries|
-|**4**|Agent marketplace deployment|"Universal Customer Intelligence Agent" deployed|
+|**4**|Multi-channel deployment|Agent marketplace + SaaS platform success|
 
 ## 7 · Universal Agent Monetization
 
-- **Agent Marketplace**: Primary revenue through agent marketplace deployment
-  - Position as "Universal Customer Intelligence Agent" 
-  - Revenue sharing on Claude Apps, GPT Store, etc.
-  - Unique value: Works with any MCP-enabled platform
+**Multi-Channel Strategy** (both agent marketplace AND SaaS platform):
 
-- **Enterprise Licensing**: 
-  - Self-hosted deployment for enterprise customers
-  - Custom MCP integration support
-  - Professional services for strategic intelligence implementation
+- **SaaS Platform** (Phase 0.5B → ongoing):
+  - Web application with freemium model
+  - Team collaboration and sharing features
+  - Enterprise deployments and custom integrations
+  - Immediate revenue while building agent marketplace presence
 
-- **Platform Extensions**:
-  - Specialized skills for specific industries
-  - Custom cross-platform correlation models
+- **Agent Marketplace** (Phase 4 primary focus):
+  - "Universal Customer Intelligence Agent" in Claude Apps, GPT Store
+  - Revenue sharing with platform providers
+  - Unique positioning: Works with any MCP-enabled platform
+
+- **Enterprise Platform**:
   - White-label universal agent solutions
+  - Custom MCP integration support  
+  - Professional services for strategic intelligence implementation
+  - Self-hosted deployments with enterprise features
 
 
 ## 8 · Pre‑Mortem Highlights (top 5)

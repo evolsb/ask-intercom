@@ -29,24 +29,31 @@
 
 ## Universal Agent Monetization Strategy
 
-### Primary: Agent Marketplace Revenue
-**Focus:** "Universal Customer Intelligence Agent" positioning
-- Revenue sharing through Claude Apps, GPT Store, etc.
-- Premium features: Strategic intelligence queries (customer + team + product)
-- Usage-based pricing for high-volume cross-platform queries
-- Enterprise deployment with custom MCP integration support
+### Multi-Channel Revenue Strategy
+**Approach:** Complementary revenue streams, not competing approaches
 
-### Secondary: Platform-as-a-Service
-**Target:** Enterprise customers needing self-hosted universal agents
-- White-label universal agent platform
-- Custom skill development for industry-specific intelligence
-- Multi-tenant universal agent hosting
+#### Phase 0.5B+: SaaS Platform (Immediate Revenue)
+**Web deployment foundation:**
+- Freemium web application with team features
+- Enterprise deployments and custom integrations
+- Query history, sharing, and collaboration features
+- Immediate market validation and revenue while building agent marketplace
 
-### Tertiary: Universal Agent SDK
-**Vision:** Enable other developers to build universal agents
-- MCP registry and cross-platform context management as a service
-- Universal agent skill marketplace
-- Developer tools for building specialized universal agents
+#### Phase 4: Agent Marketplace (Strategic Focus)
+**Universal agent positioning:**
+- "Universal Customer Intelligence Agent" in Claude Apps, GPT Store
+- Revenue sharing with platform providers
+- Unique positioning: Works with any MCP-enabled platform
+- Premium cross-platform intelligence features
+
+#### Enterprise Platform (Ongoing)
+**High-value customers:**
+- White-label universal agent solutions
+- Custom MCP integration support
+- Professional services for strategic intelligence implementation
+- Self-hosted deployments with enterprise features
+
+**Strategy**: SaaS platform validates market and provides runway → Agent marketplace captures universal agent category → Enterprise platform serves high-value customers
 
 ---
 

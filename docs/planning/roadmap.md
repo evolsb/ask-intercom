@@ -9,13 +9,24 @@
 **Goal**: Prove AI + Intercom integration works  
 **Achievement**: Functional CLI with 30.2s response time, $0.087 cost per query  
 
-### 🔄 Phase 0.5: MCP Integration (CURRENT)  
+### 🔄 Phase 0.5: Parallel Development (CURRENT)  
 **Timeline**: Current focus (flexible)  
+**Goal**: Performance + Accessibility (backend optimization + web deployment)  
+
+#### 🚀 Track A: MCP Integration
 **Goal**: <10 second response time + Universal Agent foundation  
 **Key Work**: 
 - Dual-mode operation (REST + MCP)
 - Performance benchmarking
 - Architecture prep for multi-platform
+
+#### 🌐 Track B: Web Deployment
+**Goal**: Transform CLI into shareable web application  
+**Key Work**:
+- FastAPI backend wrapping CLI logic
+- React frontend with query interface
+- Docker deployment + hosted SaaS version
+- Team testing and user validation
 
 ### 🎯 Phase 1: Universal Agent Skills
 **Timeline**: After Phase 0.5 (~Q3 2025)  
@@ -35,10 +46,13 @@
 **Goal**: Customer + team + product intelligence (Linear MCP)  
 **Key Capability**: "What should we deprioritize based on customer feedback?"
 
-### 🏪 Phase 4: Agent Marketplace
+### 🏪 Phase 4: Agent Marketplace + Platform
 **Timeline**: ~Q2 2026  
-**Goal**: "Universal Customer Intelligence Agent" deployment  
-**Key Achievement**: First universal agent for customer intelligence
+**Goal**: Multi-channel deployment and platform expansion  
+**Key Achievements**:
+- "Universal Customer Intelligence Agent" in Claude Apps, GPT Store
+- Enterprise platform with white-label options
+- SaaS platform scaling and team features
 
 ## 🎮 Development Approach
 
@@ -50,11 +64,13 @@
 
 ### Success Gates
 Each phase must achieve its goals before starting the next:
-- **Phase 0.5 Gate**: <10s response time + universal agent architecture ready
+- **Phase 0.5 Gate**: 
+  - Track A: <10s response time + universal agent architecture ready
+  - Track B: Web app deployed + team validation complete
 - **Phase 1 Gate**: Skills architecture working + multi-MCP foundation
 - **Phase 2 Gate**: Cross-platform intelligence demonstrated
 - **Phase 3 Gate**: Strategic intelligence working across all platforms
-- **Phase 4 Gate**: Agent marketplace deployment successful
+- **Phase 4 Gate**: Multi-channel deployment (agent marketplace + platform) successful
 
 ## 🎯 North Star Metrics
 
