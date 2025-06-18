@@ -31,6 +31,7 @@ class AIClient:
     ):
         self.client = AsyncOpenAI(api_key=api_key)
         self.model = model
+        self.fast_model = "gpt-3.5-turbo"  # Faster model for simple queries
         self.app_id = app_id
         self.timeframe_model = timeframe_model
 
@@ -49,15 +50,21 @@ class AIClient:
             else self._get_system_prompt()
         )
 
+        # Select optimal model based on query complexity
+        selected_model = self._select_model_for_query(query, len(conversations))
+        logger.info(
+            f"Selected model: {selected_model} for query: '{query[:50]}...' ({len(conversations)} conversations)"
+        )
+
         # Call OpenAI for analysis
         response = await self.client.chat.completions.create(
-            model=self.model,
+            model=selected_model,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt},
             ],
             temperature=0.1,  # Low temperature for consistent results
-            max_tokens=500,  # Limit response length
+            max_tokens=400,  # Efficient response length
         )
 
         # Parse response
@@ -258,6 +265,46 @@ class AIClient:
         analysis_prompt += "Provide a clear analysis addressing the original query. Remember to mention the total message count at the end."
 
         return analysis_prompt
+
+    def _select_model_for_query(self, query: str, conversation_count: int) -> str:
+        """Select optimal model based on query complexity."""
+        import re
+
+        query_lower = query.lower()
+
+        # Simple queries → faster model
+        simple_patterns = [
+            r"\bhow many\b",
+            r"\bcount\b",
+            r"\blist\b",
+            r"\bshow me\b",
+            r"\bwhat are\b",
+        ]
+
+        # Complex analysis → GPT-4
+        complex_patterns = [
+            r"\banalyze\b",
+            r"\bcompare\b",
+            r"\bexplain why\b",
+            r"\broot cause\b",
+            r"\bpatterns\b",
+            r"\btrends\b",
+        ]
+
+        # Small datasets → faster model
+        if conversation_count <= 20:
+            return self.fast_model
+
+        # Complex queries → main model
+        if any(re.search(pattern, query_lower) for pattern in complex_patterns):
+            return self.model
+
+        # Simple queries → fast model
+        if any(re.search(pattern, query_lower) for pattern in simple_patterns):
+            return self.fast_model
+
+        # Default → main model
+        return self.model
 
     def _calculate_cost(self, usage, model: str = None) -> CostInfo:
         """Calculate the cost of the API call."""
