@@ -2,11 +2,18 @@
 
 > **Status**: Phase 0.5 - MCP Integration Planning  
 > **Goal**: Implement dual-mode operation (REST + MCP) with performance/quality comparison  
-> **Priority**: High - Target <10 second response time
+> **Priority**: High - Target <10 second response time  
+> **Strategic Context**: Foundation for Universal Agent Architecture (see `docs/architecture/universal-agent-design.md`)
 
 ## Executive Summary
 
-Integrate Intercom's Model Context Protocol (MCP) as an alternative to REST API for conversation fetching, while maintaining REST as fallback. Implement comprehensive testing to compare performance and quality between approaches.
+Integrate Intercom's Model Context Protocol (MCP) as the first step toward building a Universal Customer Intelligence Agent. This implementation establishes the foundation for multi-MCP support, enabling future expansion to Slack, Linear, and other platforms through standardized protocols.
+
+**Key Strategic Value:**
+- **Performance**: Achieve <10 second response time target
+- **Architecture**: Enable universal agent with pluggable skills  
+- **Marketplace**: Position for agent marketplace as "Universal Customer Intelligence Agent"
+- **Scalability**: Foundation for cross-platform intelligence capabilities
 
 ## MCP Background & Benefits
 
@@ -29,10 +36,12 @@ Integrate Intercom's Model Context Protocol (MCP) as an alternative to REST API 
 
 ## Technical Architecture
 
-### Dual-Mode Operation Design
+### Dual-Mode Operation Design (Phase 0.5)
 
 ```python
 class ConversationFetcher:
+    """Dual-mode fetcher preparing for Universal Agent architecture."""
+    
     def __init__(self, config):
         self.rest_client = IntercomClient(config.intercom_token)
         self.mcp_client = MCPIntercomClient(config) if config.enable_mcp else None
@@ -45,6 +54,27 @@ class ConversationFetcher:
                 logger.warning(f"MCP failed, falling back to REST: {e}")
                 
         return await self.rest_client.fetch_conversations(filters)
+```
+
+### Future Universal Agent Architecture (Phase 1+)
+
+```python
+class MCPRegistry:
+    """Multi-MCP manager for Universal Agent."""
+    
+    def __init__(self):
+        self.mcp_clients = {}  # intercom, slack, linear, etc.
+        
+    async def register_mcp(self, platform: str, client: MCPClient):
+        self.mcp_clients[platform] = client
+        
+    async def query_cross_platform(self, intent: QueryIntent) -> CrossPlatformContext:
+        """Gather context from multiple MCP sources for comprehensive analysis."""
+        context = {}
+        for platform, client in self.mcp_clients.items():
+            if intent.requires_platform(platform):
+                context[platform] = await client.fetch_data(intent.filters)
+        return CrossPlatformContext(context)
 ```
 
 ### MCP Client Implementation Strategy
@@ -98,12 +128,14 @@ class ConversationFetcher:
    - Update `IntercomClient` to support dual-mode operation
    - Graceful fallback mechanism
    - Logging for mode selection
+   - **Architectural Preparation**: Design interfaces for future multi-MCP support
 
 **Success Criteria**:
 - MCP client can connect to Intercom's MCP server
 - Authentication flow works correctly
 - Fallback to REST API on connection failure
 - Configuration flag controls MCP usage
+- **Architecture Ready**: Interfaces designed for future universal agent evolution
 
 ### Phase 0.5.2: Conversation Fetching via MCP (Week 2)
 
@@ -283,7 +315,8 @@ class MCPvsRESTBenchmark:
 src/
 ├── mcp_client.py              # MCP client implementation
 ├── mcp_auth.py                # OAuth and authentication handling
-└── conversation_fetcher.py    # Dual-mode abstraction layer
+├── conversation_fetcher.py    # Dual-mode abstraction layer
+└── mcp_registry.py            # Future: Multi-MCP platform manager
 
 tests/
 ├── integration/
@@ -292,10 +325,13 @@ tests/
 └── unit/
     └── test_mcp_client.py     # Unit tests for MCP client
 
-docs/mcp/
-├── setup-guide.md             # MCP setup and configuration
-├── troubleshooting.md         # Common issues and solutions
-└── performance-reports/       # Benchmark results and analysis
+docs/
+├── mcp/
+│   ├── setup-guide.md         # MCP setup and configuration
+│   ├── troubleshooting.md     # Common issues and solutions
+│   └── performance-reports/   # Benchmark results and analysis
+└── architecture/
+    └── universal-agent-design.md # Strategic architecture decisions
 ```
 
 ### Configuration Changes
@@ -305,7 +341,7 @@ docs/mcp/
 class Config(BaseModel):
     # Existing fields...
     
-    # MCP Configuration
+    # MCP Configuration (Phase 0.5)
     enable_mcp: bool = Field(default=False, description="Enable MCP client")
     mcp_server_url: str = Field(
         default="https://mcp.intercom.com/sse",
@@ -317,6 +353,12 @@ class Config(BaseModel):
         default=True, 
         description="Enable REST API fallback"
     )
+    
+    # Future Universal Agent Configuration (Phase 1+)
+    # enable_slack_mcp: bool = Field(default=False, description="Enable Slack MCP")
+    # enable_linear_mcp: bool = Field(default=False, description="Enable Linear MCP")
+    # slack_mcp_token: str = Field(default="", description="Slack MCP OAuth token")
+    # linear_mcp_token: str = Field(default="", description="Linear MCP OAuth token")
 ```
 
 ## Success Criteria
@@ -345,14 +387,30 @@ class Config(BaseModel):
 
 ## Next Steps
 
-1. **Week 1**: Implement MCP client foundation
-2. **Week 2**: Add conversation fetching capability
+### Immediate (Phase 0.5)
+1. **Week 1**: Implement MCP client foundation with universal agent interfaces
+2. **Week 2**: Add conversation fetching capability with cross-platform preparation
 3. **Week 3**: Complete testing and benchmarking suite
 4. **Week 4**: Documentation, optimization, and production preparation
 
-Upon completion, Ask-Intercom will have dual-mode operation with comprehensive performance comparison, positioning it as a robust, high-performance customer support analysis tool ready for production deployment.
+### Future Phases
+- **Phase 1**: Skill architecture and cross-platform context management
+- **Phase 2**: Slack MCP integration for internal discussions  
+- **Phase 3**: Linear MCP integration for strategic roadmap analysis
+- **Phase 4**: Agent marketplace positioning and deployment
+
+## Strategic Outcomes
+
+Upon completion of Phase 0.5, Ask-Intercom will have:
+- **Performance**: <10 second response time achieved
+- **Architecture**: Foundation for Universal Agent with multi-MCP support
+- **Marketplace Ready**: Positioned as "Customer Intelligence Agent" for agent marketplaces
+- **Scalability**: Ready for cross-platform intelligence expansion
+
+This positions Ask-Intercom as the first Universal Customer Intelligence Agent capable of comprehensive analysis across customer, team, and product data through standardized MCP connections.
 
 ---
 
-**Last Updated**: 2025-06-17  
+**Last Updated**: 2025-06-18  
+**Strategic Context**: Universal Agent Architecture (see `docs/architecture/universal-agent-design.md`)  
 **Next Review**: After Phase 0.5.1 completion

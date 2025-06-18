@@ -2,93 +2,112 @@
 
 > **What this document is:** The north star for Ask-Intercom. Defines what we're building, why it matters, and how it's different from existing solutions. Use this as the reference for all strategic decisions.
 
-> _A model‑agnostic assistant that turns raw Intercom conversations into actionable product, support, and roadmap insights—directly inside Slack._
+> _The first Universal Customer Intelligence Agent that provides comprehensive insights across customer, team, and product data through standardized MCP connections._
 
 ---
 
 ## 1 · Purpose
 
-Enable any team to interrogate its support history with natural language and receive clear, context‑rich answers, digests, and alerts—while keeping model choice, data ownership, and extension points fully open‑source.
+Build the first Universal Customer Intelligence Agent that connects customer feedback, internal team discussions, and product roadmaps through standardized MCP protocols—enabling strategic cross-platform insights that no single-platform tool can provide.
 
 ## 2 · Problem Statement
 
-- **Scattered knowledge** – Valuable customer signals hide in thousands of support threads.
+- **Scattered intelligence** – Customer insights live in Intercom, team discussions in Slack, roadmap decisions in Linear—no tool connects them
 
-- **Slow feedback loops** – PMs wait days for manual tagging or BI exports; engineers miss emerging bugs.
+- **Platform silos** – Each tool requires custom integrations; insights are limited to single-platform data
+
+- **Strategic blind spots** – Teams can't answer "What should we deprioritize based on customer feedback?" without manual cross-referencing
 
 
 ## 3 · Differentiation
 
-
-|Axis|Ask‑Intercom|Typical SaaS add‑on|
+|Axis|Ask‑Intercom (Universal Agent)|Traditional Single-Platform Tools|
 |---|---|---|
-|Model choice|Plug‑in any OpenAI‑, Anthropic‑, Groq‑, or local Llama adapter|Fixed to vendor's model|
-|Deployment|Docker self‑host → optional managed hosting|Cloud only|
-|Extensibility|Apache‑2.0 core + plugin SDK|Closed|
-|Alert logic|DSL + schedule + thresholds|Limited presets|
-|Intercom integration|Native MCP protocol support|Basic API polling|
-|Agentic workflows|Multi‑step reasoning with tool‑calling|Simple keyword matching|
+|**Platform Coverage**|Customer + Team + Product (Intercom + Slack + Linear)|Single platform only|
+|**Integration Method**|Standardized MCP protocol|Custom REST API integrations|
+|**Agent Marketplace**|"Universal Customer Intelligence Agent"|Platform-specific tools|
+|**Cross-Platform Insights**|"What roadmap items need customer validation?"|Limited to platform data|
+|**Deployment Flexibility**|Agent marketplace + self-host + managed|Typically single deployment model|
+|**Architecture**|Pluggable skills + multi-MCP registry|Monolithic single-platform design|
+|**Future-Proofing**|New MCP platforms = zero integration work|Each new platform requires custom development|
 
-## 4 · Core User Stories (v1)
+## 4 · Universal Agent Use Cases
 
-1. **`/askintercom`** – Ad‑hoc NL query → threaded Slack answer.
-   - _"Are there any recent patterns or spikes in activity from users?"_
-   - _"What are the top 3 customer pain points mentioned in the last 90 days?"_
-   - _"Summarize the problem that jon@gmail.com has been having?"_
-   - _"Based on conversations in the last 120 days, what are the top 4 things we should add to our roadmap?"_
+### Phase 1: Enhanced Customer Intelligence
+- _"What are the top customer complaints this month?"_ (Intercom MCP)
+- _"Show me escalation risks from the last week"_ (Intercom MCP)
+- _"Which customers mentioned our competitor?"_ (Intercom MCP)
 
-2. **Scheduled digest** – "Every Friday 10 ET: angry‑customers summary."
-   - _"Were there any angry customers this week?"_
-   - _"How many customer service messages were opened this week?"_
-   - _"Summarize the engineering related tickets this week"_
+### Phase 2: Customer + Team Intelligence  
+- _"What customer issues are our team discussing in Slack?"_ (Intercom + Slack MCP)
+- _"Are support and engineering aligned on this bug?"_ (Intercom + Slack MCP)
+- _"Show me customer feedback that contradicts our internal assumptions"_ (Cross-platform)
 
-3. **Alert rule** – "> 10 tickets > 1 h unanswered → ping #support‑lead."
-   - _"This ticket has been open more than 3 days and no one has responded!"_
-   - _"More than 10 tickets open > 1 hour from CS agent Lucas"_
+### Phase 3: Strategic Intelligence
+- _"What on our roadmap should be deprioritized according to customer feedback?"_ (Intercom + Linear MCP)
+- _"Which roadmap items have the most customer validation?"_ (Intercom + Linear MCP)
+- _"Show me disconnects between customer requests and planned features"_ (Cross-platform)
 
-4. **CLI** – Run the same asks locally for testing or automation.
+### Phase 4: Agent Marketplace Deployment
+- **One-click agent installation**: "Universal Customer Intelligence Agent"
+- **Zero custom integration**: Just connect your MCP servers
+- **Works with any MCP platform**: Intercom, Zendesk, HubSpot, Slack, Linear, etc.
 
 
-## 5 · High‑Level Architecture
+## 5 · Universal Agent Architecture
 
 ```
-Slack Cmd  ─┐        +───────────────+
-Scheduler ──┼─▶  API │ Ask‑Intercom  │───▶ Intercom API
-CLI local  ─┘        +─────┬─────────+
-                            │
-       pgvector (embeddings)│  Postgres (raw JSON)
+Agent Marketplace  ─┐
+CLI Interface     ──┼─▶  ┌─────────────────────────┐
+Direct API        ─┘     │ Universal Customer      │
+                         │ Intelligence Agent      │
+                         └─────────┬───────────────┘
+                                   │
+                    ┌──────────────┼──────────────┐
+                    │              │              │
+              Intercom MCP    Slack MCP    Linear MCP
+              (Customer)     (Team)       (Product)
 ```
 
-**Key tech choices:**
+**Universal Agent Core:**
+- **MCP Registry** – Multi-platform connection management
+- **Skill Architecture** – Pluggable analysis capabilities (sentiment, trends, correlation)
+- **Cross-Platform Context** – Unified data model across all MCP sources
+- **Query Intent Parsing** – Route queries to relevant platforms and skills
 
-- **FastAPI** – High‑performance async Python API framework with auto‑generated OpenAPI docs
-- **LangChain agentic workflows** – Multi‑step reasoning with tool‑calling for complex query orchestration
-- **Intercom MCP integration** – Native Model Context Protocol support for efficient, real‑time data access
-- **Temporal/Celery** – Reliable job scheduling and workflow orchestration for digests and alerts
-- **pgvector or Pinecone** – Vector embeddings storage for semantic search across conversation history
-- **HashiCorp Vault** – Secure secrets management for API keys and sensitive configuration
+**Key Technology Choices:**
+- **MCP Protocol** – Standardized connections to all data sources
+- **Pluggable Skills** – Composable analysis capabilities
+- **Universal Data Model** – Cross-platform context management
+- **Agent Marketplace Ready** – Standardized deployment patterns
 
-## 6 · Phased Roadmap
+## 6 · Universal Agent Roadmap
 
-|Phase|Deliverable|Success signal|
+|Phase|Deliverable|Success Signal|
 |---|---|---|
-|0|CLI prototype w/ local JSON ingest|Answers align ≥ 80 % with manual checks|
-|1|Slack MVP (`/askintercom`)|Test team uses daily|
-|2|Docker self‑host package|First external organization deploys successfully|
-|3|Scheduled digests & alert DSL|No manual weekly reporting needed|
-|4|Optional managed hosting + agent marketplace|Revenue from hosted tier or marketplace|
+|**0** ✅|CLI prototype with Intercom|Functional customer intelligence queries|
+|**0.5** 🔄|MCP integration + performance|<10 second response time achieved|
+|**1**|Universal Agent with pluggable skills|Cross-platform context management working|
+|**2**|Multi-MCP support (Slack integration)|Customer + team intelligence queries|
+|**3**|Strategic intelligence (Linear integration)|Strategic roadmap correlation queries|
+|**4**|Agent marketplace deployment|"Universal Customer Intelligence Agent" deployed|
 
-## 7 · Licensing & Monetisation
+## 7 · Universal Agent Monetization
 
-- **Code**: Apache‑2.0 open source (patent peace, business‑friendly)
+- **Agent Marketplace**: Primary revenue through agent marketplace deployment
+  - Position as "Universal Customer Intelligence Agent" 
+  - Revenue sharing on Claude Apps, GPT Store, etc.
+  - Unique value: Works with any MCP-enabled platform
 
-- **Self‑hosted**: Free forever with user‑provided API keys
+- **Enterprise Licensing**: 
+  - Self-hosted deployment for enterprise customers
+  - Custom MCP integration support
+  - Professional services for strategic intelligence implementation
 
-- **Managed hosting**: Optional convenience tier with usage‑based billing
-
-- **Agent marketplace**: Revenue sharing on OpenAI GPT Store, Anthropic Claude Apps, etc.
-
-- **Enterprise**: Professional services for custom integrations and support
+- **Platform Extensions**:
+  - Specialized skills for specific industries
+  - Custom cross-platform correlation models
+  - White-label universal agent solutions
 
 
 ## 8 · Pre‑Mortem Highlights (top 5)
@@ -104,17 +123,24 @@ CLI local  ─┘        +─────┬─────────+
 5. Multi‑tenant leak via shared cache → tenant prefix & automated secret scans.
 
 
-## 9 · Success Metrics
+## 9 · Universal Agent Success Metrics
 
-- Average response time < 5 s P95.
+**Performance Targets:**
+- Response time < 10 seconds for cross-platform queries
+- Cost per query < $0.50 including multi-platform data
+- Accuracy ≥ 90% for strategic correlation insights
 
-- Token cost / digest < US$0.02.
+**Adoption Metrics:**
+- Agent marketplace downloads and active installations
+- Cross-platform query adoption (vs single-platform usage)
+- Strategic intelligence query frequency
 
-- Weekly active queries per user ≥ 3.
-
-- NPS from internal pilot ≥ 40.
+**Business Success:**
+- Position as #1 "Customer Intelligence" agent in marketplaces
+- Revenue from universal agent positioning
+- Platform expansion rate (new MCP integrations)
 
 
 ---
 
-_Document version 0.1 – Jun 15 2025.  Iterate freely._
+_Document version 2.0 – Jun 18 2025. Updated for Universal Agent Architecture._

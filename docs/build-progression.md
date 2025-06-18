@@ -114,30 +114,43 @@
 
 ---
 
-### 🏪 **Phase 4: Scaling & Monetization** _(Future)_
-**Goal:** Multiple paths to scale and generate revenue
+### ⚡ **Phase 3: Strategic Intelligence** _(Q1 2026)_
+**Goal:** Add Linear MCP for strategic roadmap correlation
 
-**Deliverable:** Choose between managed hosting and/or agent marketplace
+**Deliverable:** Strategic intelligence queries spanning customer, team, and product data
 
-**Option A - Managed Hosting:**
-- Multi-tenant SaaS version with billing
-- Simplified installation for non-technical users
-- Usage-based pricing model
+**Technical Scope:**
+- Linear MCP integration for roadmap data
+- Strategic correlation algorithms
+- "What should we deprioritize based on customer feedback?" capabilities
+- Cross-platform strategic analysis
 
-**Option B - Agent Marketplace:**
-- Package core API as agents for OpenAI GPT Store, Anthropic Claude Apps, etc.
-- User credential management (secure Intercom API key handling)
-- Revenue sharing integration with platforms
-- Multi-platform agent wrappers
+**Success Criteria:**
+- Linear MCP integration complete
+- Strategic queries working across all three platforms
+- Unique strategic insights demonstrable
+- Clear competitive differentiation achieved
 
-**Option C - Hybrid:**
-- Both managed hosting AND agent marketplace presence
-- Self-hosted remains free and open source
+**Strategic Value:** Only agent providing customer + team + product strategic intelligence
 
-**Success criteria:**
-- Clear revenue stream from chosen path(s)
-- Self-hosted version continues to thrive
-- Community contributions and adoption growing
+### 🏪 **Phase 4: Agent Marketplace Deployment** _(Q2 2026)_
+**Goal:** Deploy "Universal Customer Intelligence Agent" to agent marketplaces
+
+**Deliverable:** Marketplace-ready agent with standardized MCP configuration
+
+**Technical Scope:**
+- Agent marketplace packaging and deployment
+- User-friendly MCP connection configuration
+- Multi-platform agent wrappers (Claude Apps, GPT Store, etc.)
+- Revenue sharing integration
+
+**Success Criteria:**
+- "Universal Customer Intelligence Agent" deployed to major marketplaces
+- Users can connect any MCP-enabled platform without custom development
+- Clear competitive positioning as universal solution
+- Revenue generation from agent marketplace presence
+
+**Strategic Value:** First universal customer intelligence agent in marketplaces
 
 ---
 
