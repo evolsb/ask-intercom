@@ -1,46 +1,51 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides crucial guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## 🚀 Quick Start for New Claude Sessions
 
-**Test the timeframe system:**
+**FIRST: Always read current project state before starting work:**
+```bash
+# Read docs index to understand where we are
+# docs/index.md → docs/planning/current-focus.md
+# Choose MCP track or Web track based on priorities
+```
+
+**Test the system:**
 ```bash
 env -i HOME="$HOME" PATH="$PATH" ~/.local/bin/poetry run python -m src.cli "show me issues from the last 24 hours"
 ```
 
-**Run integration tests:**
+**Run tests:**
 ```bash  
-env -i HOME="$HOME" PATH="$PATH" ~/.local/bin/poetry run python tests/integration/test_timeframe_consistency.py
+env -i HOME="$HOME" PATH="$PATH" ~/.local/bin/poetry run pytest -v
 ```
 
 **Debug logs:**
 ```bash
-tail -f .ask-intercom-dev/debug.log  # Live logs
-grep "ERROR\|Page.*:" .ask-intercom-dev/debug.log | tail -20  # Recent errors and pagination
+tail -f .ask-intercom-analytics/logs/backend-$(date +%Y-%m-%d).jsonl
 ```
 
 ## Project Overview
 
-Ask-Intercom is an AI-powered tool that turns raw Intercom conversations into actionable product, support, and roadmap insights. The project follows a risk-first development approach with clear phases.
+Ask-Intercom is an AI-powered tool that turns raw Intercom conversations into actionable product, support, and roadmap insights. The project follows a risk-first development approach.
 
-**Current Status:** Phase 0 - Core Intelligence Proof (Python CLI prototype)
+**Current Status:** Check `docs/planning/current-focus.md` for latest phase and priorities
 
-## Architecture & Tech Stack
+## Core Architecture
 
-### Phase 0 Components
-- **CLI Interface** (`src/cli.py`): Main entry point with argparse, Rich formatting
-- **Query Processor** (`src/query_processor.py`): Orchestrates the full query workflow
-- **Intercom Client** (`src/intercom_client.py`): MCP protocol with REST API fallback
-- **AI Client** (`src/ai_client.py`): OpenAI integration with cost tracking
-- **Models** (`src/models.py`): Core data structures (Conversation, TimeFrame, AnalysisResult)
-- **Config** (`src/config.py`): Environment-based configuration with Pydantic validation
+### Key Components
+- **CLI Interface** (`src/cli.py`): Main entry point
+- **Query Processor** (`src/query_processor.py`): Orchestrates workflows
+- **Intercom Client** (`src/intercom_client.py`): API integration
+- **AI Client** (`src/ai_client.py`): OpenAI integration
+- **Web Interface** (`src/web/main.py`, `frontend/`): FastAPI + React
 
-### Key Design Patterns
-- **Agentic workflows**: AI interprets natural language timeframes ("this month" → specific dates)
-- **Graceful degradation**: MCP → REST API fallback for resilience
-- **Cost optimization**: Token tracking, prompt engineering, conversation summarization
-- **Risk-first architecture**: Prove hardest problems first (AI+MCP integration)
+### Design Principles
+- **Risk-first development**: Tackle hardest problems early
+- **Graceful degradation**: Multiple fallback strategies
+- **Cost optimization**: Token tracking and prompt engineering
+- **Structured logging**: Full observability for debugging
 
 ## Development Environment
 
@@ -62,12 +67,18 @@ env -i HOME="$HOME" PATH="$PATH" ~/.local/bin/poetry run python tests/integratio
 **Environment Variables** are loaded from `.env` file automatically - do NOT set in `.claude/settings.json`
 
 ### Debugging & Logs
-- **Debug logs**: `.ask-intercom-dev/debug.log` (structured JSON, rotated at 10MB)
-- **Query logs**: `.ask-intercom-dev/queries.jsonl` (query start events)
-- **Result logs**: `.ask-intercom-dev/results.jsonl` (query completion events)
-- **View recent logs**: `tail -50 .ask-intercom-dev/debug.log`
-- **Search logs**: `grep "ERROR\|error" .ask-intercom-dev/debug.log`
+- **Debug logs**: `.ask-intercom-analytics/logs/` (structured JSON, daily rotation)
+- **Session logs**: `.ask-intercom-analytics/sessions/` (user session history)
+- **Error logs**: `.ask-intercom-analytics/logs/errors-YYYY-MM-DD.jsonl` (error tracking)
+- **View recent logs**: `tail -50 .ask-intercom-analytics/logs/backend-$(date +%Y-%m-%d).jsonl`
+- **Search logs**: `grep "ERROR\|error" .ask-intercom-analytics/logs/*.jsonl`
 - **Debug mode**: Add `--debug` flag to CLI commands for verbose console output
+
+**⚠️ IMPORTANT SERVER MANAGEMENT:**
+- **ALWAYS run servers in background:** `command > /dev/null 2>&1 &`
+- **Then tail logs for debugging:** `tail -f .ask-intercom-analytics/logs/backend-*.jsonl`
+- **Never run servers in foreground** - Claude gets stuck waiting
+- **Use log analysis tools:** Claude can analyze logs with structured queries
 
 ### Key File Locations
 - **Main CLI**: `src/cli.py` - Entry point with argparse and Rich formatting
@@ -90,34 +101,6 @@ env -i HOME="$HOME" PATH="$PATH" ~/.local/bin/poetry run python tests/integratio
 - **Timeframe consistency test**: `env -i HOME="$HOME" PATH="$PATH" ~/.local/bin/poetry run python tests/integration/test_timeframe_consistency.py`
 - **All tests**: `~/.local/bin/poetry run pytest -v`
 
-**⚠️ CURRENT STATUS**: 
-1. **✅ FIXED**: Timeframe interpretation inconsistency - replaced AI-based parsing with deterministic regex parser
-2. **✅ FIXED**: Pagination issues - now fetches ALL conversations with proper rate limiting
-3. **✅ VERIFIED**: Containment relationships work correctly: 1 hour (5) ⊆ 1 day (63) ⊆ 1 week (472+) ⊆ 1 month (200+)
-
-**⚠️ NEXT PRIORITIES**:
-- Add timeout handling to long-running tests
-- Enhance console output for real-time progress tracking  
-- Test with single timeframe query to verify functionality
-
-### Recent Test Results (2025-06-17)
-**Timeframe Consistency Test Results:**
-- **1 hour**: 5 conversations
-- **1 day**: 63 conversations (contains all 5 from 1 hour ✅)
-- **1 week**: 472 total conversations found → trimmed to 200 limit
-- **1 month**: 200+ conversations (logical progression ✅)
-
-**Pagination Working:**
-- Page 1: 118 conversations
-- Page 2: 118 conversations (total: 236)
-- Page 3: 118 conversations (total: 354)
-- Page 4: 118 conversations (total: 472)
-- Rate limiting: 200ms delays between requests ✅
-
-**Performance:**
-- Full test runtime: ~5 minutes (due to pagination across multiple timeframes)
-- Real-time progress logging working correctly
-- API rate limits respected (83 req/10s limit)
 
 ### Environment Variables
 ```bash
@@ -145,105 +128,58 @@ src/
 └── config.py          # Configuration management
 ```
 
-## Success Criteria & Gates
-
-### Phase 0 Success Gates (All Must Pass)
-- CLI answers "What are the top customer complaints this month?" correctly
-- Response time < 10 seconds consistently
-- Cost per query < $0.50
-- Handles timeframe interpretation correctly
-- Graceful error handling for API failures
-- Clear, actionable 3-5 bullet point output format
-
-### Performance Targets
-- Average response time < 5s P95
-- Token cost per query < $0.50
-- Conversation processing: 50-100 conversations max per query
-
 ## Key Technical Decisions
 
 ### Error Handling Strategy
-- **MCP failures**: Automatic fallback to REST API
-- **Rate limiting**: Exponential backoff, respect Intercom limits (83 requests/10 seconds)
-- **Partial failures**: Continue processing with available data
-- **Cost control**: Warn users of expensive queries, optimize prompts automatically
+- **API failures**: Graceful fallbacks and clear error messages
+- **Rate limiting**: Respect Intercom limits (83 requests/10 seconds)
+- **Cost control**: Optimize prompts, warn on expensive queries
 
 ### Data Flow
 1. Parse natural language query for time context
-2. Convert to specific date ranges using AI function calling
-3. Fetch relevant conversations via MCP (fallback to REST)
-4. Send to AI for analysis with cost-optimized prompts
-5. Format and return structured results
+2. Convert to specific date ranges
+3. Fetch conversations via API
+4. Analyze with AI and return structured results
 
-## Development Phases
+## Development Strategy
 
-### Current: Phase 0 (CLI Prototype) - ✅ COMPLETE
-**Goal**: Prove AI + MCP integration works
-**Status**: Functional CLI that answers customer support queries
-**Performance**: 51s response time, $0.216 cost, structured insights
-**Tech**: Python CLI + OpenAI + REST API (MCP planned)
+**Current development follows parallel tracks - see `docs/planning/current-focus.md` for details**
 
-### Phase 0.1: Performance Optimization (CURRENT PRIORITY)
-**Goal**: Achieve <10 second response time target
-**Current Issue**: 51s response time due to sequential API calls
-**Optimization Plan**: See "Performance Optimization" section in `PROGRESS.md`
-- Phase 1: Intercom Search API (50+ calls → 1-2 calls)
-- Phase 2: Concurrent processing (parallel operations)
-- Phase 3: Data reduction (smart filtering, sampling)
-- Phase 4: Prompt optimization (efficiency tuning)
-
-### Phase 0.5: MCP Integration (High Priority)
-**Goal**: Replace REST API with Intercom's official MCP server
-**Why**: Better performance, real-time data, standardized protocol
-**Tech**: [Intercom MCP Server](https://modelcontextprotocol.io/specification/2025-03-26/basic/authorization)
-- Implement MCP client with proper authorization
-- Keep REST API as graceful fallback
-- Performance comparison testing
-- Update documentation and examples
-
-### Future Phases
-- **Phase 1**: + pgvector + embeddings (Context & Memory)
-- **Phase 2**: + FastAPI + Slack SDK + Docker (Slack Integration)
-- **Phase 3**: + Celery + Redis + scheduling (Automation)
-- **Phase 4**: SaaS hosting OR agent marketplace
+### Key Success Criteria
+- CLI answers "What are the top customer complaints this month?" correctly
+- Response time < 10 seconds consistently  
+- Cost per query < $0.50
+- Graceful error handling for API failures
+- Clear, actionable output format
 
 ## Code Quality Standards
 
-### Pre-commit Hooks Active
-- Secret detection via detect-secrets
-- Code formatting via Black
-- Linting via Ruff
-- Standard pre-commit hooks (trailing whitespace, YAML validation, etc.)
+### Pre-commit Hooks
+- `detect-secrets` for security
+- `black` and `ruff` for code formatting
+- Run: `~/.local/bin/poetry run pre-commit run --all-files`
 
-### Testing Strategy
-- Unit tests with mocked API responses
-- Integration tests with real APIs (dev environment)
-- Success validation with specific test query
-- Cost calculation verification
-
-## AI Integration Details
-
-### OpenAI Function Calling
-- Timeframe interpretation: "this month" → specific ISO dates
-- Structured output for consistent formatting
-- Cost tracking with token usage monitoring
-
-### Prompt Engineering
-- Conversation summarization for long threads
-- Structured prompts for 3-5 bullet point responses
-- Cost-optimized prompt length management
-- Customer support domain expertise in system prompts
-
-## Security & Privacy
-
-### API Key Management
-- Store in .env file (git-ignored)
-- Validate keys on startup
-- Never log sensitive credentials
-- Support key rotation without code changes
-
-### Data Privacy
+### Security
+- API keys in `.env` file only
+- No customer data persistence
 - Process conversations in memory only
-- No local persistence of customer data
-- Audit trail for debugging (metadata only)
-- Comply with data retention policies
+
+## 📋 Documentation Maintenance (CRITICAL)
+
+**Claude MUST update docs before and after each coding session:**
+
+### Before Starting Work:
+1. **Read current state**: `docs/index.md` → `docs/planning/current-focus.md`
+2. **Choose track**: MCP integration OR Web deployment
+3. **Check tasks**: Read relevant `tasks.md` and `progress.md` files
+
+### During Work:
+4. **Update progress**: Mark tasks in progress, add new discoveries
+5. **Document decisions**: Add to `docs/reference/decisions.md` if architectural
+
+### After Completing Work:
+6. **Mark completion**: Update task status and add results
+7. **Update focus**: Modify `docs/planning/current-focus.md` with next steps
+8. **Log important findings**: Update relevant progress files
+
+**The documentation structure in `docs/` is the single source of truth for project state.**

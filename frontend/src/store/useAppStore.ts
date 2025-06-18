@@ -6,6 +6,24 @@ export interface AnalysisResult {
   cost: number
   response_time_ms: number
   conversation_count: number
+  session_id: string
+  request_id: string
+}
+
+export interface ErrorResponse {
+  error_category: string
+  message: string
+  user_action: string
+  retryable: boolean
+  session_id: string
+  request_id: string
+  timestamp: string
+}
+
+export interface SessionInfo {
+  sessionId: string
+  startTime: number
+  queries: number
 }
 
 interface AppState {
@@ -14,10 +32,13 @@ interface AppState {
   openaiKey: string
   maxConversations: number
   
+  // Session Management
+  sessionInfo: SessionInfo | null
+  
   // Query State
   currentQuery: string
   isLoading: boolean
-  error: string | null
+  error: ErrorResponse | null
   
   // Results
   lastResult: AnalysisResult | null
@@ -33,11 +54,13 @@ interface AppState {
   setMaxConversations: (max: number) => void
   setCurrentQuery: (query: string) => void
   setLoading: (loading: boolean) => void
-  setError: (error: string | null) => void
+  setError: (error: ErrorResponse | null) => void
   setResult: (result: AnalysisResult) => void
   addToHistory: (query: string, result: AnalysisResult) => void
   clearHistory: () => void
   reset: () => void
+  generateSessionId: () => string
+  getSessionId: () => string
 }
 
 export const useAppStore = create<AppState>()(
@@ -47,6 +70,7 @@ export const useAppStore = create<AppState>()(
       intercomToken: '',
       openaiKey: '',
       maxConversations: 50,
+      sessionInfo: null,
       currentQuery: '',
       isLoading: false,
       error: null,
@@ -78,6 +102,25 @@ export const useAppStore = create<AppState>()(
         error: null,
         lastResult: null,
       }),
+      
+      generateSessionId: () => {
+        const sessionId = `sess_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        const sessionInfo: SessionInfo = {
+          sessionId,
+          startTime: Date.now(),
+          queries: 0
+        }
+        set({ sessionInfo })
+        return sessionId
+      },
+      
+      getSessionId: () => {
+        const current = get().sessionInfo
+        if (!current) {
+          return get().generateSessionId()
+        }
+        return current.sessionId
+      },
     }),
     {
       name: 'ask-intercom-storage',

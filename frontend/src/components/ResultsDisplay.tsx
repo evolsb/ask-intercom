@@ -42,19 +42,45 @@ export function ResultsDisplay() {
   if (error) {
     return (
       <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6">
-        <h3 className="font-medium text-destructive mb-2">Analysis Failed</h3>
-        <p className="text-sm text-muted-foreground mb-4">{error}</p>
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h3 className="font-medium text-destructive mb-1">
+              {error.error_category.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+            </h3>
+            <span className="text-xs text-muted-foreground">Session: {error.session_id}</span>
+          </div>
+          {error.retryable && (
+            <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+              Retryable
+            </span>
+          )}
+        </div>
+        
+        <p className="text-sm text-destructive mb-3">{error.message}</p>
+        <p className="text-sm text-blue-600 mb-4 font-medium">{error.user_action}</p>
+        
         <details className="text-xs">
           <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
-            Troubleshooting tips
+            Support Information
           </summary>
-          <ul className="mt-2 space-y-1 text-muted-foreground ml-4">
-            <li>• Check that your API keys are correct</li>
-            <li>• Ensure your Intercom token has read permissions</li>
-            <li>• Try reducing the number of conversations</li>
-            <li>• Verify your query is clear and specific</li>
-          </ul>
+          <div className="mt-2 space-y-1 text-muted-foreground">
+            <p>• Session ID: {error.session_id}</p>
+            <p>• Request ID: {error.request_id}</p>
+            <p>• Timestamp: {new Date(error.timestamp).toLocaleString()}</p>
+            <p>• Category: {error.error_category}</p>
+          </div>
         </details>
+        
+        {error.retryable && (
+          <div className="mt-4">
+            <button 
+              onClick={() => window.location.reload()}
+              className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+            >
+              Try Again
+            </button>
+          </div>
+        )}
       </div>
     )
   }

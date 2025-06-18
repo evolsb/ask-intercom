@@ -14,10 +14,16 @@
 - [ ] Add web dependencies to `pyproject.toml`
 
 ### Backend Architecture
-- [ ] Integrate existing CLI logic into FastAPI
-- [ ] Implement async request handling
-- [ ] Create secure API key handling with localStorage support
-- [ ] Design session management system
+- [x] Integrate existing CLI logic into FastAPI
+- [x] Implement async request handling
+- [x] Create secure API key handling with localStorage support
+- [ ] **PRIORITY: Enhanced Session Management & Logging**
+  - [ ] Implement session IDs for request correlation
+  - [ ] Add structured JSON logging with timestamps
+  - [ ] Create real-time log tailing for Claude debugging
+  - [ ] Build local session storage with full context
+  - [ ] Add environment validation & health checks
+  - [ ] Implement detailed frontend error display
 - [ ] Build comprehensive logging system (30-day retention)
 
 ### Real-Time Updates (SSE)
@@ -29,10 +35,15 @@
 ## API Development
 
 ### FastAPI Endpoints
-- [ ] Create API endpoints wrapping CLI logic
-- [ ] Implement request/response models
-- [ ] Add input validation and sanitization
-- [ ] Create health check and status endpoints
+- [x] Create API endpoints wrapping CLI logic
+- [x] Implement request/response models
+- [x] Add input validation and sanitization
+- [ ] **PRIORITY: Enhanced Health & Diagnostics**
+  - [ ] Create `/api/debug` endpoint with system status
+  - [ ] Add API connectivity tests (Intercom/OpenAI)
+  - [ ] Implement environment variable validation
+  - [ ] Add error categorization and tracking
+- [x] Create health check and status endpoints
 - [ ] Set up basic rate limiting
 
 ### Authentication & Security
@@ -51,11 +62,16 @@
 - [ ] Configure development proxy to backend
 
 ### Core Components
-- [ ] Build API key setup component (localStorage)
-- [ ] Create query input form component
+- [x] Build API key setup component (localStorage)
+- [x] Create query input form component
 - [ ] Implement SSE progress display component
-- [ ] Create analysis results display component
-- [ ] Add error boundary and fallback UI
+- [x] Create analysis results display component
+- [ ] **PRIORITY: Enhanced Error Handling**
+  - [ ] Add detailed error messages in UI
+  - [ ] Implement retry mechanisms for transient failures
+  - [ ] Create error categorization display
+  - [ ] Add session correlation for debugging
+- [x] Add error boundary and fallback UI
 
 ### User Experience
 - [ ] Design responsive layout
@@ -63,6 +79,48 @@
 - [ ] Add error handling and user feedback
 - [ ] Create mobile-friendly interface
 - [ ] Add privacy disclaimer (30-day data retention)
+
+## Critical Debugging & Logging Infrastructure
+
+### Session Management & Correlation
+- [ ] Generate unique session IDs for each user interaction
+- [ ] Create request correlation IDs for tracing queries
+- [ ] Implement session persistence across browser refreshes
+- [ ] Build session history storage with full context
+
+### Structured Logging System
+- [ ] Implement JSON logging with timestamps and session IDs
+- [ ] Create separate log files for frontend/backend with correlation
+- [ ] Add real-time log tailing for Claude debugging
+- [ ] Include error stack traces with full context
+- [ ] Log performance metrics (response times, token usage, costs)
+
+### Claude Integration Tools
+- [ ] Create log analysis commands for Claude
+- [ ] Implement session replay functionality
+- [ ] Add error pattern detection
+- [ ] Build performance trend analysis
+
+### Environment Validation & Health Checks
+- [ ] Validate .env file and API key formats on startup
+- [ ] Test Intercom/OpenAI connectivity before accepting requests
+- [ ] Create `/api/debug` endpoint with system diagnostics
+- [ ] Add clear error messages for configuration issues
+
+### Local Analytics Storage
+```
+.ask-intercom-analytics/
+├── sessions/           # Full session history for learning
+├── errors/            # Categorized error tracking
+├── performance/       # Response time trends
+└── insights/          # Quality control analysis
+```
+
+### Frontend Error Enhancement
+- [ ] Display detailed error messages instead of generic failures
+- [ ] Add retry mechanisms for API failures
+- [ ] Show session IDs for user support
+- [ ] Implement error categorization in UI
 
 ## Advanced Features
 

@@ -16,18 +16,30 @@ function App() {
 
   const handleQuery = async (query: string) => {
     if (!intercomToken || !openaiKey) {
-      setError('Please configure your API keys first')
+      setError({
+        error_category: 'environment_error',
+        message: 'Please configure your API keys first',
+        user_action: 'Enter your Intercom and OpenAI API keys in the configuration section above',
+        retryable: true,
+        session_id: useAppStore.getState().getSessionId(),
+        request_id: `req_${Date.now()}`,
+        timestamp: new Date().toISOString()
+      })
       return
     }
 
     setLoading(true)
     setError(null)
+    
+    // Get session ID for request tracking
+    const sessionId = useAppStore.getState().getSessionId()
 
     try {
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Session-ID': sessionId,
         },
         body: JSON.stringify({
           query,
@@ -39,14 +51,50 @@ function App() {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.detail || 'Analysis failed')
+        
+        // Check if it's a structured error response
+        if (errorData.detail && typeof errorData.detail === 'object') {
+          setError(errorData.detail)
+        } else {
+          // Fallback for non-structured errors
+          setError({
+            error_category: 'processing_error',
+            message: errorData.detail || 'Analysis failed',
+            user_action: 'Please try again or contact support if the problem persists',
+            retryable: true,
+            session_id: sessionId,
+            request_id: response.headers.get('X-Request-ID') || `req_${Date.now()}`,
+            timestamp: new Date().toISOString()
+          })
+        }
+        return
       }
 
       const result = await response.json()
       setResult(result)
       addToHistory(query, result)
+      
+      // Update session query count
+      const currentSession = useAppStore.getState().sessionInfo
+      if (currentSession) {
+        useAppStore.setState({
+          sessionInfo: {
+            ...currentSession,
+            queries: currentSession.queries + 1
+          }
+        })
+      }
+      
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'An unexpected error occurred')
+      setError({
+        error_category: 'connectivity_error',
+        message: error instanceof Error ? error.message : 'An unexpected error occurred',
+        user_action: 'Please check your internet connection and try again',
+        retryable: true,
+        session_id: sessionId,
+        request_id: `req_${Date.now()}`,
+        timestamp: new Date().toISOString()
+      })
     } finally {
       setLoading(false)
     }
