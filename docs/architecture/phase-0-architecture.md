@@ -308,7 +308,7 @@ Estimated cost: $0.23 (1,247 tokens)
 7. ✅ Installation works on fresh Python environment - **COMPLETE**
 
 **Current Status: FUNCTIONALLY COMPLETE, PERFORMANCE OPTIMIZATION NEEDED**
-- See "Performance Optimization" section in `PROGRESS.md` for detailed strategy
+- See `docs/planning/roadmap.md` for current strategic timeline and `docs/reference/decisions.md` ADR-004 for performance optimization decisions
 - Primary bottleneck: Sequential Intercom API calls (50+ requests)
 - Target: Reduce from 51s to <10s via Search API + concurrency
 

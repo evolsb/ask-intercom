@@ -43,6 +43,13 @@ Ask natural language questions about your Intercom conversations and get AI-powe
 - OpenAI API key
 - Intercom App ID (optional - auto-detected for conversation links, see [docs/finding-app-id.md](docs/finding-app-id.md))
 
+## Documentation
+
+- **[📚 Full Documentation](docs/index.md)** - Complete documentation hub
+- **[🚀 Quick Setup](docs/reference/setup-guide.md)** - Development environment setup
+- **[🎯 Current Focus](docs/planning/current-focus.md)** - What's being worked on now
+- **[🗺️ Project Roadmap](docs/planning/roadmap.md)** - Strategic overview and timeline
+
 ## Development
 
-See `CLAUDE.md` for detailed development guidelines and architecture.
+See **[CLAUDE.md](CLAUDE.md)** for Claude Code specific setup and **[docs/](docs/)** for comprehensive project documentation.
