@@ -5,8 +5,10 @@
 ## Core Infrastructure (De-risk first)
 
 ### Project Setup
+- [ ] Create `feature/web-deployment` branch
 - [ ] Create `frontend/` directory structure
-- [ ] Initialize React app with Vite
+- [ ] Initialize React + TypeScript app with Vite using pnpm
+- [ ] Verify frontend development server works
 - [ ] Set up basic FastAPI app structure
 - [ ] Create Docker configuration files
 - [ ] Add web dependencies to `pyproject.toml`
@@ -130,10 +132,12 @@
 
 ## Technical Decisions Made
 
-- **Frontend**: React + Vite + Zustand + Tailwind CSS
+- **Frontend**: React + Vite + TypeScript + Zustand + Tailwind CSS
+- **Package Manager**: pnpm (faster, more reliable than npm)
 - **Real-time**: Server-Sent Events (SSE)
 - **Auth**: localStorage for SaaS, env vars for Docker
 - **Logging**: Comprehensive with 30-day retention
 - **Deployment**: Docker + Cloud (Railway/Vercel)
+- **Git Strategy**: `feature/web-deployment` branch → merge to main
 
 **Branch Strategy**: Work on `feature/web-deployment` branch, merge when phases complete
