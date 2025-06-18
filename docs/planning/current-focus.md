@@ -4,64 +4,67 @@
 
 ## 🔥 Active Work: Phase 0.5 Parallel Development
 
-**Two parallel tracks** - switch between them based on energy and mood!
+**Two parallel tracks** - choose based on what needs to be de-risked next!
 
 ### 🚀 Track A: MCP Integration
 **Goal**: <10 second response time + Universal Agent foundation  
 **Branch**: `main` or `feature/mcp-integration`  
-**Energy**: Research-heavy, architecture focus
+**Focus**: Performance optimization, architecture foundation
 
 ### 🌐 Track B: Web Deployment  
 **Goal**: Transform CLI into shareable web app  
 **Branch**: `feature/web-deployment`  
-**Energy**: UI/UX work, immediate user value
+**Focus**: User accessibility, rapid feedback loops
 
 ### 🎯 Current Session Focus
-🔄 **Working on**: Setting up new documentation structure  
-🎯 **Next**: Pick a track based on energy - MCP research OR web frontend  
-🚧 **Blocked on**: Nothing - ready to code on either track!  
+🔄 **Working on**: Documentation cleanup and technical decisions  
+🎯 **Next**: Start web deployment implementation with React + Vite  
+✅ **Completed**: Framework decisions (React+Vite, SSE, localStorage auth)  
 
 ### 🧠 Mental Context
-- Just finished major documentation restructure for Universal Agent
-- Phase 0 CLI prototype is complete and working (30.2s response time)
-- Need MCP integration to hit <10s target and enable future multi-platform work
-- Architecture decision made: Universal Agent with pluggable skills
+- Phase 0 CLI prototype complete (30.2s response time)
+- Architecture decisions made: Universal Agent, React+Vite, SSE, comprehensive logging
+- Ready to start web implementation with clear technical direction
+- Both tracks can proceed independently
 
-### ⚡ Energy Level Guide
+### 🚧 Priority Order
 
-#### 🟢 High Energy (Deep focus work)
-- **MCP Track**: Authentication implementation, complex architecture design
-- **Web Track**: FastAPI backend integration, React frontend architecture
+1. **Web MVP** (de-risk user access)
+   - FastAPI wrapper around CLI
+   - React + Vite frontend with SSE
+   - Docker deployment ready
+   
+2. **MCP Integration** (de-risk performance)
+   - Implement MCP client
+   - Compare performance vs REST
+   - Keep REST as fallback
 
-#### 🟡 Medium Energy (Steady progress)  
-- **MCP Track**: Config updates, integration points, basic connection setup
-- **Web Track**: UI components, styling, form handling
-
-#### 🔴 Low Energy (Easy wins)
-- **MCP Track**: Documentation, tests, config file updates
-- **Web Track**: Static pages, copy writing, simple styling tweaks
-
-#### 🎮 Variety Mode
-Switch tracks when you want a change of pace - frontend work vs backend research feels different!
+3. **Production Features** (iterate based on feedback)
+   - Comprehensive logging
+   - Export capabilities
+   - Analytics dashboard
 
 ## 📋 What's Coming After This Focus
 
 **Phase 1**: Universal Agent Skills Architecture
-- Transform current monolithic CLI into pluggable skills
-- Prepare for multi-MCP platform support
-- Enable cross-platform context management
+- Transform monolithic CLI into pluggable skills
+- Enable multi-MCP platform support (Slack, Linear)
+- Cross-platform intelligence queries
 
 ## 🔗 Quick Links
 
 ### 🚀 MCP Integration Track
-- **[MCP Tasks](../implementation/phase-0.5-mcp/tasks.md)** - All MCP work organized by energy level
+- **[MCP Tasks](../implementation/phase-0.5-mcp/tasks.md)** - MCP implementation checklist
 - **[MCP Progress](../implementation/phase-0.5-mcp/progress.md)** - Current MCP status
 - **[MCP Overview](../implementation/phase-0.5-mcp/overview.md)** - Goals and success criteria
 
 ### 🌐 Web Deployment Track  
-- **[Web Overview](../implementation/phase-0.5-web/overview.md)** - Full web deployment strategy
-- **[Web Tasks](../implementation/phase-0.5-web/tasks.md)** - Web work breakdown (TBD)
-- **[Web Progress](../implementation/phase-0.5-web/progress.md)** - Web development status (TBD)
+- **[Web Overview](../implementation/phase-0.5-web/overview.md)** - Full deployment strategy
+- **[Web Tasks](../implementation/phase-0.5-web/tasks.md)** - Implementation checklist
+- **[Web Progress](../implementation/phase-0.5-web/progress.md)** - Development status
+
+### 📚 Technical Decisions
+- **[Decision Records](../reference/decisions.md)** - All architectural choices documented
 
 ---
 

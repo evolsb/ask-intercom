@@ -1,8 +1,21 @@
 # Phase 0.5 MCP Integration Tasks
 
-> **Organized by energy level and complexity** - pick tasks based on your current vibe
+> **Transform performance with MCP integration** - prioritized by risk and dependencies
 
-## 🟢 Quick Wins (Good for low-energy sessions)
+## 🚧 Critical Research (Do First)
+
+### MCP Investigation
+- [ ] **Research MCP client libraries** and select implementation approach
+  - Evaluate official MCP clients
+  - Check community implementations
+  - Test basic connectivity before committing
+- [ ] **Study Intercom MCP documentation**
+  - Authentication requirements
+  - Available tools and parameters
+  - Response formats and rate limits
+- [ ] **Prototype basic MCP connection** to validate approach
+
+## Core Implementation
 
 ### Configuration & Setup
 - [ ] Add MCP config fields to `src/config.py`
@@ -11,99 +24,94 @@
   mcp_server_url: str = Field(default="https://mcp.intercom.com/sse")
   mcp_oauth_token: str = Field(default="")
   ```
-- [ ] Create basic `src/mcp_client.py` file structure
-- [ ] Update `.env.example` with MCP environment variables
+- [ ] Create `src/mcp_client.py` with basic structure
+- [ ] Update `.env.example` with MCP variables
 - [ ] Add MCP dependencies to `pyproject.toml`
-
-### Documentation & Tests
-- [ ] Write unit tests for MCP config validation
-- [ ] Create MCP integration test stubs
-- [ ] Update CLI help text to mention MCP mode
-- [ ] Document MCP setup process
-
-## 🟡 Medium Work (Need moderate focus)
-
-### MCP Client Foundation
-- [ ] Research and select MCP client library
-- [ ] Implement basic MCP connection management
-- [ ] Create health monitoring for MCP connection
-- [ ] Add connection retry logic with exponential backoff
-
-### Integration Points
-- [ ] Update `src/intercom_client.py` for dual-mode operation
-- [ ] Create graceful fallback mechanism (MCP → REST)
-- [ ] Add logging for mode selection and performance
-- [ ] Implement MCP connection status checking
-
-### Data Transformation
-- [ ] Map `ConversationFilters` to MCP parameters
-- [ ] Convert MCP responses to `Conversation` objects
-- [ ] Ensure data parity with REST API responses
-- [ ] Handle missing fields gracefully
-
-## 🔴 Deep Work (Need focus time and high energy)
 
 ### MCP Authentication
 - [ ] Implement OAuth flow for MCP authentication
-- [ ] Create secure token storage and refresh mechanism
-- [ ] Handle MCP authentication errors and recovery
-- [ ] Test authentication with real Intercom MCP server
+- [ ] Create secure token storage and refresh
+- [ ] Handle authentication errors and recovery
+- [ ] Test with real Intercom MCP server
 
-### Conversation Fetching via MCP
-- [ ] Implement `search-conversations` MCP tool calls
-- [ ] Build conversation streaming functionality
-- [ ] Create parallel conversation processing
-- [ ] Optimize MCP request/response handling
+### Dual-Mode Operation
+- [ ] Update `src/intercom_client.py` for MCP + REST
+- [ ] Implement graceful fallback (MCP → REST)
+- [ ] Add performance logging for mode comparison
+- [ ] Create health checks for MCP availability
 
-### Performance & Benchmarking
-- [ ] Create comprehensive MCP vs REST performance tests
-- [ ] Implement automated benchmarking suite
-- [ ] Add performance monitoring and alerts
-- [ ] Validate <10 second response time target
+### Conversation Fetching
+- [ ] Implement `search-conversations` MCP tool
+- [ ] Map `ConversationFilters` to MCP parameters
+- [ ] Convert MCP responses to `Conversation` objects
+- [ ] Ensure data parity with REST responses
 
-## 🚧 Blockers & Research
+## Performance Validation
 
-### Research Tasks
-- [ ] **CRITICAL**: Research MCP client libraries and pick one
-  - Evaluate official MCP clients
-  - Check community implementations
-  - Test basic connectivity before committing
-- [ ] Investigate Intercom MCP endpoint details and authentication
-- [ ] Study MCP protocol specifications for conversation data
-- [ ] Research MCP error handling best practices
+### Benchmarking Suite
+- [ ] Create MCP vs REST performance tests
+- [ ] Automate benchmark running
+- [ ] Add performance monitoring
+- [ ] Validate <10 second target
 
-### External Dependencies
-- [ ] MCP library availability and stability
-- [ ] Intercom MCP server documentation
-- [ ] OAuth flow requirements for MCP
+### Optimization
+- [ ] Implement connection pooling
+- [ ] Add response streaming
+- [ ] Optimize data transformation
+- [ ] Profile and eliminate bottlenecks
 
-## 🔄 Parallel Work (Can do anytime, independent tasks)
+## Architecture Preparation
 
-### Architecture Preparation
-- [ ] Design interfaces for future multi-MCP support
-- [ ] Create `src/mcp_registry.py` skeleton for Phase 1
-- [ ] Plan cross-platform context management patterns
-- [ ] Document Universal Agent interface designs
+### Universal Agent Foundation
+- [ ] Design interfaces for multi-MCP support
+- [ ] Create `src/mcp_registry.py` skeleton
+- [ ] Plan cross-platform context management
+- [ ] Document Universal Agent patterns
 
 ### Code Quality
-- [ ] Refactor existing code for better MCP integration
-- [ ] Add type hints for MCP-related code
-- [ ] Improve error handling throughout codebase
-- [ ] Clean up existing REST API client code
+- [ ] Refactor for better MCP integration
+- [ ] Add comprehensive type hints
+- [ ] Improve error handling
+- [ ] Clean up REST client code
 
-### Testing Infrastructure  
-- [ ] Set up mocking for MCP client tests
-- [ ] Create test data for MCP responses
-- [ ] Build integration test environment
-- [ ] Add performance regression testing
+## Testing & Documentation
+
+### Test Infrastructure
+- [ ] Set up MCP client mocking
+- [ ] Create test data fixtures
+- [ ] Build integration tests
+- [ ] Add regression testing
+
+### Documentation
+- [ ] Write MCP setup guide
+- [ ] Document dual-mode operation
+- [ ] Create troubleshooting guide
+- [ ] Update architecture diagrams
 
 ---
 
-## 🎯 Task Selection Strategy
+## Implementation Order
 
-**High Energy Day**: Tackle MCP authentication or complex architecture work  
-**Medium Energy**: Work on integration points or data transformation  
-**Low Energy**: Configuration updates, tests, or documentation  
-**Blocked on Research**: Work on parallel tasks or switch to web deployment branch
+1. **Research & Prototype** (De-risk first)
+   - MCP library selection
+   - Basic connectivity test
+   - Authentication flow
 
-**Remember**: You can always switch to web deployment work if MCP tasks feel blocked or you want variety!
+2. **Core Integration** (Build foundation)
+   - Dual-mode client
+   - Fallback mechanism
+   - Data transformation
+
+3. **Performance Validation** (Prove value)
+   - Benchmark suite
+   - Performance testing
+   - Optimization work
+
+## Success Criteria
+
+- ✅ MCP integration working with fallback to REST
+- ✅ Response time <10 seconds achieved
+- ✅ Architecture ready for multi-platform expansion
+- ✅ All tests passing with both modes
+
+**Branch**: Work on `feature/mcp-integration` or `main`

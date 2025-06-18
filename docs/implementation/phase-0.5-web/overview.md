@@ -125,7 +125,7 @@ Deployment Options:
 ```
 
 ### **Shared Web UI Architecture**
-Both tracks use identical React frontend with different backends:
+Both tracks use identical React + Vite frontend with different backends:
 
 | Feature | Docker (Devs) | Hosted (Business) |
 |---------|---------------|-------------------|
@@ -236,10 +236,11 @@ git push origin main  # Auto-deploys to ask-intercom.dev
 ```
 
 #### **Enhanced Features**:
-- API key management in browser localStorage
+- API key management with localStorage persistence
+- Real-time progress updates via Server-Sent Events (SSE)
 - Query history and sharing capabilities
 - Export functions (CSV, JSON, email)
-- Usage analytics and error monitoring
+- Comprehensive logging with 30-day retention
 
 #### **Deliverables**:
 - [ ] Hosted version deployed to production URL

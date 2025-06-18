@@ -1,6 +1,6 @@
 # Ask-Intercom Documentation Hub
 
-> **Navigation center for all Ask-Intercom documentation** - designed for vibe-coding solo development
+> **Navigation center for all Ask-Intercom documentation**
 
 ## 🎯 Where You Probably Want to Go
 
@@ -44,17 +44,17 @@
 ## 🚀 Quick Start for New Sessions
 
 1. **Check Current Focus**: See [planning/current-focus.md](planning/current-focus.md) - view both parallel tracks
-2. **Pick Your Energy Level & Track**: 
+2. **Choose Your Track**: 
    - **MCP Track** (backend/architecture): [tasks](implementation/phase-0.5-mcp/tasks.md) | [progress](implementation/phase-0.5-mcp/progress.md)
    - **Web Track** (frontend/deployment): [tasks](implementation/phase-0.5-web/tasks.md) | [progress](implementation/phase-0.5-web/progress.md)
-3. **Switch tracks anytime** based on mood, energy, or when you want variety
+3. **Start Making Progress**: Focus on de-risking unknowns first
 
-## 🎮 Documentation Philosophy
+## 📋 Documentation Philosophy
 
-This documentation is optimized for **solo vibe coding**:
-- **Energy-based task organization** (quick wins vs deep work)
+This documentation is optimized for **rapid development**:
+- **Risk-first prioritization** (tackle unknowns early)
 - **Flexible timelines** (no artificial deadlines)
-- **Just-in-time detail** (detail only where you need it)
+- **Just-in-time detail** (detail only where needed)
 - **Easy progress tracking** (mark what's done, note what's next)
 
 ---

@@ -243,4 +243,273 @@ Expand to multiple platforms using **MCP protocol standardization** rather than 
 
 ---
 
+---
+
+## ADR-006: Web Frontend Framework Selection
+
+**Date**: 2025-06-18  
+**Status**: ✅ Decided - React + Vite  
+**Context**: Phase 0.5 Web Deployment track implementation
+
+### Decision
+Use **React + Vite** for the web frontend with Zustand for state management and Tailwind CSS for styling.
+
+### Alternatives Considered
+
+#### Option A: Next.js ❌
+- Server-side rendering framework with React
+- **Rejected Because:**
+  - Overkill for single-page tool (no SEO needs)
+  - Complicates Docker deployment
+  - SSR/SSG features unnecessary for an API-driven tool
+  - Harder to deploy identical code for both self-hosted and SaaS tracks
+
+#### Option B: Vue + Vite ❌
+- Lighter weight alternative to React
+- **Rejected Because:**
+  - Smaller ecosystem for our specific needs
+  - Team has more React experience
+  - React's component model better suited for real-time updates
+
+#### Option C: React + Vite ✅
+- Modern React with fast build tooling
+- **Benefits:**
+  - Simple static file deployment for both Docker and hosted versions
+  - Excellent TypeScript support
+  - Large ecosystem of components and libraries
+  - Vite's superior development experience
+
+### State Management Decision
+**Zustand** chosen over Redux/Context API:
+```javascript
+// Lightweight, TypeScript-friendly state management
+const useQueryStore = create((set) => ({
+  query: '',
+  results: null,
+  loading: false,
+  analyze: async (query, apiKeys) => {
+    set({ loading: true });
+    const results = await api.analyze(query, apiKeys);
+    set({ results, loading: false });
+  }
+}));
+```
+
+### Styling Decision
+**Tailwind CSS** for rapid, consistent UI development:
+- Utility-first approach perfect for prototyping
+- Consistent design system out of the box
+- Small bundle size with tree-shaking
+- Works great with component libraries like shadcn/ui
+
+---
+
+## ADR-007: Authentication Strategy for Web Deployment
+
+**Date**: 2025-06-18  
+**Status**: ✅ Decided - Environment-based for self-hosted, localStorage for SaaS  
+**Context**: Unified frontend serving both deployment models
+
+### Decision
+Implement **unified frontend** with different authentication methods based on deployment:
+- **Self-hosted (Docker)**: API keys from environment variables (.env file)
+- **Hosted SaaS**: API keys stored in browser localStorage
+
+### Implementation Details
+
+#### Self-hosted Authentication Flow
+```javascript
+// Backend reads from environment
+const apiKeys = {
+  intercom: process.env.INTERCOM_ACCESS_TOKEN,
+  openai: process.env.OPENAI_API_KEY
+};
+```
+
+#### SaaS Authentication Flow
+```javascript
+// Frontend stores in localStorage
+function ApiKeySetup() {
+  const [keys, setKeys] = useState({ intercom: '', openai: '' });
+  
+  const saveKeys = () => {
+    localStorage.setItem('ask-intercom-keys', JSON.stringify(keys));
+    window.location.reload(); // Restart app with keys
+  };
+  
+  // Auto-load on subsequent visits
+  useEffect(() => {
+    const saved = localStorage.getItem('ask-intercom-keys');
+    if (saved) setKeys(JSON.parse(saved));
+  }, []);
+}
+```
+
+### Alternatives Considered
+
+#### Option A: OAuth Integration ❌
+- Full OAuth flow with Intercom
+- **Rejected Because:**
+  - Unnecessary complexity for MVP
+  - Requires OAuth app registration
+  - Users already have API keys
+  - Adds maintenance overhead
+
+#### Option B: Server-side Key Storage ❌
+- Store encrypted keys in database
+- **Rejected Because:**
+  - Security and compliance complexity
+  - Users prefer controlling their own keys
+  - Requires user accounts/authentication system
+
+#### Option C: Client-side Key Management ✅
+- Keys stored only in browser localStorage
+- **Benefits:**
+  - Simple implementation
+  - Users maintain control
+  - No server-side security risks
+  - Works for both deployment models
+
+### Security Considerations
+- Keys never transmitted to or stored on our servers (SaaS version)
+- HTTPS enforced for all API communications
+- Clear user messaging about key storage and security
+- Option to clear keys at any time
+
+---
+
+## ADR-008: Real-Time Updates Implementation
+
+**Date**: 2025-06-18  
+**Status**: ✅ Decided - Server-Sent Events (SSE)  
+**Context**: Long-running queries (20-30s) need progress updates
+
+### Decision
+Use **Server-Sent Events (SSE)** for streaming progress updates during analysis.
+
+### Implementation
+```javascript
+// Frontend
+const eventSource = new EventSource('/api/analyze-stream');
+eventSource.onmessage = (event) => {
+  const update = JSON.parse(event.data);
+  setProgress(update);
+};
+
+// Backend (FastAPI)
+@router.post("/analyze-stream")
+async def analyze_stream(request: AnalysisRequest):
+    async def generate():
+        yield f"data: {json.dumps({'status': 'fetching', 'progress': 30})}\n\n"
+        conversations = await fetch_conversations()
+        
+        yield f"data: {json.dumps({'status': 'analyzing', 'progress': 60})}\n\n"
+        analysis = await analyze_with_ai(conversations)
+        
+        yield f"data: {json.dumps({'status': 'complete', 'result': analysis})}\n\n"
+    
+    return StreamingResponse(generate(), media_type="text/event-stream")
+```
+
+### Alternatives Considered
+
+#### Option A: WebSockets ❌
+- Bi-directional real-time communication
+- **Rejected Because:**
+  - Overkill for one-way progress updates
+  - More complex implementation
+  - Requires additional libraries
+
+#### Option B: Long Polling ❌
+- Client polls for updates
+- **Rejected Because:**
+  - Less efficient than SSE
+  - More HTTP overhead
+  - Worse user experience
+
+#### Option C: Server-Sent Events ✅
+- One-way server-to-client streaming
+- **Benefits:**
+  - Simple to implement
+  - Works through proxies/firewalls
+  - Auto-reconnect built-in
+  - No library dependencies
+
+---
+
+## ADR-009: Data Privacy and Learning Strategy
+
+**Date**: 2025-06-18  
+**Status**: ✅ Decided - Comprehensive Logging with 30-Day Retention  
+**Context**: Need to learn from usage while respecting privacy
+
+### Decision
+Implement **comprehensive request/response logging** for rapid learning with clear user disclosure and 30-day auto-deletion.
+
+### Logging Implementation
+```python
+# Comprehensive session logging for learning
+{
+    "session_id": "uuid",
+    "timestamp": "2025-06-18T10:30:00Z",
+    "user_id": "hash_of_api_key",  # Anonymous identifier
+    "request": {
+        "query": "What are the main customer complaints this week?",
+        "timeframe_interpreted": {"start": "2025-06-11", "end": "2025-06-18"},
+        "conversation_count": 47
+    },
+    "ai_interaction": {
+        "prompt_sent": "Full prompt text...",
+        "model": "gpt-4",
+        "tokens": {"prompt": 2500, "completion": 450},
+        "response": "Full AI response text..."
+    },
+    "result": {
+        "insights": ["insight1", "insight2", "insight3"],
+        "response_time_ms": 23400,
+        "cost": 0.34
+    },
+    "follow_up_queries": ["drill down on payment issues", "show me specific examples"]
+}
+```
+
+### User Disclosure
+Simple, clear disclaimer on web app:
+```
+ℹ️ We log queries and results to improve our service. 
+   Data is automatically deleted after 30 days.
+   [Learn more]
+```
+
+### Privacy Principles
+
+1. **Learning-Focused Logging**
+   - Log full queries, AI prompts, and responses
+   - Track user sessions and follow-up patterns
+   - Monitor which insights are most valuable
+
+2. **30-Day Auto-Deletion**
+   - Automated cleanup of logs older than 30 days
+   - Sufficient time for analysis and improvements
+   - Balances learning needs with privacy
+
+3. **Anonymized Storage**
+   - User identified only by hashed API key
+   - No PII in logs
+   - Focus on usage patterns, not individuals
+
+4. **Transparency**
+   - Clear disclosure on web interface
+   - Simple explanation in privacy policy
+   - Option to opt-out (self-hosted version)
+
+### Benefits
+- Understand real user queries and needs
+- Improve prompt engineering based on actual usage
+- Identify common query patterns
+- Optimize for most valuable use cases
+- Track which features drive retention
+
+---
+
 **Decision Review Process**: Major architectural decisions are reviewed after each phase completion to validate assumptions and adjust course based on real-world results.

@@ -1,6 +1,6 @@
 # Roadmap
 
-> **High-level phases and rough timeline** - strategic overview
+> **High-level phases and timeline** - strategic overview
 
 ## 🗺️ Universal Customer Intelligence Agent Journey
 
@@ -10,7 +10,7 @@
 **Achievement**: Functional CLI with 30.2s response time, $0.087 cost per query  
 
 ### 🔄 Phase 0.5: Parallel Development (CURRENT)  
-**Timeline**: Current focus (flexible)  
+**Timeline**: Current focus  
 **Goal**: Performance + Accessibility (backend optimization + web deployment)  
 
 #### 🚀 Track A: MCP Integration
@@ -24,9 +24,9 @@
 **Goal**: Transform CLI into shareable web application  
 **Key Work**:
 - FastAPI backend wrapping CLI logic
-- React frontend with query interface
+- React + Vite frontend with SSE for real-time updates
 - Docker deployment + hosted SaaS version
-- Team testing and user validation
+- Comprehensive logging for rapid learning
 
 ### 🎯 Phase 1: Universal Agent Skills
 **Timeline**: After Phase 0.5 (~Q3 2025)  
@@ -57,8 +57,8 @@
 ## 🎮 Development Approach
 
 ### Principles
-- **Vibe-based timeline**: No strict deadlines, progress based on energy and discovery
-- **Just-in-time detail**: Create detailed plans only as phases approach
+- **Risk-first development**: De-risk unknowns before building features
+- **Flexible timeline**: Progress based on learning and validation
 - **Quality over speed**: Each phase must work well before moving to next
 - **Universal Agent focus**: Every decision supports the universal agent vision
 
@@ -66,11 +66,11 @@
 Each phase must achieve its goals before starting the next:
 - **Phase 0.5 Gate**: 
   - Track A: <10s response time + universal agent architecture ready
-  - Track B: Web app deployed + team validation complete
+  - Track B: Web app deployed + user validation complete
 - **Phase 1 Gate**: Skills architecture working + multi-MCP foundation
 - **Phase 2 Gate**: Cross-platform intelligence demonstrated
 - **Phase 3 Gate**: Strategic intelligence working across all platforms
-- **Phase 4 Gate**: Multi-channel deployment (agent marketplace + platform) successful
+- **Phase 4 Gate**: Multi-channel deployment successful
 
 ## 🎯 North Star Metrics
 
@@ -79,11 +79,16 @@ Each phase must achieve its goals before starting the next:
 - Cross-platform query accuracy >90% (Phase 2+)
 - Cost per query <$0.50 (maintained)
 
+**User Adoption**:
+- 1000+ GitHub stars (Phase 0.5)
+- 100+ active web users (Phase 0.5)
+- Listed in agent marketplaces (Phase 4)
+
 **Strategic Positioning**:
 - Position as first "Universal Customer Intelligence Agent"
 - Demonstrate unique cross-platform insights
-- Agent marketplace differentiation clear
+- Clear marketplace differentiation
 
 ---
 
-*This roadmap evolves based on learnings from each phase - adjust as you discover new things*
+*This roadmap evolves based on learnings - adjust as you discover new insights*

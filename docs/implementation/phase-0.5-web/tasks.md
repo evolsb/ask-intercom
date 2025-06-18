@@ -1,8 +1,8 @@
 # Phase 0.5 Web Deployment Tasks
 
-> **Transform CLI into shareable web app** - organized by energy and complexity
+> **Transform CLI into shareable web app** - prioritized by risk and dependencies
 
-## 🟢 Quick Wins (Good for low-energy sessions)
+## Core Infrastructure (De-risk first)
 
 ### Project Setup
 - [ ] Create `frontend/` directory structure
@@ -11,132 +11,129 @@
 - [ ] Create Docker configuration files
 - [ ] Add web dependencies to `pyproject.toml`
 
-### Static Pages & Content
-- [ ] Create landing page with value proposition
-- [ ] Write copy for "How it works" section
-- [ ] Design simple about page
-- [ ] Create error pages (404, 500)
-- [ ] Write basic documentation for web version
+### Backend Architecture
+- [ ] Integrate existing CLI logic into FastAPI
+- [ ] Implement async request handling
+- [ ] Create secure API key handling with localStorage support
+- [ ] Design session management system
+- [ ] Build comprehensive logging system (30-day retention)
 
-### Configuration & Environment
-- [ ] Set up environment variables for web app
-- [ ] Create production/development configs
-- [ ] Configure CORS settings
-- [ ] Set up basic logging for web requests
+### Real-Time Updates (SSE)
+- [ ] Implement Server-Sent Events endpoint
+- [ ] Create progress streaming for long-running queries
+- [ ] Handle connection drops and reconnection
+- [ ] Test with 20-30 second query times
 
-## 🟡 Medium Work (Need moderate focus)
+## API Development
 
-### React Frontend Components
-- [ ] Build query input form component
-- [ ] Create analysis results display component
-- [ ] Design API key management interface
-- [ ] Implement query history functionality
-- [ ] Add loading states and error handling
-
-### FastAPI Backend Integration
+### FastAPI Endpoints
 - [ ] Create API endpoints wrapping CLI logic
 - [ ] Implement request/response models
 - [ ] Add input validation and sanitization
 - [ ] Create health check and status endpoints
 - [ ] Set up basic rate limiting
 
-### UI/UX Design
+### Authentication & Security
+- [ ] Implement dual-mode authentication (env vars for Docker, localStorage for SaaS)
+- [ ] Create API key validation middleware
+- [ ] Set up CORS configuration
+- [ ] Implement request logging for learning
+
+## Frontend Development
+
+### React + Vite Setup
+- [ ] Configure Vite build pipeline
+- [ ] Set up TypeScript configuration
+- [ ] Install and configure Tailwind CSS
+- [ ] Set up Zustand for state management
+- [ ] Configure development proxy to backend
+
+### Core Components
+- [ ] Build API key setup component (localStorage)
+- [ ] Create query input form component
+- [ ] Implement SSE progress display component
+- [ ] Create analysis results display component
+- [ ] Add error boundary and fallback UI
+
+### User Experience
 - [ ] Design responsive layout
-- [ ] Create consistent styling system
-- [ ] Implement dark/light mode toggle
-- [ ] Add mobile-friendly interface
-- [ ] Design query result visualizations
+- [ ] Implement loading states with SSE progress
+- [ ] Add error handling and user feedback
+- [ ] Create mobile-friendly interface
+- [ ] Add privacy disclaimer (30-day data retention)
 
-## 🔴 Deep Work (Need focus time and high energy)
+## Advanced Features
 
-### Backend Architecture
-- [ ] Integrate existing CLI logic into FastAPI
-- [ ] Implement async request handling
-- [ ] Create secure API key handling
-- [ ] Design session management system
-- [ ] Build robust error handling and logging
+### Data & Analytics
+- [ ] Implement comprehensive request/response logging
+- [ ] Create 30-day auto-deletion for logs
+- [ ] Build usage analytics dashboard
+- [ ] Track query patterns and insights
 
-### Frontend State Management
-- [ ] Set up React state management (Context/Redux)
-- [ ] Implement query result caching
-- [ ] Create persistent user preferences
-- [ ] Build real-time query status updates
-- [ ] Design complex UI interactions
-
-### Advanced Features
+### Export & Sharing
 - [ ] Implement query sharing functionality
-- [ ] Build export capabilities (CSV, JSON, PDF)
-- [ ] Create usage analytics dashboard
-- [ ] Add collaborative features (team queries)
-- [ ] Design admin interface for monitoring
+- [ ] Build export capabilities (CSV, JSON)
+- [ ] Create persistent query history
+- [ ] Add result caching in browser
 
-## 🚧 Blockers & Research
+## Deployment & Operations
 
-### Technical Research
-- [ ] **Choose UI framework**: React vs Vue vs Svelte
-- [ ] **Pick hosting platform**: Railway vs Vercel vs custom
-- [ ] **Database decisions**: SQLite vs PostgreSQL for query history
-- [ ] **Authentication strategy**: Simple API keys vs OAuth
+### Docker Configuration
+- [ ] Create multi-stage Dockerfile
+- [ ] Set up docker-compose for local development
+- [ ] Configure environment variables
+- [ ] Test one-command deployment
 
-### External Dependencies
-- [ ] Frontend build and deployment pipeline
-- [ ] SSL certificate and domain setup
-- [ ] CDN configuration for static assets
-- [ ] Monitoring and analytics setup
-
-## 🔄 Parallel Work (Independent of other tasks)
-
-### DevOps & Deployment
-- [ ] Set up CI/CD pipeline
-- [ ] Configure automated testing
-- [ ] Create staging environment
-- [ ] Set up monitoring and alerts
-- [ ] Document deployment process
+### Production Deployment
+- [ ] Choose and configure hosting platform (Railway/Vercel)
+- [ ] Set up SSL certificates
+- [ ] Configure CDN for static assets
+- [ ] Implement monitoring and alerts
 
 ### Testing & Quality
-- [ ] Write frontend unit tests
-- [ ] Create API integration tests
+- [ ] Write API integration tests
+- [ ] Create frontend component tests
 - [ ] Set up end-to-end testing
-- [ ] Add accessibility testing
-- [ ] Performance testing and optimization
+- [ ] Add performance benchmarks
+- [ ] Test with real 20-30s queries
 
-### Documentation & Marketing
+### Documentation
+- [ ] Create API documentation
+- [ ] Write deployment guide
+- [ ] Document authentication flows
 - [ ] Create user onboarding flow
-- [ ] Write API documentation
-- [ ] Design demo videos/screenshots
-- [ ] Prepare launch announcement
-- [ ] Set up feedback collection
 
 ---
 
-## 📱 Web Development Phases (from original strategy)
+## Implementation Phases
 
-### Phase 1: Self-Hosted Web App (Weeks 1-2)
-**Target**: Docker-deployable web version for developers
-- FastAPI backend wrapping CLI logic
-- React frontend with query interface
-- One-command Docker deployment
-- GitHub repo with comprehensive README
+### Phase 1: MVP Foundation (Weeks 1-2)
+**Goal**: Working web app with core functionality
+- FastAPI backend with SSE support
+- React + Vite frontend with localStorage auth
+- Docker deployment ready
+- Basic query → results flow working
 
-### Phase 2: Hosted SaaS Experience (Weeks 3-4)  
-**Target**: Public hosted version for non-technical users
-- Cloud deployment (Railway/Vercel)
-- API key management in browser
-- Query history and sharing
-- Landing page with clear value prop
+### Phase 2: Production Ready (Weeks 3-4)  
+**Goal**: Hosted SaaS with full features
+- Cloud deployment live
+- Comprehensive logging implemented
+- Export and sharing features
+- Performance optimized for 20-30s queries
 
-### Phase 3: Enhanced Features (Weeks 5-6)
-**Target**: Production-ready with advanced capabilities
-- Export functions (CSV, JSON, email)
-- Usage analytics and monitoring
+### Phase 3: Growth Features (Weeks 5-6)
+**Goal**: Enhanced user experience
+- Advanced analytics dashboard
 - Team collaboration features
-- A/B testing for UX optimization
+- A/B testing infrastructure
+- Marketplace preparation
 
-## 🎯 Task Selection Strategy
+## Technical Decisions Made
 
-**High Energy**: Backend architecture, complex React state management  
-**Medium Energy**: UI components, API endpoints, styling  
-**Low Energy**: Static pages, configuration, documentation  
-**Variety Mode**: Switch to MCP track when you want different challenges!
+- **Frontend**: React + Vite + Zustand + Tailwind CSS
+- **Real-time**: Server-Sent Events (SSE)
+- **Auth**: localStorage for SaaS, env vars for Docker
+- **Logging**: Comprehensive with 30-day retention
+- **Deployment**: Docker + Cloud (Railway/Vercel)
 
 **Branch Strategy**: Work on `feature/web-deployment` branch, merge when phases complete
