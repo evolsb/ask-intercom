@@ -80,7 +80,6 @@ export function QueryInput({ onSubmit }: QueryInputProps) {
         
         {/* Smart Limits Component */}
         <SmartLimits
-          query={localQuery}
           maxConversations={maxConversations}
           onMaxConversationsChange={setMaxConversations}
           disabled={isLoading}
