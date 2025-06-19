@@ -54,14 +54,17 @@ export function ResultsDisplay() {
                        complete={displayProgress.percent > 10}
                        label="Initializing Intercom connection" />
           <ProgressStep active={displayProgress.stage === 'timeframe' || displayProgress.percent >= 10} 
-                       complete={displayProgress.percent > 50}
+                       complete={displayProgress.percent > 20}
                        label="Interpreting query timeframe" />
-          <ProgressStep active={displayProgress.stage === 'fetching' || displayProgress.percent >= 50} 
-                       complete={displayProgress.percent > 75}
+          <ProgressStep active={displayProgress.stage === 'fetching' || displayProgress.percent >= 20} 
+                       complete={displayProgress.percent > 70}
                        label="Fetching conversations" />
-          <ProgressStep active={displayProgress.stage === 'analyzing' || displayProgress.percent >= 75} 
-                       complete={displayProgress.percent === 100}
+          <ProgressStep active={displayProgress.stage === 'analyzing' || displayProgress.percent >= 60} 
+                       complete={displayProgress.percent > 90}
                        label="Analyzing with AI" />
+          <ProgressStep active={displayProgress.stage === 'finalizing' || displayProgress.percent >= 90} 
+                       complete={displayProgress.percent === 100}
+                       label="Finalizing results" />
         </div>
         
         <div className="mt-4 text-xs text-muted-foreground">
@@ -136,7 +139,7 @@ export function ResultsDisplay() {
         <CardHeader>
           <CardTitle>Analysis Results</CardTitle>
           <CardDescription>
-            {lastResult.summary.total_conversations} conversations • {lastResult.summary.total_messages} messages • {formatDuration(lastResult.response_time_ms)} • {formatCurrency(lastResult.cost)}
+            {lastResult.insights.length} insights from {lastResult.summary.total_conversations} conversations • {formatDuration(lastResult.response_time_ms)} • {formatCurrency(lastResult.cost)}
           </CardDescription>
         </CardHeader>
         

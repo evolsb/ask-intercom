@@ -248,11 +248,26 @@ class QueryProcessor:
             # Try structured analysis first, fall back to legacy if needed
             try:
                 logger.info("Attempting structured JSON analysis...")
+                if progress_callback:
+                    await progress_callback(
+                        "analyzing",
+                        f"Generating structured insights with {self.config.model}...",
+                        80,
+                    )
+                
                 structured_result = (
                     await self.ai_client.analyze_conversations_structured(
                         conversations, query, timeframe
                     )
                 )
+                
+                if progress_callback:
+                    await progress_callback(
+                        "analyzing",
+                        "Processing analysis results...",
+                        90,
+                    )
+                
                 # Convert structured result to legacy format for now
                 # TODO: Update frontend to use structured format directly
                 result = self._convert_structured_to_legacy(
@@ -265,6 +280,12 @@ class QueryProcessor:
                 logger.warning(
                     f"Structured analysis failed, falling back to legacy: {e}"
                 )
+                if progress_callback:
+                    await progress_callback(
+                        "analyzing",
+                        "Falling back to legacy analysis...",
+                        80,
+                    )
                 result = await self.ai_client.analyze_conversations(
                     conversations, query, timeframe
                 )
@@ -276,7 +297,7 @@ class QueryProcessor:
 
             # Report analysis completion
             if progress_callback:
-                await progress_callback("analyzing", "Analysis complete!", 100)
+                await progress_callback("finalizing", "Saving analysis results...", 95)
 
             # Log performance metrics
             duration = time() - start_time

@@ -426,36 +426,95 @@ async def generate_sse_events(
         # Start processing
         start_time = time()
 
-        # We need to create a queue to capture progress events from the callback
-        progress_queue = []
-
-        # Create a progress callback that stores events
+        # Create a shared progress state that can be updated from callbacks
+        progress_state = {
+            "stage": "starting",
+            "message": "Initializing query processor...",
+            "percent": 0,
+            "conversation_count": 0,
+            "ai_started": False,
+            "ai_start_time": None,
+        }
+        
+        # Real progress callback that updates shared state
         async def progress_callback(stage: str, message: str, percent: int):
-            progress_queue.append(
-                {"stage": stage, "message": message, "percent": percent}
-            )
-
-        # We can't easily stream during processing, so we'll simulate progress
-        # and then get the detailed progress from the QueryProcessor
-
-        # Initial progress events
-        yield send_event(
-            "progress",
-            {
-                "stage": "starting",
-                "message": "Initializing query processor...",
-                "percent": 0,
-            },
+            progress_state.update({
+                "stage": stage,
+                "message": message,
+                "percent": percent
+            })
+            # Special handling for conversation count
+            if "conversations to analyze" in message:
+                import re
+                match = re.search(r'(\d+) conversations', message)
+                if match:
+                    progress_state["conversation_count"] = int(match.group(1))
+            
+            # Track when AI analysis starts
+            if stage == "analyzing" and not progress_state["ai_started"]:
+                progress_state["ai_started"] = True
+                progress_state["ai_start_time"] = time()
+        
+        # Initial progress
+        yield send_event("progress", {
+            "stage": progress_state["stage"],
+            "message": progress_state["message"],
+            "percent": progress_state["percent"],
+        })
+        
+        # Start processing in background with real progress callback
+        processor_task = asyncio.create_task(
+            processor.process_query(query, progress_callback=progress_callback)
         )
-
-        # Run the actual processing with progress callback
-        result = await processor.process_query(
-            query, progress_callback=progress_callback
-        )
-
-        # Send any captured progress events
-        for progress_event in progress_queue:
-            yield send_event("progress", progress_event)
+        
+        # Dynamic progress updates while processing
+        last_percent = 0
+        import asyncio
+        
+        while not processor_task.done():
+            await asyncio.sleep(0.8)  # Check every 800ms
+            
+            current = progress_state.copy()
+            
+            # Add AI analysis progress estimation
+            if current["ai_started"] and current["ai_start_time"]:
+                ai_elapsed = time() - current["ai_start_time"]
+                # Estimate 0.3-0.5 seconds per conversation for AI analysis
+                estimated_ai_time = max(current["conversation_count"] * 0.4, 10)
+                ai_progress = min(ai_elapsed / estimated_ai_time, 0.95)
+                
+                if current["stage"] == "analyzing":
+                    # Smooth AI progress from 75% to 90%
+                    ai_percent = 75 + (ai_progress * 15)
+                    current["percent"] = min(int(ai_percent), 90)
+                    
+                    # Update message based on progress
+                    if ai_progress < 0.3:
+                        current["message"] = f"Analyzing with {processor.config.model}..."
+                    elif ai_progress < 0.7:
+                        current["message"] = f"Generating structured insights with {processor.config.model}..."
+                    else:
+                        current["message"] = f"Categorizing and prioritizing insights..."
+            
+            # Only send update if progress changed
+            if current["percent"] != last_percent or current["message"] != progress_state.get("last_message", ""):
+                yield send_event("progress", {
+                    "stage": current["stage"],
+                    "message": current["message"],
+                    "percent": current["percent"],
+                })
+                last_percent = current["percent"]
+                progress_state["last_message"] = current["message"]
+        
+        # Get the completed result
+        result = await processor_task
+        
+        # Final progress update
+        yield send_event("progress", {
+            "stage": "finalizing",
+            "message": "Analysis complete!",
+            "percent": 100,
+        })
 
         # Progress: Complete
         duration_ms = int((time() - start_time) * 1000)
