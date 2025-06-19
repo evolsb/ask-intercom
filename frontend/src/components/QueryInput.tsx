@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Send } from 'lucide-react'
 import { useAppStore } from '../store/useAppStore'
 import { cn } from '../lib/utils'
+import { SmartLimits } from './SmartLimits'
 
 interface QueryInputProps {
   onSubmit: (query: string) => void
@@ -77,40 +78,15 @@ export function QueryInput({ onSubmit }: QueryInputProps) {
           </p>
         </div>
         
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <label htmlFor="max-conversations" className="text-sm text-gray-600 dark:text-gray-400">
-                Max conversations:
-              </label>
-              <input
-                id="max-conversations"
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                value={maxConversations}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/[^0-9]/g, '')
-                  if (value === '') {
-                    setMaxConversations(50)
-                  } else {
-                    const num = parseInt(value)
-                    if (num >= 10 && num <= 200) {
-                      setMaxConversations(num)
-                    } else if (num < 10) {
-                      setMaxConversations(10)
-                    } else if (num > 200) {
-                      setMaxConversations(200)
-                    }
-                  }
-                }}
-                className="w-20 px-2 py-1 border border-input rounded text-sm bg-background text-center"
-                disabled={isLoading}
-                placeholder="50"
-              />
-            </div>
-          </div>
-          
+        {/* Smart Limits Component */}
+        <SmartLimits
+          query={localQuery}
+          maxConversations={maxConversations}
+          onMaxConversationsChange={setMaxConversations}
+          disabled={isLoading}
+        />
+        
+        <div className="flex justify-end">
           <button
             type="submit"
             disabled={!localQuery.trim() || isLoading}

@@ -60,7 +60,7 @@ interface AppState {
   // API Configuration
   intercomToken: string
   openaiKey: string
-  maxConversations: number
+  maxConversations: number | null  // null = use smart limits
   
   // Session Management
   sessionInfo: SessionInfo | null
@@ -82,7 +82,7 @@ interface AppState {
   // Actions
   setIntercomToken: (token: string) => void
   setOpenaiKey: (key: string) => void
-  setMaxConversations: (max: number) => void
+  setMaxConversations: (max: number | null) => void
   setCurrentQuery: (query: string) => void
   setLoading: (loading: boolean) => void
   setError: (error: ErrorResponse | null) => void
@@ -101,7 +101,7 @@ export const useAppStore = create<AppState>()(
       // Initial state
       intercomToken: '',
       openaiKey: '',
-      maxConversations: 50,
+      maxConversations: null,  // Use smart limits by default
       sessionInfo: null,
       currentQuery: '',
       isLoading: false,
@@ -113,7 +113,9 @@ export const useAppStore = create<AppState>()(
       // Actions
       setIntercomToken: (token) => set({ intercomToken: token }),
       setOpenaiKey: (key) => set({ openaiKey: key }),
-      setMaxConversations: (max) => set({ maxConversations: Math.min(max, 200) }),
+      setMaxConversations: (max) => set({ 
+        maxConversations: max === null ? null : Math.min(max, 1000) 
+      }),
       setCurrentQuery: (query) => set({ currentQuery: query }),
       setLoading: (loading) => set({ isLoading: loading }),
       setError: (error) => set({ error }),
