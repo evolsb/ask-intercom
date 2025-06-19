@@ -1,5 +1,7 @@
 """Intercom API client with MCP fallback."""
 
+import asyncio
+import time
 from datetime import datetime
 from typing import List, Optional
 
@@ -170,8 +172,11 @@ class IntercomClient:
             # Pagination loop to get ALL conversations within the timeframe
             page = 1
             per_page = 150  # Search API max is 150 - use full page size for efficiency
-            max_conversations = 1000  # Safety limit to prevent infinite loops
+            max_conversations = min(
+                filters.limit, 1000
+            )  # Use requested limit, capped at 1000 for safety
             estimated_total = None  # Will be set after first API call
+            fetch_start_time = None  # Track fetching start time for rate calculation
 
             while len(conversations) < max_conversations:
                 # Build request body with pagination and sorting
@@ -200,6 +205,7 @@ class IntercomClient:
                 # Set estimated total from first response
                 if estimated_total is None:
                     estimated_total = data.get("total_count", 0)
+                    fetch_start_time = time.time()  # Start timing from first response
                     if progress_callback and estimated_total > 0:
                         await progress_callback(
                             "fetching",
@@ -229,15 +235,40 @@ class IntercomClient:
                 )
 
                 # Report progress if callback provided
-                if progress_callback and estimated_total and estimated_total > 0:
+                if (
+                    progress_callback
+                    and estimated_total
+                    and estimated_total > 0
+                    and fetch_start_time
+                ):
                     # Calculate progress: 25% (initial) + 25% (fetching progress)
                     fetch_progress = min(len(conversations) / estimated_total, 1.0)
                     total_percent = 25 + int(fetch_progress * 25)  # 25% to 50%
-                    await progress_callback(
-                        "fetching",
-                        f"Fetched {len(conversations)}/{estimated_total} conversations...",
-                        total_percent,
+
+                    # Calculate progress percentage and ETA
+                    elapsed_time = time.time() - fetch_start_time
+                    progress_pct = (
+                        (len(conversations) / estimated_total * 100)
+                        if estimated_total > 0
+                        else 0
                     )
+
+                    if elapsed_time > 1.0:  # Only show rate/ETA after reasonable time
+                        rate = len(conversations) / elapsed_time
+                        remaining = estimated_total - len(conversations)
+                        eta = int(remaining / rate) if rate > 0 and remaining > 0 else 0
+
+                        # Cap rate display at reasonable values
+                        if rate > 1000:
+                            progress_msg = f"Fetched {len(conversations)}/{estimated_total} conversations ({progress_pct:.0f}% complete)"
+                        elif eta > 0:
+                            progress_msg = f"Fetched {len(conversations)}/{estimated_total} conversations ({rate:.0f}/sec, ETA: {eta}s)"
+                        else:
+                            progress_msg = f"Fetched {len(conversations)}/{estimated_total} conversations ({rate:.0f}/sec)"
+                    else:
+                        progress_msg = f"Fetched {len(conversations)}/{estimated_total} conversations ({progress_pct:.0f}% complete)"
+
+                    await progress_callback("fetching", progress_msg, total_percent)
 
                 # Check if this was the last page
                 total_count = data.get("total_count", len(page_conversations))
@@ -255,8 +286,6 @@ class IntercomClient:
                 # Rate limiting - Intercom allows 83 requests per 10 seconds
                 # Add small delay to be safe (aim for ~60 requests/10s)
                 if page > 1:
-                    import asyncio
-
                     await asyncio.sleep(
                         0.2
                     )  # 200ms between requests = ~5 requests/second
@@ -267,17 +296,19 @@ class IntercomClient:
             f"Found {total_found} total conversations in the specified timeframe"
         )
 
-        # Only trim if we exceed safety limit
+        # Only trim if we exceed requested limit (shouldn't happen with new logic)
         if len(conversations) > filters.limit:
             logger.warning(
-                f"Found {len(conversations)} conversations, exceeding safety limit of {filters.limit}. Trimming to limit."
+                f"Found {len(conversations)} conversations, exceeding requested limit of {filters.limit}. Trimming to limit."
             )
             conversations = conversations[: filters.limit]
             logger.info(
                 f"Fetched {len(conversations)} conversations (trimmed from {total_found})"
             )
         else:
-            logger.info(f"Fetched all {len(conversations)} conversations found")
+            logger.info(
+                f"Fetched {len(conversations)} conversations (within requested limit of {filters.limit})"
+            )
 
         return conversations
 

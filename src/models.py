@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List, Optional, Dict, Any, Literal
+from typing import Any, Dict, List, Literal, Optional
 from urllib.parse import quote
 
 
@@ -117,7 +117,9 @@ class Insight:
     """A structured insight from AI analysis."""
 
     id: str
-    category: Literal["BUG", "FEATURE_REQUEST", "COMPLAINT", "PRAISE", "QUESTION", "OTHER"]
+    category: Literal[
+        "BUG", "FEATURE_REQUEST", "COMPLAINT", "PRAISE", "QUESTION", "OTHER"
+    ]
     title: str
     description: str
     impact: InsightImpact
@@ -154,25 +156,25 @@ class StructuredAnalysisResult:
                     "impact": {
                         "customer_count": insight.impact.customer_count,
                         "percentage": insight.impact.percentage,
-                        "severity": insight.impact.severity
+                        "severity": insight.impact.severity,
                     },
                     "customers": [
                         {
                             "email": c.email,
                             "conversation_id": c.conversation_id,
                             "intercom_url": c.intercom_url,
-                            "issue_summary": c.issue_summary
+                            "issue_summary": c.issue_summary,
                         }
                         for c in insight.customers
                     ],
                     "priority_score": insight.priority_score,
-                    "recommendation": insight.recommendation
+                    "recommendation": insight.recommendation,
                 }
                 for insight in self.insights
             ],
             "summary": {
                 "total_conversations": self.summary.total_conversations,
                 "total_messages": self.summary.total_messages,
-                "analysis_timestamp": self.summary.analysis_timestamp.isoformat()
-            }
+                "analysis_timestamp": self.summary.analysis_timestamp.isoformat(),
+            },
         }

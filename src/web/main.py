@@ -1,6 +1,7 @@
 """
 FastAPI web application wrapping the Ask-Intercom CLI functionality.
 """
+import asyncio
 import json
 import os
 from datetime import datetime
@@ -8,6 +9,7 @@ from pathlib import Path
 from time import time
 from typing import AsyncGenerator
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -15,6 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 # Import our existing CLI components
+from ..ai_client import AIClient
 from ..config import Config
 from ..health import HealthStatus, health_checker
 from ..logging import (
@@ -25,6 +28,9 @@ from ..logging import (
     set_session_context,
 )
 from ..query_processor import QueryProcessor
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = FastAPI(
     title="Ask-Intercom API",
@@ -121,6 +127,63 @@ async def validate_environment():
 frontend_dir = Path(__file__).parent.parent.parent / "frontend" / "dist"
 
 
+def get_smart_max_conversations(
+    query: str, requested_max: int | None = None
+) -> tuple[int, str | None]:
+    """Calculate smart max_conversations based on query timeframe.
+
+    Returns:
+        tuple: (max_conversations, adjustment_message)
+    """
+    # If user explicitly requested a high limit, respect it but cap at 500
+    if requested_max is not None and requested_max > 100:
+        if requested_max > 500:
+            return (
+                500,
+                f"Capped user-requested limit from {requested_max} to 500 conversations",
+            )
+        return requested_max, None
+
+    # Ignore small hardcoded limits (50, 100) and use smart limits instead
+    # This handles legacy frontend requests that hardcode max_conversations: 50
+
+    # Use smart limits based on timeframe
+    try:
+        ai_client = AIClient("dummy", "gpt-4")  # Just for timeframe parsing
+        timeframe = ai_client._parse_timeframe_deterministic(query)
+
+        duration_days = (
+            (timeframe.end_date - timeframe.start_date).days
+            if timeframe.start_date and timeframe.end_date
+            else 30
+        )
+
+        # Smart limits based on timeframe
+        if duration_days <= 1:  # Today/yesterday
+            return (
+                100,
+                f"Using 100 conversations for {timeframe.description} (short timeframe)",
+            )
+        elif duration_days <= 7:  # This/last week
+            return (
+                300,
+                f"Using 300 conversations for {timeframe.description} (weekly timeframe)",
+            )
+        elif duration_days <= 30:  # This/last month
+            return (
+                500,
+                f"Using 500 conversations for {timeframe.description} (monthly timeframe)",
+            )
+        else:  # Longer periods
+            return (
+                500,
+                f"Using 500 conversations for {timeframe.description} (extended timeframe)",
+            )
+    except Exception:
+        # Fallback if timeframe parsing fails
+        return 100, "Using 100 conversations (fallback - could not determine timeframe)"
+
+
 class HealthResponse(BaseModel):
     status: str
     message: str
@@ -130,7 +193,7 @@ class AnalysisRequest(BaseModel):
     query: str
     intercom_token: str | None = None
     openai_key: str | None = None
-    max_conversations: int = 50
+    max_conversations: int | None = None  # If None, use smart limits
 
 
 class AnalysisResponse(BaseModel):
@@ -435,86 +498,99 @@ async def generate_sse_events(
             "ai_started": False,
             "ai_start_time": None,
         }
-        
+
         # Real progress callback that updates shared state
         async def progress_callback(stage: str, message: str, percent: int):
-            progress_state.update({
-                "stage": stage,
-                "message": message,
-                "percent": percent
-            })
+            progress_state.update(
+                {"stage": stage, "message": message, "percent": percent}
+            )
             # Special handling for conversation count
             if "conversations to analyze" in message:
                 import re
-                match = re.search(r'(\d+) conversations', message)
+
+                match = re.search(r"(\d+) conversations", message)
                 if match:
                     progress_state["conversation_count"] = int(match.group(1))
-            
+
             # Track when AI analysis starts
             if stage == "analyzing" and not progress_state["ai_started"]:
                 progress_state["ai_started"] = True
                 progress_state["ai_start_time"] = time()
-        
+
         # Initial progress
-        yield send_event("progress", {
-            "stage": progress_state["stage"],
-            "message": progress_state["message"],
-            "percent": progress_state["percent"],
-        })
-        
+        yield send_event(
+            "progress",
+            {
+                "stage": progress_state["stage"],
+                "message": progress_state["message"],
+                "percent": progress_state["percent"],
+            },
+        )
+
         # Start processing in background with real progress callback
         processor_task = asyncio.create_task(
             processor.process_query(query, progress_callback=progress_callback)
         )
-        
+
         # Dynamic progress updates while processing
         last_percent = 0
-        import asyncio
-        
+
         while not processor_task.done():
             await asyncio.sleep(0.8)  # Check every 800ms
-            
+
             current = progress_state.copy()
-            
+
             # Add AI analysis progress estimation
             if current["ai_started"] and current["ai_start_time"]:
                 ai_elapsed = time() - current["ai_start_time"]
                 # Estimate 0.3-0.5 seconds per conversation for AI analysis
                 estimated_ai_time = max(current["conversation_count"] * 0.4, 10)
                 ai_progress = min(ai_elapsed / estimated_ai_time, 0.95)
-                
+
                 if current["stage"] == "analyzing":
                     # Smooth AI progress from 75% to 90%
                     ai_percent = 75 + (ai_progress * 15)
                     current["percent"] = min(int(ai_percent), 90)
-                    
+
                     # Update message based on progress
                     if ai_progress < 0.3:
-                        current["message"] = f"Analyzing with {processor.config.model}..."
+                        current[
+                            "message"
+                        ] = f"Analyzing with {processor.config.model}..."
                     elif ai_progress < 0.7:
-                        current["message"] = f"Generating structured insights with {processor.config.model}..."
+                        current[
+                            "message"
+                        ] = f"Generating structured insights with {processor.config.model}..."
                     else:
-                        current["message"] = f"Categorizing and prioritizing insights..."
-            
+                        current["message"] = "Categorizing and prioritizing insights..."
+
             # Only send update if progress changed
-            if current["percent"] != last_percent or current["message"] != progress_state.get("last_message", ""):
-                yield send_event("progress", {
-                    "stage": current["stage"],
-                    "message": current["message"],
-                    "percent": current["percent"],
-                })
+            if current["percent"] != last_percent or current[
+                "message"
+            ] != progress_state.get("last_message", ""):
+                yield send_event(
+                    "progress",
+                    {
+                        "stage": current["stage"],
+                        "message": current["message"],
+                        "percent": current["percent"],
+                    },
+                )
                 last_percent = current["percent"]
                 progress_state["last_message"] = current["message"]
-        
+
         # Get the completed result
         result = await processor_task
-        
+
         # Final progress update
-        yield send_event("progress", {
-            "stage": "finalizing",
-            "message": "Analysis complete!",
-            "percent": 100,
-        })
+        yield send_event(
+            "progress",
+            {
+                "stage": "finalizing",
+                "message": "Analysis complete!",
+                "percent": 100,
+            },
+        )
 
         # Progress: Complete
         duration_ms = int((time() - start_time) * 1000)
@@ -660,11 +736,30 @@ async def analyze_conversations_stream(request: AnalysisRequest, http_request: R
             status_code=400,
         )
 
+    # Calculate smart max_conversations
+    smart_max, adjustment_msg = get_smart_max_conversations(
+        request.query, request.max_conversations
+    )
+
+    # Log adjustment if made
+    if adjustment_msg:
+        session_logger.info(
+            f"Smart limit adjustment: {adjustment_msg}",
+            event="smart_limit_adjustment",
+            session_id=session_id,
+            request_id=request_id,
+            data={
+                "query": request.query,
+                "adjusted_max": smart_max,
+                "message": adjustment_msg,
+            },
+        )
+
     # Create config
     config = Config(
         intercom_token=intercom_token,
         openai_key=openai_key,
-        max_conversations=min(request.max_conversations, 200),
+        max_conversations=smart_max,
     )
 
     # Return SSE response
@@ -727,12 +822,31 @@ async def analyze_conversations(request: AnalysisRequest, http_request: Request)
                 status_code=400,
             )
 
+        # Calculate smart max_conversations
+        smart_max, adjustment_msg = get_smart_max_conversations(
+            request.query, request.max_conversations
+        )
+
+        # Log adjustment if made
+        if adjustment_msg:
+            session_logger.info(
+                f"Smart limit adjustment: {adjustment_msg}",
+                event="smart_limit_adjustment",
+                session_id=session_id,
+                request_id=request_id,
+                data={
+                    "query": request.query,
+                    "adjusted_max": smart_max,
+                    "message": adjustment_msg,
+                },
+            )
+
         # Create config with validated keys
         try:
             config = Config(
                 intercom_token=intercom_token,
                 openai_key=openai_key,
-                max_conversations=min(request.max_conversations, 200),  # Hard cap
+                max_conversations=smart_max,
             )
         except Exception as e:
             raise APIError(
@@ -935,12 +1049,31 @@ async def analyze_conversations_structured(
                 status_code=400,
             )
 
+        # Calculate smart max_conversations
+        smart_max, adjustment_msg = get_smart_max_conversations(
+            request.query, request.max_conversations
+        )
+
+        # Log adjustment if made
+        if adjustment_msg:
+            session_logger.info(
+                f"Smart limit adjustment: {adjustment_msg}",
+                event="smart_limit_adjustment",
+                session_id=session_id,
+                request_id=request_id,
+                data={
+                    "query": request.query,
+                    "adjusted_max": smart_max,
+                    "message": adjustment_msg,
+                },
+            )
+
         # Create config
         try:
             config = Config(
                 intercom_token=intercom_token,
                 openai_key=openai_key,
-                max_conversations=min(request.max_conversations, 200),
+                max_conversations=smart_max,
             )
         except Exception as e:
             raise APIError(

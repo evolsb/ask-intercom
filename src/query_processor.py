@@ -52,6 +52,26 @@ class QueryProcessor:
         base_cost = 0.01  # Timeframe interpretation
         return base_cost + (conversation_count * cost_per_conversation)
 
+    def _calculate_smart_limit(self, timeframe: TimeFrame) -> int:
+        """Calculate smart conversation limit based on timeframe duration."""
+        if not timeframe.start_date or not timeframe.end_date:
+            return self.config.max_conversations
+
+        duration_days = (timeframe.end_date - timeframe.start_date).days
+
+        # Smart limits based on timeframe
+        if duration_days <= 1:  # Today/yesterday
+            limit = 100
+        elif duration_days <= 7:  # This/last week
+            limit = 300
+        elif duration_days <= 30:  # This/last month
+            limit = 800
+        else:  # Longer periods
+            limit = self.config.max_conversations
+
+        # Never exceed the configured max
+        return min(limit, self.config.max_conversations)
+
     async def count_conversations_for_query(self, query: str) -> tuple[int, TimeFrame]:
         """Preview how many conversations would be analyzed for a query."""
         # Initialize AI client if needed
@@ -173,10 +193,22 @@ class QueryProcessor:
                     20,
                 )
             logger.info(f"Fetching conversations from {timeframe.description}...")
+
+            # Smart limit based on timeframe duration
+            smart_limit = self._calculate_smart_limit(timeframe)
+            if smart_limit != self.config.max_conversations:
+                adjustment_msg = f"Adjusted max conversations from {self.config.max_conversations} to {smart_limit} for {timeframe.description}"
+                logger.info(adjustment_msg)
+                print(f"📊 {adjustment_msg}")
+            else:
+                logger.info(
+                    f"Using limit of {smart_limit} conversations for {timeframe.description}"
+                )
+
             filters = ConversationFilters(
                 start_date=timeframe.start_date,
                 end_date=timeframe.end_date,
-                limit=self.config.max_conversations,
+                limit=smart_limit,
             )
 
             # Start fetching conversations and analyzing in parallel
@@ -254,20 +286,20 @@ class QueryProcessor:
                         f"Generating structured insights with {self.config.model}...",
                         80,
                     )
-                
+
                 structured_result = (
                     await self.ai_client.analyze_conversations_structured(
                         conversations, query, timeframe
                     )
                 )
-                
+
                 if progress_callback:
                     await progress_callback(
                         "analyzing",
                         "Processing analysis results...",
                         90,
                     )
-                
+
                 # Convert structured result to legacy format for now
                 # TODO: Update frontend to use structured format directly
                 result = self._convert_structured_to_legacy(

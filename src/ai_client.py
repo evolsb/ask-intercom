@@ -3,21 +3,21 @@
 import json
 import re
 from datetime import datetime, timedelta
-from typing import List, Dict, Any
+from typing import List
 
 from openai import AsyncOpenAI
 
 from .logger import get_logger
 from .models import (
-    AnalysisResult, 
-    Conversation, 
-    CostInfo, 
-    TimeFrame,
-    StructuredAnalysisResult,
+    AnalysisResult,
+    AnalysisSummary,
+    Conversation,
+    CostInfo,
+    CustomerInsight,
     Insight,
     InsightImpact,
-    CustomerInsight,
-    AnalysisSummary
+    StructuredAnalysisResult,
+    TimeFrame,
 )
 
 logger = get_logger("ai_client")
@@ -123,34 +123,41 @@ class AIClient:
         elif re.search(r"\btoday\b", query_lower):
             start_time = end_time.replace(hour=0, minute=0, second=0)
             end_time = start_time + timedelta(days=1) - timedelta(seconds=1)
-            description = "Today"
+            description = "today"
 
-        # 4. Week patterns - rolling 7 days
+        # 4. "Yesterday" - previous calendar day
+        elif re.search(r"\byesterday\b", query_lower):
+            yesterday = end_time - timedelta(days=1)
+            start_time = yesterday.replace(hour=0, minute=0, second=0)
+            end_time = start_time + timedelta(days=1) - timedelta(seconds=1)
+            description = "yesterday"
+
+        # 5. Week patterns - rolling 7 days
         elif re.search(r"\b(last|past)\s+(7\s+days?|1\s+weeks?|weeks?)\b", query_lower):
             start_time = end_time - timedelta(days=7)
             description = "Last 7 days"
 
-        # 5. "This week" - current calendar week
+        # 6. "This week" - current calendar week
         elif re.search(r"\bthis\s+week\b", query_lower):
             days_since_monday = end_time.weekday()
             start_time = (end_time - timedelta(days=days_since_monday)).replace(
                 hour=0, minute=0, second=0
             )
-            description = f"This week (since {start_time.strftime('%B %d')})"
+            description = f"this week (since {start_time.strftime('%B %d')})"
 
-        # 6. Month patterns - rolling 30 days (consistent)
+        # 7. Month patterns - rolling 30 days (consistent)
         elif re.search(
             r"\b(last|past)\s+(30\s+days?|1\s+months?|months?)\b", query_lower
         ):
             start_time = end_time - timedelta(days=30)
             description = "Last 30 days"
 
-        # 7. "This month" - current calendar month
+        # 8. "This month" - current calendar month
         elif re.search(r"\bthis\s+month\b", query_lower):
             start_time = end_time.replace(day=1, hour=0, minute=0, second=0)
-            description = f"This month ({start_time.strftime('%B %Y')})"
+            description = f"this month ({start_time.strftime('%B %Y')})"
 
-        # 8. Specific numeric patterns
+        # 9. Specific numeric patterns
         elif match := re.search(
             r"\b(last|past)\s+(\d+)\s+(hours?|days?|weeks?|months?)\b", query_lower
         ):
@@ -194,9 +201,9 @@ class AIClient:
         """Analyze conversations and generate structured JSON insights."""
         # Build the analysis prompt
         prompt = self._build_structured_analysis_prompt(conversations, query)
-        
-        # JSON schema for the response
-        json_schema = {
+
+        # JSON schema for the response (currently unused but kept for future validation)
+        _json_schema = {
             "type": "object",
             "properties": {
                 "insights": {
@@ -205,7 +212,17 @@ class AIClient:
                         "type": "object",
                         "properties": {
                             "id": {"type": "string"},
-                            "category": {"type": "string", "enum": ["BUG", "FEATURE_REQUEST", "COMPLAINT", "PRAISE", "QUESTION", "OTHER"]},
+                            "category": {
+                                "type": "string",
+                                "enum": [
+                                    "BUG",
+                                    "FEATURE_REQUEST",
+                                    "COMPLAINT",
+                                    "PRAISE",
+                                    "QUESTION",
+                                    "OTHER",
+                                ],
+                            },
                             "title": {"type": "string"},
                             "description": {"type": "string"},
                             "impact": {
@@ -213,9 +230,16 @@ class AIClient:
                                 "properties": {
                                     "customer_count": {"type": "integer"},
                                     "percentage": {"type": "number"},
-                                    "severity": {"type": "string", "enum": ["low", "medium", "high", "critical"]}
+                                    "severity": {
+                                        "type": "string",
+                                        "enum": ["low", "medium", "high", "critical"],
+                                    },
                                 },
-                                "required": ["customer_count", "percentage", "severity"]
+                                "required": [
+                                    "customer_count",
+                                    "percentage",
+                                    "severity",
+                                ],
                             },
                             "customers": {
                                 "type": "array",
@@ -225,30 +249,52 @@ class AIClient:
                                         "email": {"type": "string"},
                                         "conversation_id": {"type": "string"},
                                         "intercom_url": {"type": "string"},
-                                        "issue_summary": {"type": "string"}
+                                        "issue_summary": {"type": "string"},
                                     },
-                                    "required": ["email", "conversation_id", "intercom_url", "issue_summary"]
-                                }
+                                    "required": [
+                                        "email",
+                                        "conversation_id",
+                                        "intercom_url",
+                                        "issue_summary",
+                                    ],
+                                },
                             },
-                            "priority_score": {"type": "integer", "minimum": 0, "maximum": 100},
-                            "recommendation": {"type": "string"}
+                            "priority_score": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 100,
+                            },
+                            "recommendation": {"type": "string"},
                         },
-                        "required": ["id", "category", "title", "description", "impact", "customers", "priority_score", "recommendation"]
-                    }
+                        "required": [
+                            "id",
+                            "category",
+                            "title",
+                            "description",
+                            "impact",
+                            "customers",
+                            "priority_score",
+                            "recommendation",
+                        ],
+                    },
                 },
                 "summary": {
                     "type": "object",
                     "properties": {
                         "total_conversations": {"type": "integer"},
                         "total_messages": {"type": "integer"},
-                        "analysis_timestamp": {"type": "string", "format": "date-time"}
+                        "analysis_timestamp": {"type": "string", "format": "date-time"},
                     },
-                    "required": ["total_conversations", "total_messages", "analysis_timestamp"]
-                }
+                    "required": [
+                        "total_conversations",
+                        "total_messages",
+                        "analysis_timestamp",
+                    ],
+                },
             },
-            "required": ["insights", "summary"]
+            "required": ["insights", "summary"],
         }
-        
+
         # Call OpenAI for analysis with JSON response format
         # Note: json_object response format requires gpt-4-turbo or newer
         response = await self.client.chat.completions.create(
@@ -261,11 +307,11 @@ class AIClient:
             response_format={"type": "json_object"},
             max_tokens=2000,  # More tokens for structured output
         )
-        
+
         # Parse JSON response
         try:
             response_json = json.loads(response.choices[0].message.content)
-            
+
             # Convert to dataclass objects
             insights = []
             for insight_data in response_json["insights"]:
@@ -273,9 +319,9 @@ class AIClient:
                     CustomerInsight(**customer)
                     for customer in insight_data["customers"]
                 ]
-                
+
                 impact = InsightImpact(**insight_data["impact"])
-                
+
                 insight = Insight(
                     id=insight_data["id"],
                     category=insight_data["category"],
@@ -284,26 +330,25 @@ class AIClient:
                     impact=impact,
                     customers=customers,
                     priority_score=insight_data["priority_score"],
-                    recommendation=insight_data["recommendation"]
+                    recommendation=insight_data["recommendation"],
                 )
                 insights.append(insight)
-            
+
             # Parse summary
             summary_data = response_json["summary"]
             summary = AnalysisSummary(
                 total_conversations=summary_data["total_conversations"],
                 total_messages=summary_data["total_messages"],
-                analysis_timestamp=datetime.fromisoformat(summary_data["analysis_timestamp"].replace("Z", "+00:00"))
+                analysis_timestamp=datetime.fromisoformat(
+                    summary_data["analysis_timestamp"].replace("Z", "+00:00")
+                ),
             )
-            
-            return StructuredAnalysisResult(
-                insights=insights,
-                summary=summary
-            )
-            
+
+            return StructuredAnalysisResult(insights=insights, summary=summary)
+
         except (json.JSONDecodeError, KeyError, ValueError) as e:
             logger.error(f"Failed to parse structured response: {e}")
-            raise ValueError(f"Failed to parse AI response: {e}")
+            raise ValueError(f"Failed to parse AI response: {e}") from e
 
     def _get_system_prompt(self) -> str:
         """Get the system prompt for conversation analysis."""
@@ -518,7 +563,7 @@ class AIClient:
         """Get the system prompt for structured JSON conversation analysis."""
         return """
         You are an expert customer support analyst. Analyze conversations and provide insights in JSON format.
-        
+
         CRITICAL INSTRUCTIONS:
         1. Return ONLY valid JSON - no markdown, no explanations
         2. Categorize each insight appropriately (BUG, FEATURE_REQUEST, COMPLAINT, PRAISE, QUESTION, OTHER)
@@ -526,14 +571,14 @@ class AIClient:
         4. Assign priority scores (0-100) based on impact and severity
         5. Include ALL affected customers with their details
         6. Provide actionable recommendations
-        
+
         Priority scoring guidelines:
         - Critical bugs affecting many users: 90-100
         - Major complaints or widespread issues: 70-89
         - Feature requests with high demand: 50-69
         - Minor issues or questions: 30-49
         - Low impact items: 0-29
-        
+
         Severity levels:
         - critical: Business-critical issues, data loss, security
         - high: Major functionality broken, blocking workflows
@@ -548,47 +593,55 @@ class AIClient:
         # Get conversation data
         conv_data = []
         total_messages = 0
-        
+
         for conv in conversations:
             customer_messages = [m for m in conv.messages if m.author_type == "user"]
             if not customer_messages:
                 continue
-                
+
             total_messages += len(conv.messages)
-            
+
             conv_info = {
                 "conversation_id": conv.id,
                 "customer_email": conv.customer_email or f"anonymous-{conv.id[:8]}",
-                "url": conv.get_url(self.app_id) if self.app_id else f"https://app.intercom.com/conversation/{conv.id}",
-                "messages": []
+                "url": conv.get_url(self.app_id)
+                if self.app_id
+                else f"https://app.intercom.com/conversation/{conv.id}",
+                "messages": [],
             }
-            
+
             # Include key messages
             for msg in customer_messages[:3]:  # First 3 customer messages
-                conv_info["messages"].append({
-                    "type": "customer",
-                    "content": msg.body[:200] + ("..." if len(msg.body) > 200 else "")
-                })
-            
+                conv_info["messages"].append(
+                    {
+                        "type": "customer",
+                        "content": msg.body[:200]
+                        + ("..." if len(msg.body) > 200 else ""),
+                    }
+                )
+
             # Include last admin response if exists
             admin_messages = [m for m in conv.messages if m.author_type == "admin"]
             if admin_messages:
                 last_admin = admin_messages[-1]
-                conv_info["messages"].append({
-                    "type": "admin",
-                    "content": last_admin.body[:200] + ("..." if len(last_admin.body) > 200 else "")
-                })
-            
+                conv_info["messages"].append(
+                    {
+                        "type": "admin",
+                        "content": last_admin.body[:200]
+                        + ("..." if len(last_admin.body) > 200 else ""),
+                    }
+                )
+
             conv_data.append(conv_info)
-        
+
         analysis_prompt = f"""
         Query: {query}
-        
+
         Analyze these {len(conv_data)} conversations and provide structured insights.
-        
+
         Conversation data:
         {json.dumps(conv_data, indent=2)}
-        
+
         Return a JSON object with:
         1. "insights": Array of insight objects, each with:
            - id: unique identifier (e.g., "insight_1")
@@ -599,13 +652,13 @@ class AIClient:
            - customers: array of affected customers with email, conversation_id, intercom_url, and issue_summary
            - priority_score: 0-100 based on impact
            - recommendation: Actionable next step
-        
+
         2. "summary": Object with:
            - total_conversations: {len(conversations)}
            - total_messages: {total_messages}
            - analysis_timestamp: Current ISO timestamp
-        
+
         Group similar issues together and sort by priority_score descending.
         """
-        
+
         return analysis_prompt
