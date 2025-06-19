@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../store/useAppStore'
 import { formatCurrency, formatDuration } from '../lib/utils'
-import { ChevronDown, ChevronUp, ExternalLink, MessageCircle, AlertTriangle, Lightbulb, Bug, Settings } from 'lucide-react'
+import { ChevronDown, ChevronUp, ExternalLink, MessageCircle, AlertTriangle, Lightbulb, Bug, Settings, Copy, Check } from 'lucide-react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
+import { Badge } from './ui/badge'
+import { Button } from './ui/button'
 
 interface ProgressState {
   stage: string
@@ -14,7 +17,6 @@ interface AnalysisCardData {
   category: string
   content: string
   urls: Array<{ text: string; url: string }>
-  customerEmail?: string
 }
 
 interface AnalysisCardProps extends AnalysisCardData {
@@ -135,51 +137,25 @@ export function ResultsDisplay() {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-      {/* Header with Metrics */}
-      <div className="bg-card border rounded-xl p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">Analysis Results</h3>
-          <div className="flex items-center space-x-6 text-sm">
-            <div className="text-center">
-              <div className="text-lg font-bold text-gray-900 dark:text-gray-100">{lastResult.conversation_count}</div>
-              <div className="text-xs text-gray-600 dark:text-gray-400">Conversations</div>
-            </div>
-            <div className="text-center">
-              <div className="text-lg font-bold text-gray-900 dark:text-gray-100">{formatDuration(lastResult.response_time_ms)}</div>
-              <div className="text-xs text-gray-600 dark:text-gray-400">Response Time</div>
-            </div>
-            <div className="text-center">
-              <div className="text-lg font-bold text-gray-900 dark:text-gray-100">{formatCurrency(lastResult.cost)}</div>
-              <div className="text-xs text-gray-600 dark:text-gray-400">AI Cost</div>
-            </div>
-          </div>
-        </div>
+    <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <Card>
+        <CardHeader>
+          <CardTitle>Analysis Results</CardTitle>
+          <CardDescription>
+            {lastResult.conversation_count} conversations • {formatDuration(lastResult.response_time_ms)} • {formatCurrency(lastResult.cost)}
+          </CardDescription>
+        </CardHeader>
         
-        {/* Key Insights Grid */}
-        <div className="grid gap-4">
-          {lastResult.insights.map((insight, index) => (
-            <div key={index} className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-              <div className="flex items-start space-x-3">
-                <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-semibold mt-0.5 shadow-sm">
-                  {index + 1}
-                </div>
-                <p className="text-gray-800 dark:text-gray-200 leading-relaxed font-medium">{insight}</p>
-              </div>
+        <CardContent>
+          {lastResult.summary && (
+            <div className="space-y-4">
+              {parseAnalysisIntoCards(lastResult.summary).map((card, index) => (
+                <AnalysisCard key={index} {...card} />
+              ))}
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Detailed Analysis Cards */}
-      {lastResult.summary && (
-        <div className="space-y-4">
-          <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Detailed Analysis with Conversation Links</h4>
-          {parseAnalysisIntoCards(lastResult.summary).map((card, index) => (
-            <AnalysisCard key={index} {...card} />
-          ))}
-        </div>
-      )}
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }
@@ -201,109 +177,118 @@ function ProgressStep({ active, complete, label }: { active: boolean; complete: 
   )
 }
 
-function AnalysisCard({ title, category, content, urls, customerEmail, defaultExpanded = true }: AnalysisCardProps) {
+function AnalysisCard({ title, category, content, urls, defaultExpanded = true }: AnalysisCardProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
+  const [copiedUrls, setCopiedUrls] = useState<Set<number>>(new Set())
+  
+  const copyToClipboard = async (url: string, index: number) => {
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopiedUrls(prev => new Set(prev).add(index))
+      setTimeout(() => {
+        setCopiedUrls(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(index)
+          return newSet
+        })
+      }, 2000)
+    } catch (err) {
+      console.error('Failed to copy URL:', err)
+    }
+  }
   
   const getCategoryIcon = (category: string) => {
     switch (category.toUpperCase()) {
-      case 'BUG': return <Bug className="w-4 h-4" />
-      case 'FEATURE_REQUEST': return <Lightbulb className="w-4 h-4" />
-      case 'CONFUSION': return <MessageCircle className="w-4 h-4" />
-      case 'COMPLAINT': return <AlertTriangle className="w-4 h-4" />
-      case 'PROCESS_ISSUE': return <Settings className="w-4 h-4" />
-      default: return <MessageCircle className="w-4 h-4" />
+      case 'BUG': return <Bug className="h-4 w-4" />
+      case 'FEATURE_REQUEST': return <Lightbulb className="h-4 w-4" />
+      case 'CONFUSION': return <MessageCircle className="h-4 w-4" />
+      case 'COMPLAINT': return <AlertTriangle className="h-4 w-4" />
+      case 'PROCESS_ISSUE': return <Settings className="h-4 w-4" />
+      default: return <MessageCircle className="h-4 w-4" />
     }
   }
   
-  const getCategoryColor = (category: string) => {
+  const getCategoryBadge = (category: string) => {
     switch (category.toUpperCase()) {
-      case 'BUG': return 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20'
-      case 'FEATURE_REQUEST': return 'border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20'
-      case 'CONFUSION': return 'border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20'
-      case 'COMPLAINT': return 'border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20'
-      case 'PROCESS_ISSUE': return 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20'
-      default: return 'border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/20'
-    }
-  }
-
-  const getCategoryTextColor = (category: string) => {
-    switch (category.toUpperCase()) {
-      case 'BUG': return 'text-red-700 dark:text-red-300'
-      case 'FEATURE_REQUEST': return 'text-purple-700 dark:text-purple-300'
-      case 'CONFUSION': return 'text-yellow-700 dark:text-yellow-300'
-      case 'COMPLAINT': return 'text-orange-700 dark:text-orange-300'
-      case 'PROCESS_ISSUE': return 'text-blue-700 dark:text-blue-300'
-      default: return 'text-gray-700 dark:text-gray-300'
+      case 'BUG': return <Badge variant="destructive">Bug Report</Badge>
+      case 'FEATURE_REQUEST': return <Badge variant="secondary">Feature Request</Badge>
+      case 'CONFUSION': return <Badge variant="outline">Confusion</Badge>
+      case 'COMPLAINT': return <Badge variant="destructive">Complaint</Badge>
+      case 'PROCESS_ISSUE': return <Badge variant="secondary">Process Issue</Badge>
+      default: return <Badge variant="outline">Other</Badge>
     }
   }
   
   return (
-    <div className={`border rounded-xl overflow-hidden transition-all duration-200 hover:shadow-md ${getCategoryColor(category)}`}>
-      <div 
-        className="p-4 cursor-pointer"
+    <Card className="border-border">
+      <CardHeader 
+        className="pb-3 cursor-pointer hover:bg-muted/50 transition-colors border-b border-border/50"
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className={`p-2 rounded-lg ${getCategoryTextColor(category)}`}>
+        <div className="flex items-start justify-between">
+          <div className="flex items-start space-x-3">
+            <div className="mt-0.5">
               {getCategoryIcon(category)}
             </div>
-            <div>
-              <h5 className="font-semibold text-gray-900 dark:text-gray-100">{title}</h5>
-              <span className={`text-xs font-medium uppercase tracking-wide ${getCategoryTextColor(category)}`}>
-                {category.replace('_', ' ')}
-              </span>
+            <div className="space-y-1">
+              <CardTitle className="text-base font-medium leading-none">{title}</CardTitle>
+              <div className="flex items-center space-x-2">
+                {getCategoryBadge(category)}
+                {urls.length > 0 && (
+                  <CardDescription className="text-xs">
+                    {urls.length} conversation{urls.length > 1 ? 's' : ''}
+                  </CardDescription>
+                )}
+              </div>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            {urls.length > 0 && (
-              <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                {urls.length} conversation{urls.length > 1 ? 's' : ''}
-              </span>
-            )}
+          <div className="shrink-0 text-muted-foreground">
             {isExpanded ? 
-              <ChevronUp className="w-5 h-5 text-gray-600 dark:text-gray-400" /> : 
-              <ChevronDown className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              <ChevronUp className="h-4 w-4" /> : 
+              <ChevronDown className="h-4 w-4" />
             }
           </div>
         </div>
-      </div>
+      </CardHeader>
       
       {isExpanded && (
-        <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-950">
-          <div className="space-y-4">
-            <p className="text-gray-700 dark:text-gray-200 leading-relaxed">{content}</p>
-            
-            {customerEmail && (
-              <div className="flex items-center space-x-2 text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Customer:</span>
-                <span className="font-medium text-blue-600 dark:text-blue-400">{customerEmail}</span>
-              </div>
-            )}
-            
-            {urls.length > 0 && (
-              <div className="space-y-2">
-                <h6 className="text-sm font-medium text-gray-900 dark:text-gray-100">Related Conversations:</h6>
-                <div className="flex flex-wrap gap-2">
-                  {urls.map((link, index) => (
-                    <a
-                      key={index}
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center space-x-1 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs font-medium hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
-                    >
-                      <span>{link.text}</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  ))}
+        <CardContent className="pt-0">
+          <p className="text-sm leading-relaxed text-muted-foreground mb-4">{content}</p>
+          
+          {urls.length > 0 && (
+            <div className="flex gap-2 flex-wrap">
+              {urls.map((link, index) => (
+                <div key={index} className="inline-flex rounded-md border border-input bg-background overflow-hidden">
+                  <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center px-3 py-1.5 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
+                  >
+                    <ExternalLink className="h-3 w-3 mr-1.5" />
+                    {link.text}
+                  </a>
+                  <div className="w-px bg-border"></div>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault()
+                      copyToClipboard(link.url, index)
+                    }}
+                    className="flex items-center justify-center px-2 py-1.5 hover:bg-accent hover:text-accent-foreground transition-colors"
+                    title="Copy URL"
+                  >
+                    {copiedUrls.has(index) ? 
+                      <Check className="h-3 w-3 text-green-600" /> :
+                      <Copy className="h-3 w-3" />
+                    }
+                  </button>
                 </div>
-              </div>
-            )}
-          </div>
-        </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
       )}
-    </div>
+    </Card>
   )
 }
 
@@ -320,16 +305,37 @@ function parseAnalysisIntoCards(summary: string): AnalysisCardData[] {
     if (categoryMatch) {
       const category = categoryMatch[1]
       
-      // Extract URLs from the section
+      // Extract URLs from the section and extract customer names from URLs
       const urlMatches = Array.from(section.matchAll(/\[View\]\((https?:\/\/[^\)]+)\)/g))
-      const urls = urlMatches.map((match, index) => ({
-        text: `View Conversation ${index + 1}`,
-        url: match[1]
-      }))
+      const urls = urlMatches.map((match, index) => {
+        const url = match[1]
+        
+        // Try to extract email from the URL query parameter
+        const emailMatch = url.match(/query=([^&]+)/)
+        let customerName = `Customer ${index + 1}`
+        
+        if (emailMatch) {
+          const email = decodeURIComponent(emailMatch[1].replace(/%.+/g, ''))
+          if (email.includes('@')) {
+            customerName = email
+          }
+        }
+        
+        // If no email in URL, try to extract from the section text around the URL
+        if (customerName.startsWith('Customer')) {
+          const beforeUrl = section.substring(0, section.indexOf(match[0]))
+          const emailInText = beforeUrl.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g)
+          if (emailInText && emailInText.length > 0) {
+            customerName = emailInText[emailInText.length - 1] // Use the last email found before this URL
+          }
+        }
+        
+        return {
+          text: customerName,
+          url: url
+        }
+      })
       
-      // Extract customer email if present
-      const emailMatch = section.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/)
-      const customerEmail = emailMatch ? emailMatch[1] : undefined
       
       // Clean content by removing category markers and URLs
       let content = section
@@ -339,22 +345,46 @@ function parseAnalysisIntoCards(summary: string): AnalysisCardData[] {
       
       // Generate a title from the first sentence or first meaningful part
       let title = content.split('.')[0].trim()
-      if (title.length > 80) {
-        title = title.substring(0, 80) + '...'
+      
+      // Clean up title - remove leading dashes, bullets, etc.
+      title = title.replace(/^[-•*\s]+/, '').trim()
+      
+      // If title is too short or empty, create a category-based title
+      if (!title || title.length < 10) {
+        const categoryTitles = {
+          'BUG': 'Bug Report',
+          'FEATURE_REQUEST': 'Feature Request', 
+          'CONFUSION': 'User Confusion',
+          'COMPLAINT': 'Customer Complaint',
+          'PROCESS_ISSUE': 'Process Issue',
+          'OTHER': 'Customer Feedback'
+        }
+        title = categoryTitles[category.toUpperCase() as keyof typeof categoryTitles] || 'Analysis Item'
       }
       
-      // Remove title from content to avoid duplication
-      if (content.startsWith(title)) {
-        content = content.substring(title.length).replace(/^[.\s]+/, '').trim()
+      // Only truncate if really necessary (keep more characters for better context)
+      if (title.length > 120) {
+        title = title.substring(0, 117) + '...'
       }
+      
+      // Remove title from content to avoid duplication (only if content actually starts with it)
+      const originalTitle = content.split('.')[0].trim().replace(/^[-•*\s]+/, '').trim()
+      if (content.toLowerCase().startsWith(originalTitle.toLowerCase()) && originalTitle.length > 5) {
+        content = content.substring(content.indexOf('.') + 1).replace(/^[.\s]+/, '').trim()
+      }
+      
+      // Clean up content - remove leading dashes, bullets, etc. from the remaining content
+      content = content.replace(/^[-•*\s]+/, '').trim()
+      
+      // Remove any additional leading dashes that might appear at line breaks
+      content = content.replace(/\n\s*[-•*]\s*/g, '\n').trim()
       
       if (title && content) {
         cards.push({
           title,
           category,
           content,
-          urls,
-          customerEmail
+          urls
         })
       }
     }
@@ -363,10 +393,34 @@ function parseAnalysisIntoCards(summary: string): AnalysisCardData[] {
   // If no categorized content found, create a single general card
   if (cards.length === 0 && summary.trim()) {
     const urlMatches = Array.from(summary.matchAll(/\[View\]\((https?:\/\/[^\)]+)\)/g))
-    const urls = urlMatches.map((match, index) => ({
-      text: `View Conversation ${index + 1}`,
-      url: match[1]
-    }))
+    const urls = urlMatches.map((match, index) => {
+      const url = match[1]
+      
+      // Try to extract email from the URL query parameter
+      const emailMatch = url.match(/query=([^&]+)/)
+      let customerName = `Customer ${index + 1}`
+      
+      if (emailMatch) {
+        const email = decodeURIComponent(emailMatch[1].replace(/%.+/g, ''))
+        if (email.includes('@')) {
+          customerName = email
+        }
+      }
+      
+      // If no email in URL, try to extract from the summary text around the URL
+      if (customerName.startsWith('Customer')) {
+        const beforeUrl = summary.substring(0, summary.indexOf(match[0]))
+        const emailInText = beforeUrl.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g)
+        if (emailInText && emailInText.length > 0) {
+          customerName = emailInText[emailInText.length - 1] // Use the last email found before this URL
+        }
+      }
+      
+      return {
+        text: customerName,
+        url: url
+      }
+    })
     
     const cleanContent = summary.replace(/\[View\]\(https?:\/\/[^\)]+\)/g, '').trim()
     const title = cleanContent.split('.')[0].trim()

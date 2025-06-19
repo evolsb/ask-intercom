@@ -85,13 +85,28 @@ export function QueryInput({ onSubmit }: QueryInputProps) {
               </label>
               <input
                 id="max-conversations"
-                type="number"
-                min="10"
-                max="200"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={maxConversations}
-                onChange={(e) => setMaxConversations(parseInt(e.target.value) || 50)}
-                className="w-16 px-2 py-1 border border-input rounded text-sm bg-background"
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[^0-9]/g, '')
+                  if (value === '') {
+                    setMaxConversations(50)
+                  } else {
+                    const num = parseInt(value)
+                    if (num >= 10 && num <= 200) {
+                      setMaxConversations(num)
+                    } else if (num < 10) {
+                      setMaxConversations(10)
+                    } else if (num > 200) {
+                      setMaxConversations(200)
+                    }
+                  }
+                }}
+                className="w-20 px-2 py-1 border border-input rounded text-sm bg-background text-center"
                 disabled={isLoading}
+                placeholder="50"
               />
             </div>
           </div>

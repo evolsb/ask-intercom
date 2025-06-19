@@ -17,35 +17,44 @@
 **Focus**: User accessibility, rapid feedback loops
 
 ### 🎯 Current Session Focus
-🔄 **Working on**: UI/UX improvements and testing  
-🎯 **Next**: Gather user feedback on improved interface, consider additional polish  
-✅ **Completed**: Major UI redesign with card-based layout and dark mode fixes  
+🔄 **Working on**: Major AI output restructuring with JSON schema  
+🎯 **Next**: Implement structured JSON output from AI → replace text parsing  
+✅ **Completed This Session**: 
+- Complete shadcn UI redesign with proper layout consistency
+- Fixed card implementation with proper titles and typography
+- Added copy-to-clipboard functionality with elegant split buttons
+- Unified layout - all results now in single main Card container
+- Removed duplicate insights section (was 1:1 with detail cards)
+- Fixed max conversations input (proper text input, no increment buttons)
+- Made entire card headers clickable for expand/collapse
+- Customer emails now used as button text instead of "View Conversation X"
+- Combined view/copy buttons with "|" divider design  
 
 ### 🧠 Mental Context
 - Phase 0 CLI prototype complete (30.2s response time)
-- Web app fully functional with professional, modern interface
-- Card-based analysis results with category-specific styling and icons
-- Dark mode contrast issues resolved for better readability
-- Clean conversation link display with external link buttons
-- Ready for user testing and feedback gathering
+- Web app UI redesign complete with clean shadcn implementation
+- **Critical Issue**: Current text parsing is fragile - 140+ lines of regex trying to extract structure
+- **Next Major Update**: Structured JSON output from AI to eliminate parsing issues
+- Cards show title duplication in body (caused by parsing problems)
+- AI will return JSON schema instead of markdown text for reliable data extraction
 
 ### 🚧 Priority Order
 
-1. **Critical Debugging Infrastructure** (solve immediate user issues)
-   - Structured logging with session IDs
-   - Environment validation and health checks
-   - Claude integration for instant debugging
-   - Enhanced error handling and display
+1. **IMMEDIATE: Structured AI Output** (eliminates current parsing issues)
+   - Implement JSON schema for AI responses
+   - Replace 140+ lines of fragile regex parsing  
+   - Direct data consumption in frontend
+   - Simple try/catch fallback to current approach (temporary)
    
-2. **MCP Integration** (de-risk performance)
-   - Implement MCP client
-   - Compare performance vs REST
-   - Keep REST as fallback
+2. **Enhanced Real-time Progress** (user experience)
+   - Granular progress updates via SSE
+   - "Fetched X/Y conversations", "Consulting AI..." feedback
+   - Real-time progress bar movement
 
-3. **Production Features** (iterate based on feedback)
-   - Advanced analytics and learning
-   - Export capabilities
-   - Federated learning preparation
+3. **Production Polish** (after core functionality solid)
+   - Advanced debugging infrastructure
+   - MCP integration for performance  
+   - Export capabilities and analytics
 
 ## 📋 What's Coming After This Focus
 

@@ -14,19 +14,21 @@
 - **Frontend**: ✅ Complete with recent UX improvements
 - **Deployment**: ✅ Complete (local development setup working)
 
-## ✅ Recently Completed
-- ✅ **Major UI Redesign**: Card-based analysis results with professional styling
-- ✅ **Dark Mode Fixes**: Improved text contrast and readability in dark mode
-- ✅ **Analysis Cards**: Category-specific icons, colors, and collapsible design
-- ✅ **Conversation Links**: Clean pill-shaped buttons with external link icons
-- ✅ **Sample Queries**: Updated to shorter timeframes for faster demo performance
-- ✅ **Visual Hierarchy**: Better spacing, gradients, and modern card layouts
-- ✅ **Category Parsing**: Smart extraction of bug reports, features, complaints, etc.
-- ✅ **Professional Styling**: Clean, modern interface with proper contrast ratios
+## ✅ Recently Completed (Major UI Overhaul)
+- ✅ **Complete shadcn UI Redesign**: Professional card-based interface with proper typography
+- ✅ **Unified Layout**: Single main Card container for consistency with app design
+- ✅ **Fixed Input Controls**: Max conversations field accepts typed numbers (no increment buttons)
+- ✅ **Clickable Card Headers**: Entire title bar expands/collapses with visual delineation  
+- ✅ **Customer-Named Buttons**: "john@example.com" instead of "View Conversation 1"
+- ✅ **Elegant Split Buttons**: Combined view/copy with "|" divider (no separate copy button)
+- ✅ **Removed Insights Duplication**: Eliminated redundant exec summary (was 1:1 with cards)
+- ✅ **Fixed Title Truncation**: Increased to 120 chars, better fallback titles
+- ✅ **Cleaned Content**: Removed leading dashes and parsing artifacts
 
-## 🔄 Currently Working On
-- **NEXT SESSION**: Complete shadcn-based UI redesign implementation
-- Execute the clean, elegant analysis results design plan
+## 🔄 Currently Working On  
+- **NEXT SESSION**: Implement structured JSON output from AI
+- Replace fragile text parsing with direct JSON schema consumption
+- Will eliminate title duplication and parsing errors
 
 ## 🎯 Next Session Plan: Beautiful Analysis Results
 
