@@ -1,13 +1,24 @@
 """OpenAI integration for conversation analysis."""
 
+import json
 import re
 from datetime import datetime, timedelta
-from typing import List
+from typing import List, Dict, Any
 
 from openai import AsyncOpenAI
 
 from .logger import get_logger
-from .models import AnalysisResult, Conversation, CostInfo, TimeFrame
+from .models import (
+    AnalysisResult, 
+    Conversation, 
+    CostInfo, 
+    TimeFrame,
+    StructuredAnalysisResult,
+    Insight,
+    InsightImpact,
+    CustomerInsight,
+    AnalysisSummary
+)
 
 logger = get_logger("ai_client")
 
@@ -176,6 +187,123 @@ class AIClient:
         return TimeFrame(
             start_date=start_time, end_date=end_time, description=description
         )
+
+    async def analyze_conversations_structured(
+        self, conversations: List[Conversation], query: str, timeframe: TimeFrame
+    ) -> StructuredAnalysisResult:
+        """Analyze conversations and generate structured JSON insights."""
+        # Build the analysis prompt
+        prompt = self._build_structured_analysis_prompt(conversations, query)
+        
+        # JSON schema for the response
+        json_schema = {
+            "type": "object",
+            "properties": {
+                "insights": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {"type": "string"},
+                            "category": {"type": "string", "enum": ["BUG", "FEATURE_REQUEST", "COMPLAINT", "PRAISE", "QUESTION", "OTHER"]},
+                            "title": {"type": "string"},
+                            "description": {"type": "string"},
+                            "impact": {
+                                "type": "object",
+                                "properties": {
+                                    "customer_count": {"type": "integer"},
+                                    "percentage": {"type": "number"},
+                                    "severity": {"type": "string", "enum": ["low", "medium", "high", "critical"]}
+                                },
+                                "required": ["customer_count", "percentage", "severity"]
+                            },
+                            "customers": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "email": {"type": "string"},
+                                        "conversation_id": {"type": "string"},
+                                        "intercom_url": {"type": "string"},
+                                        "issue_summary": {"type": "string"}
+                                    },
+                                    "required": ["email", "conversation_id", "intercom_url", "issue_summary"]
+                                }
+                            },
+                            "priority_score": {"type": "integer", "minimum": 0, "maximum": 100},
+                            "recommendation": {"type": "string"}
+                        },
+                        "required": ["id", "category", "title", "description", "impact", "customers", "priority_score", "recommendation"]
+                    }
+                },
+                "summary": {
+                    "type": "object",
+                    "properties": {
+                        "total_conversations": {"type": "integer"},
+                        "total_messages": {"type": "integer"},
+                        "analysis_timestamp": {"type": "string", "format": "date-time"}
+                    },
+                    "required": ["total_conversations", "total_messages", "analysis_timestamp"]
+                }
+            },
+            "required": ["insights", "summary"]
+        }
+        
+        # Call OpenAI for analysis with JSON response format
+        # Note: json_object response format requires gpt-4-turbo or newer
+        response = await self.client.chat.completions.create(
+            model="gpt-4-turbo-preview",  # Use turbo for JSON mode support
+            messages=[
+                {"role": "system", "content": self._get_structured_system_prompt()},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.1,  # Low temperature for consistent results
+            response_format={"type": "json_object"},
+            max_tokens=2000,  # More tokens for structured output
+        )
+        
+        # Parse JSON response
+        try:
+            response_json = json.loads(response.choices[0].message.content)
+            
+            # Convert to dataclass objects
+            insights = []
+            for insight_data in response_json["insights"]:
+                customers = [
+                    CustomerInsight(**customer)
+                    for customer in insight_data["customers"]
+                ]
+                
+                impact = InsightImpact(**insight_data["impact"])
+                
+                insight = Insight(
+                    id=insight_data["id"],
+                    category=insight_data["category"],
+                    title=insight_data["title"],
+                    description=insight_data["description"],
+                    impact=impact,
+                    customers=customers,
+                    priority_score=insight_data["priority_score"],
+                    recommendation=insight_data["recommendation"]
+                )
+                insights.append(insight)
+            
+            # Parse summary
+            summary_data = response_json["summary"]
+            summary = AnalysisSummary(
+                total_conversations=summary_data["total_conversations"],
+                total_messages=summary_data["total_messages"],
+                analysis_timestamp=datetime.fromisoformat(summary_data["analysis_timestamp"].replace("Z", "+00:00"))
+            )
+            
+            return StructuredAnalysisResult(
+                insights=insights,
+                summary=summary
+            )
+            
+        except (json.JSONDecodeError, KeyError, ValueError) as e:
+            logger.error(f"Failed to parse structured response: {e}")
+            raise ValueError(f"Failed to parse AI response: {e}")
 
     def _get_system_prompt(self) -> str:
         """Get the system prompt for conversation analysis."""
@@ -385,3 +513,99 @@ class AIClient:
         summary += f"  Messages: {len(conv.messages)} | Customer responses: {len(customer_messages)}\n"
 
         return summary
+
+    def _get_structured_system_prompt(self) -> str:
+        """Get the system prompt for structured JSON conversation analysis."""
+        return """
+        You are an expert customer support analyst. Analyze conversations and provide insights in JSON format.
+        
+        CRITICAL INSTRUCTIONS:
+        1. Return ONLY valid JSON - no markdown, no explanations
+        2. Categorize each insight appropriately (BUG, FEATURE_REQUEST, COMPLAINT, PRAISE, QUESTION, OTHER)
+        3. Calculate accurate customer counts and percentages
+        4. Assign priority scores (0-100) based on impact and severity
+        5. Include ALL affected customers with their details
+        6. Provide actionable recommendations
+        
+        Priority scoring guidelines:
+        - Critical bugs affecting many users: 90-100
+        - Major complaints or widespread issues: 70-89
+        - Feature requests with high demand: 50-69
+        - Minor issues or questions: 30-49
+        - Low impact items: 0-29
+        
+        Severity levels:
+        - critical: Business-critical issues, data loss, security
+        - high: Major functionality broken, blocking workflows
+        - medium: Significant inconvenience, workarounds available
+        - low: Minor issues, cosmetic problems
+        """
+
+    def _build_structured_analysis_prompt(
+        self, conversations: List[Conversation], query: str
+    ) -> str:
+        """Build the prompt for structured conversation analysis."""
+        # Get conversation data
+        conv_data = []
+        total_messages = 0
+        
+        for conv in conversations:
+            customer_messages = [m for m in conv.messages if m.author_type == "user"]
+            if not customer_messages:
+                continue
+                
+            total_messages += len(conv.messages)
+            
+            conv_info = {
+                "conversation_id": conv.id,
+                "customer_email": conv.customer_email or f"anonymous-{conv.id[:8]}",
+                "url": conv.get_url(self.app_id) if self.app_id else f"https://app.intercom.com/conversation/{conv.id}",
+                "messages": []
+            }
+            
+            # Include key messages
+            for msg in customer_messages[:3]:  # First 3 customer messages
+                conv_info["messages"].append({
+                    "type": "customer",
+                    "content": msg.body[:200] + ("..." if len(msg.body) > 200 else "")
+                })
+            
+            # Include last admin response if exists
+            admin_messages = [m for m in conv.messages if m.author_type == "admin"]
+            if admin_messages:
+                last_admin = admin_messages[-1]
+                conv_info["messages"].append({
+                    "type": "admin",
+                    "content": last_admin.body[:200] + ("..." if len(last_admin.body) > 200 else "")
+                })
+            
+            conv_data.append(conv_info)
+        
+        analysis_prompt = f"""
+        Query: {query}
+        
+        Analyze these {len(conv_data)} conversations and provide structured insights.
+        
+        Conversation data:
+        {json.dumps(conv_data, indent=2)}
+        
+        Return a JSON object with:
+        1. "insights": Array of insight objects, each with:
+           - id: unique identifier (e.g., "insight_1")
+           - category: BUG, FEATURE_REQUEST, COMPLAINT, PRAISE, QUESTION, or OTHER
+           - title: Brief, clear title
+           - description: Detailed explanation
+           - impact: object with customer_count, percentage, and severity
+           - customers: array of affected customers with email, conversation_id, intercom_url, and issue_summary
+           - priority_score: 0-100 based on impact
+           - recommendation: Actionable next step
+        
+        2. "summary": Object with:
+           - total_conversations: {len(conversations)}
+           - total_messages: {total_messages}
+           - analysis_timestamp: Current ISO timestamp
+        
+        Group similar issues together and sort by priority_score descending.
+        """
+        
+        return analysis_prompt

@@ -1,12 +1,35 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+export interface StructuredInsight {
+  id: string
+  category: string
+  title: string
+  description: string
+  impact: {
+    customer_count: number
+    percentage: number
+    severity: string
+  }
+  customers: Array<{
+    email: string
+    conversation_id: string
+    intercom_url: string
+    issue_summary: string
+  }>
+  priority_score: number
+  recommendation: string
+}
+
 export interface AnalysisResult {
-  insights: string[]
-  summary: string
+  insights: StructuredInsight[]
+  summary: {
+    total_conversations: number
+    total_messages: number
+    analysis_timestamp: string
+  }
   cost: number
   response_time_ms: number
-  conversation_count: number
   session_id: string
   request_id: string
 }
@@ -27,6 +50,12 @@ export interface SessionInfo {
   queries: number
 }
 
+export interface ProgressState {
+  stage: string
+  message: string
+  percent: number
+}
+
 interface AppState {
   // API Configuration
   intercomToken: string
@@ -40,6 +69,7 @@ interface AppState {
   currentQuery: string
   isLoading: boolean
   error: ErrorResponse | null
+  progress: ProgressState | null
   
   // Results
   lastResult: AnalysisResult | null
@@ -57,6 +87,7 @@ interface AppState {
   setLoading: (loading: boolean) => void
   setError: (error: ErrorResponse | null) => void
   setResult: (result: AnalysisResult) => void
+  setProgress: (progress: ProgressState | null) => void
   addToHistory: (query: string, result: AnalysisResult) => void
   clearHistory: () => void
   reset: () => void
@@ -75,6 +106,7 @@ export const useAppStore = create<AppState>()(
       currentQuery: '',
       isLoading: false,
       error: null,
+      progress: null,
       lastResult: null,
       queryHistory: [],
       
@@ -86,6 +118,7 @@ export const useAppStore = create<AppState>()(
       setLoading: (loading) => set({ isLoading: loading }),
       setError: (error) => set({ error }),
       setResult: (result) => set({ lastResult: result, error: null }),
+      setProgress: (progress) => set({ progress }),
       
       addToHistory: (query, result) => {
         const history = get().queryHistory
@@ -101,6 +134,7 @@ export const useAppStore = create<AppState>()(
         currentQuery: '',
         isLoading: false,
         error: null,
+        progress: null,
         lastResult: null,
       }),
       

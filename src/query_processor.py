@@ -9,7 +9,14 @@ from .ai_client import AIClient
 from .config import Config
 from .intercom_client import IntercomClient
 from .logger import MetricsLogger, get_logger, get_request_context
-from .models import AnalysisResult, ConversationFilters, SessionState, TimeFrame
+from .models import (
+    AnalysisResult,
+    ConversationFilters,
+    CostInfo,
+    SessionState,
+    StructuredAnalysisResult,
+    TimeFrame,
+)
 
 logger = get_logger("query_processor")
 metrics = MetricsLogger()
@@ -23,6 +30,7 @@ class QueryProcessor:
         self.intercom_client = IntercomClient(config.intercom_token)
         # AI client will be initialized with app_id during query processing
         self.ai_client = None
+        self._last_structured_result = None
 
     def _estimate_processing_time(self, conversation_count: int) -> float:
         """Estimate processing time based on conversation count."""
@@ -98,7 +106,7 @@ class QueryProcessor:
             return total_count, timeframe
 
     async def process_query(
-        self, query: str, session: SessionState = None
+        self, query: str, session: SessionState = None, progress_callback=None
     ) -> AnalysisResult:
         """Process a natural language query and return analysis."""
         start_time = time()
@@ -115,6 +123,10 @@ class QueryProcessor:
             },
         )
 
+        # Report initial progress
+        if progress_callback:
+            await progress_callback("starting", "Initializing query processor...", 0)
+
         # Check if this is a follow-up question
         if session and session.last_conversations and self._is_followup_question(query):
             logger.info(
@@ -129,6 +141,10 @@ class QueryProcessor:
         try:
             # Step 0: Initialize AI client with dynamically fetched app ID
             if not self.ai_client:
+                if progress_callback:
+                    await progress_callback(
+                        "initializing", "Fetching Intercom app configuration...", 5
+                    )
                 logger.info("Fetching Intercom app ID for conversation links...")
                 app_id = await self.intercom_client.get_app_id()
                 if app_id:
@@ -140,12 +156,22 @@ class QueryProcessor:
                 )
 
             # Step 1: Interpret timeframe from query
+            if progress_callback:
+                await progress_callback(
+                    "timeframe", "Interpreting query timeframe...", 10
+                )
             logger.info("Interpreting query timeframe...")
             timeframe_start = time()
             timeframe = await self.ai_client._interpret_timeframe(query)
             metrics.log_api_call("openai_timeframe", time() - timeframe_start, True)
 
             # Step 2: Fetch relevant conversations
+            if progress_callback:
+                await progress_callback(
+                    "fetching",
+                    f"Fetching conversations from {timeframe.description}...",
+                    20,
+                )
             logger.info(f"Fetching conversations from {timeframe.description}...")
             filters = ConversationFilters(
                 start_date=timeframe.start_date,
@@ -156,12 +182,20 @@ class QueryProcessor:
             # Start fetching conversations and analyzing in parallel
             intercom_start = time()
             fetch_task = asyncio.create_task(
-                self.intercom_client.fetch_conversations(filters)
+                self.intercom_client.fetch_conversations(filters, progress_callback)
             )
 
             # Wait for conversations to be fetched
             conversations = await fetch_task
             metrics.log_api_call("intercom", time() - intercom_start, True)
+
+            # Report fetch completion with conversation count
+            if progress_callback:
+                await progress_callback(
+                    "fetching",
+                    f"Found {len(conversations)} conversations to analyze",
+                    50,
+                )
 
             if not conversations:
                 # Return empty result if no conversations found
@@ -197,6 +231,12 @@ class QueryProcessor:
                 )
 
             # Step 3: Analyze conversations with AI
+            if progress_callback:
+                await progress_callback(
+                    "analyzing",
+                    f"Analyzing {len(conversations)} conversations with AI...",
+                    75,
+                )
             logger.info(f"Analyzing {len(conversations)} conversations...")
             print(
                 f"\r🧠 Analyzing {len(conversations)} conversations...",
@@ -204,12 +244,39 @@ class QueryProcessor:
                 flush=True,
             )
             analysis_start = time()
-            result = await self.ai_client.analyze_conversations(
-                conversations, query, timeframe
-            )
+
+            # Try structured analysis first, fall back to legacy if needed
+            try:
+                logger.info("Attempting structured JSON analysis...")
+                structured_result = (
+                    await self.ai_client.analyze_conversations_structured(
+                        conversations, query, timeframe
+                    )
+                )
+                # Convert structured result to legacy format for now
+                # TODO: Update frontend to use structured format directly
+                result = self._convert_structured_to_legacy(
+                    structured_result, timeframe
+                )
+                logger.info("Successfully used structured analysis")
+                # Store structured result for web API access
+                self._last_structured_result = structured_result
+            except Exception as e:
+                logger.warning(
+                    f"Structured analysis failed, falling back to legacy: {e}"
+                )
+                result = await self.ai_client.analyze_conversations(
+                    conversations, query, timeframe
+                )
+                self._last_structured_result = None
+
             metrics.log_api_call("openai_analysis", time() - analysis_start, True)
             analysis_duration = time() - analysis_start
             print(f"\r✅ Analysis complete ({analysis_duration:.1f}s)          ")
+
+            # Report analysis completion
+            if progress_callback:
+                await progress_callback("analyzing", "Analysis complete!", 100)
 
             # Log performance metrics
             duration = time() - start_time
@@ -371,3 +438,61 @@ class QueryProcessor:
         )
 
         return result
+
+    def _convert_structured_to_legacy(
+        self, structured: StructuredAnalysisResult, timeframe: TimeFrame
+    ) -> AnalysisResult:
+        """Convert structured analysis result to legacy format."""
+        # Build markdown summary from structured insights
+        summary_parts = []
+
+        for insight in structured.insights:
+            # Format: [CATEGORY] Title (X customers, Y%)
+            header = f"[{insight.category}] {insight.title} ({insight.impact.customer_count} customers, {insight.impact.percentage:.1f}% of total)\n"
+
+            # Description with customer examples
+            customer_examples = []
+            for customer in insight.customers[:3]:  # Show first 3 customers
+                customer_examples.append(
+                    f"{customer.email} [View]({customer.intercom_url})"
+                )
+
+            if len(insight.customers) > 3:
+                customer_examples.append(f"and {len(insight.customers) - 3} more...")
+
+            description = (
+                f"{insight.description} Examples: {', '.join(customer_examples)}.\n"
+            )
+
+            summary_parts.append(header + "\n" + description)
+
+        # Add final summary line
+        summary_parts.append(
+            f"\nAnalyzed {structured.summary.total_conversations} conversations "
+            f"containing {structured.summary.total_messages} total messages."
+        )
+
+        summary = "\n".join(summary_parts)
+
+        # Extract key insights (titles only)
+        key_insights = [insight.title for insight in structured.insights[:5]]
+
+        # Calculate cost info (approximate based on summary length)
+        tokens_used = len(summary) // 4  # Rough approximation
+        cost_info = CostInfo(
+            tokens_used=tokens_used,
+            estimated_cost_usd=tokens_used * 0.00003,  # GPT-4 pricing estimate
+            model_used="gpt-4",
+        )
+
+        return AnalysisResult(
+            summary=summary,
+            key_insights=key_insights,
+            conversation_count=structured.summary.total_conversations,
+            time_range=timeframe,
+            cost_info=cost_info,
+        )
+
+    def get_last_structured_result(self) -> StructuredAnalysisResult:
+        """Get the last structured analysis result if available."""
+        return self._last_structured_result

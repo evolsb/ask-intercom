@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react'
-import { useAppStore } from '../store/useAppStore'
+import { useState, useRef, useEffect } from 'react'
+import { useAppStore, type StructuredInsight } from '../store/useAppStore'
 import { formatCurrency, formatDuration } from '../lib/utils'
-import { ChevronDown, ChevronUp, ExternalLink, MessageCircle, AlertTriangle, Lightbulb, Bug, Settings, Copy, Check } from 'lucide-react'
+import { ChevronDown, ChevronUp, ExternalLink, MessageCircle, AlertTriangle, Lightbulb, Bug, Settings, Copy, Check, Star } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
 import { Badge } from './ui/badge'
-import { Button } from './ui/button'
 
 interface ProgressState {
   stage: string
@@ -12,25 +11,20 @@ interface ProgressState {
   percent: number
 }
 
-interface AnalysisCardData {
-  title: string
-  category: string
-  content: string
-  urls: Array<{ text: string; url: string }>
-}
-
-interface AnalysisCardProps extends AnalysisCardData {
+interface AnalysisCardProps {
+  insight: StructuredInsight
   defaultExpanded?: boolean
 }
 
 export function ResultsDisplay() {
-  const { lastResult, error, isLoading, currentQuery } = useAppStore()
-  const [progress, setProgress] = useState<ProgressState>({
+  const { lastResult, error, isLoading, currentQuery, progress } = useAppStore()
+  
+  // Default progress state if none provided
+  const displayProgress = progress || {
     stage: 'starting',
     message: 'Initializing...',
     percent: 0
-  })
-  const [showFullSummary, setShowFullSummary] = useState(false)
+  }
 
   if (isLoading) {
     return (
@@ -40,33 +34,33 @@ export function ResultsDisplay() {
           <div className="flex-1">
             <h3 className="font-medium">Analyzing conversations...</h3>
             <p className="text-sm text-muted-foreground mt-1">
-              {progress.message}
+              {displayProgress.message}
             </p>
           </div>
-          <span className="text-sm font-medium text-primary">{progress.percent}%</span>
+          <span className="text-sm font-medium text-primary">{displayProgress.percent}%</span>
         </div>
         
         <div className="mt-4">
           <div className="w-full bg-muted rounded-full h-2">
             <div 
               className="bg-primary h-2 rounded-full transition-all duration-300"
-              style={{ width: `${progress.percent}%` }}
+              style={{ width: `${displayProgress.percent}%` }}
             />
           </div>
         </div>
         
         <div className="mt-4 space-y-2">
-          <ProgressStep active={progress.stage === 'initializing' || progress.percent >= 5} 
-                       complete={progress.percent > 10}
+          <ProgressStep active={displayProgress.stage === 'initializing' || displayProgress.percent >= 5} 
+                       complete={displayProgress.percent > 10}
                        label="Initializing Intercom connection" />
-          <ProgressStep active={progress.stage === 'timeframe' || progress.percent >= 10} 
-                       complete={progress.percent > 50}
+          <ProgressStep active={displayProgress.stage === 'timeframe' || displayProgress.percent >= 10} 
+                       complete={displayProgress.percent > 50}
                        label="Interpreting query timeframe" />
-          <ProgressStep active={progress.stage === 'fetching' || progress.percent >= 50} 
-                       complete={progress.percent > 75}
+          <ProgressStep active={displayProgress.stage === 'fetching' || displayProgress.percent >= 50} 
+                       complete={displayProgress.percent > 75}
                        label="Fetching conversations" />
-          <ProgressStep active={progress.stage === 'analyzing' || progress.percent >= 75} 
-                       complete={progress.percent === 100}
+          <ProgressStep active={displayProgress.stage === 'analyzing' || displayProgress.percent >= 75} 
+                       complete={displayProgress.percent === 100}
                        label="Analyzing with AI" />
         </div>
         
@@ -142,17 +136,25 @@ export function ResultsDisplay() {
         <CardHeader>
           <CardTitle>Analysis Results</CardTitle>
           <CardDescription>
-            {lastResult.conversation_count} conversations • {formatDuration(lastResult.response_time_ms)} • {formatCurrency(lastResult.cost)}
+            {lastResult.summary.total_conversations} conversations • {lastResult.summary.total_messages} messages • {formatDuration(lastResult.response_time_ms)} • {formatCurrency(lastResult.cost)}
           </CardDescription>
         </CardHeader>
         
         <CardContent>
-          {lastResult.summary && (
+          {lastResult.insights.length > 0 ? (
             <div className="space-y-4">
-              {parseAnalysisIntoCards(lastResult.summary).map((card, index) => (
-                <AnalysisCard key={index} {...card} />
+              {lastResult.insights
+                .sort((a, b) => b.priority_score - a.priority_score)
+                .map((insight, index) => (
+                <AnalysisCard 
+                  key={insight.id} 
+                  insight={insight}
+                  defaultExpanded={index === 0}
+                />
               ))}
             </div>
+          ) : (
+            <p className="text-muted-foreground">No insights found in the analysis.</p>
           )}
         </CardContent>
       </Card>
@@ -177,9 +179,17 @@ function ProgressStep({ active, complete, label }: { active: boolean; complete: 
   )
 }
 
-function AnalysisCard({ title, category, content, urls, defaultExpanded = true }: AnalysisCardProps) {
+function AnalysisCard({ insight, defaultExpanded = true }: AnalysisCardProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
   const [copiedUrls, setCopiedUrls] = useState<Set<number>>(new Set())
+  const [contentHeight, setContentHeight] = useState<number>(0)
+  const contentRef = useRef<HTMLDivElement>(null)
+  
+  useEffect(() => {
+    if (contentRef.current) {
+      setContentHeight(contentRef.current.scrollHeight)
+    }
+  }, [insight])
   
   const copyToClipboard = async (url: string, index: number) => {
     try {
@@ -201,8 +211,10 @@ function AnalysisCard({ title, category, content, urls, defaultExpanded = true }
     switch (category.toUpperCase()) {
       case 'BUG': return <Bug className="h-4 w-4" />
       case 'FEATURE_REQUEST': return <Lightbulb className="h-4 w-4" />
-      case 'CONFUSION': return <MessageCircle className="h-4 w-4" />
+      case 'CONFUSION': 
+      case 'QUESTION': return <MessageCircle className="h-4 w-4" />
       case 'COMPLAINT': return <AlertTriangle className="h-4 w-4" />
+      case 'PRAISE': return <Star className="h-4 w-4" />
       case 'PROCESS_ISSUE': return <Settings className="h-4 w-4" />
       default: return <MessageCircle className="h-4 w-4" />
     }
@@ -212,15 +224,27 @@ function AnalysisCard({ title, category, content, urls, defaultExpanded = true }
     switch (category.toUpperCase()) {
       case 'BUG': return <Badge variant="destructive">Bug Report</Badge>
       case 'FEATURE_REQUEST': return <Badge variant="secondary">Feature Request</Badge>
-      case 'CONFUSION': return <Badge variant="outline">Confusion</Badge>
+      case 'CONFUSION':
+      case 'QUESTION': return <Badge variant="outline">Question</Badge>
       case 'COMPLAINT': return <Badge variant="destructive">Complaint</Badge>
+      case 'PRAISE': return <Badge variant="default">Praise</Badge>
       case 'PROCESS_ISSUE': return <Badge variant="secondary">Process Issue</Badge>
       default: return <Badge variant="outline">Other</Badge>
     }
   }
+
+  const getSeverityBadge = (severity: string) => {
+    switch (severity.toLowerCase()) {
+      case 'critical': return <Badge variant="destructive" className="text-xs">Critical</Badge>
+      case 'high': return <Badge variant="destructive" className="text-xs bg-orange-500">High</Badge>
+      case 'medium': return <Badge variant="secondary" className="text-xs">Medium</Badge>
+      case 'low': return <Badge variant="outline" className="text-xs">Low</Badge>
+      default: return <Badge variant="outline" className="text-xs">{severity}</Badge>
+    }
+  }
   
   return (
-    <Card className="border-border">
+    <Card className="border-border overflow-hidden">
       <CardHeader 
         className="pb-3 cursor-pointer hover:bg-muted/50 transition-colors border-b border-border/50"
         onClick={() => setIsExpanded(!isExpanded)}
@@ -228,17 +252,19 @@ function AnalysisCard({ title, category, content, urls, defaultExpanded = true }
         <div className="flex items-start justify-between">
           <div className="flex items-start space-x-3">
             <div className="mt-0.5">
-              {getCategoryIcon(category)}
+              {getCategoryIcon(insight.category)}
             </div>
             <div className="space-y-1">
-              <CardTitle className="text-base font-medium leading-none">{title}</CardTitle>
-              <div className="flex items-center space-x-2">
-                {getCategoryBadge(category)}
-                {urls.length > 0 && (
-                  <CardDescription className="text-xs">
-                    {urls.length} conversation{urls.length > 1 ? 's' : ''}
-                  </CardDescription>
-                )}
+              <CardTitle className="text-base font-medium leading-none">{insight.title}</CardTitle>
+              <div className="flex items-center space-x-2 flex-wrap gap-1">
+                {getCategoryBadge(insight.category)}
+                {getSeverityBadge(insight.impact.severity)}
+                <CardDescription className="text-xs">
+                  {insight.impact.customer_count} customer{insight.impact.customer_count > 1 ? 's' : ''} • {insight.impact.percentage.toFixed(1)}%
+                </CardDescription>
+                <CardDescription className="text-xs font-medium">
+                  Priority: {insight.priority_score}/100
+                </CardDescription>
               </div>
             </div>
           </div>
@@ -251,213 +277,62 @@ function AnalysisCard({ title, category, content, urls, defaultExpanded = true }
         </div>
       </CardHeader>
       
-      {isExpanded && (
-        <CardContent className="pt-0">
-          <p className="text-sm leading-relaxed text-muted-foreground mb-4">{content}</p>
+      <div 
+        className="transition-all duration-300 ease-in-out overflow-hidden"
+        style={{
+          maxHeight: isExpanded ? `${contentHeight}px` : '0px',
+          opacity: isExpanded ? 1 : 0
+        }}
+      >
+        <CardContent ref={contentRef} className="pt-0 space-y-4 pb-6">
+          <div>
+            <p className="text-sm leading-relaxed text-muted-foreground mb-3">{insight.description}</p>
+            {insight.recommendation && (
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <p className="text-sm text-blue-900 dark:text-blue-100">
+                  <strong>Recommendation:</strong> {insight.recommendation}
+                </p>
+              </div>
+            )}
+          </div>
           
-          {urls.length > 0 && (
-            <div className="flex gap-2 flex-wrap">
-              {urls.map((link, index) => (
-                <div key={index} className="inline-flex rounded-md border border-input bg-background overflow-hidden">
-                  <a
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center px-3 py-1.5 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
-                  >
-                    <ExternalLink className="h-3 w-3 mr-1.5" />
-                    {link.text}
-                  </a>
-                  <div className="w-px bg-border"></div>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault()
-                      copyToClipboard(link.url, index)
-                    }}
-                    className="flex items-center justify-center px-2 py-1.5 hover:bg-accent hover:text-accent-foreground transition-colors"
-                    title="Copy URL"
-                  >
-                    {copiedUrls.has(index) ? 
-                      <Check className="h-3 w-3 text-green-600" /> :
-                      <Copy className="h-3 w-3" />
-                    }
-                  </button>
-                </div>
-              ))}
+          {insight.customers.length > 0 && (
+            <div>
+              <h4 className="text-sm font-medium mb-2">Affected Customers:</h4>
+              <div className="flex gap-2 flex-wrap">
+                {insight.customers.map((customer, index) => (
+                  <div key={index} className="inline-flex rounded-md border border-input bg-background overflow-hidden">
+                    <a
+                      href={customer.intercom_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center px-3 py-1.5 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
+                      title={customer.issue_summary}
+                    >
+                      <ExternalLink className="h-3 w-3 mr-1.5" />
+                      {customer.email}
+                    </a>
+                    <div className="w-px bg-border"></div>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault()
+                        copyToClipboard(customer.intercom_url, index)
+                      }}
+                      className="flex items-center justify-center px-2 py-1.5 hover:bg-accent hover:text-accent-foreground transition-colors"
+                      title="Copy URL"
+                    >
+                      {copiedUrls.has(index) ? 
+                        <Check className="h-3 w-3 text-green-600" /> :
+                        <Copy className="h-3 w-3" />
+                      }
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </CardContent>
-      )}
+      </div>
     </Card>
   )
-}
-
-function parseAnalysisIntoCards(summary: string): AnalysisCardData[] {
-  const cards: AnalysisCardData[] = []
-  
-  // Split by double newlines to get potential sections
-  const sections = summary.split('\n\n').filter(s => s.trim())
-  
-  for (const section of sections) {
-    // Look for category markers like [BUG], [FEATURE_REQUEST], etc.
-    const categoryMatch = section.match(/\[(BUG|FEATURE_REQUEST|CONFUSION|COMPLAINT|PROCESS_ISSUE|OTHER)\]/)
-    
-    if (categoryMatch) {
-      const category = categoryMatch[1]
-      
-      // Extract URLs from the section and extract customer names from URLs
-      const urlMatches = Array.from(section.matchAll(/\[View\]\((https?:\/\/[^\)]+)\)/g))
-      const urls = urlMatches.map((match, index) => {
-        const url = match[1]
-        
-        // Try to extract email from the URL query parameter
-        const emailMatch = url.match(/query=([^&]+)/)
-        let customerName = `Customer ${index + 1}`
-        
-        if (emailMatch) {
-          const email = decodeURIComponent(emailMatch[1].replace(/%.+/g, ''))
-          if (email.includes('@')) {
-            customerName = email
-          }
-        }
-        
-        // If no email in URL, try to extract from the section text around the URL
-        if (customerName.startsWith('Customer')) {
-          const beforeUrl = section.substring(0, section.indexOf(match[0]))
-          const emailInText = beforeUrl.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g)
-          if (emailInText && emailInText.length > 0) {
-            customerName = emailInText[emailInText.length - 1] // Use the last email found before this URL
-          }
-        }
-        
-        return {
-          text: customerName,
-          url: url
-        }
-      })
-      
-      
-      // Clean content by removing category markers and URLs
-      let content = section
-        .replace(/\[(BUG|FEATURE_REQUEST|CONFUSION|COMPLAINT|PROCESS_ISSUE|OTHER)\]/g, '')
-        .replace(/\[View\]\(https?:\/\/[^\)]+\)/g, '')
-        .trim()
-      
-      // Generate a title from the first sentence or first meaningful part
-      let title = content.split('.')[0].trim()
-      
-      // Clean up title - remove leading dashes, bullets, etc.
-      title = title.replace(/^[-•*\s]+/, '').trim()
-      
-      // If title is too short or empty, create a category-based title
-      if (!title || title.length < 10) {
-        const categoryTitles = {
-          'BUG': 'Bug Report',
-          'FEATURE_REQUEST': 'Feature Request', 
-          'CONFUSION': 'User Confusion',
-          'COMPLAINT': 'Customer Complaint',
-          'PROCESS_ISSUE': 'Process Issue',
-          'OTHER': 'Customer Feedback'
-        }
-        title = categoryTitles[category.toUpperCase() as keyof typeof categoryTitles] || 'Analysis Item'
-      }
-      
-      // Only truncate if really necessary (keep more characters for better context)
-      if (title.length > 120) {
-        title = title.substring(0, 117) + '...'
-      }
-      
-      // Remove title from content to avoid duplication (only if content actually starts with it)
-      const originalTitle = content.split('.')[0].trim().replace(/^[-•*\s]+/, '').trim()
-      if (content.toLowerCase().startsWith(originalTitle.toLowerCase()) && originalTitle.length > 5) {
-        content = content.substring(content.indexOf('.') + 1).replace(/^[.\s]+/, '').trim()
-      }
-      
-      // Clean up content - remove leading dashes, bullets, etc. from the remaining content
-      content = content.replace(/^[-•*\s]+/, '').trim()
-      
-      // Remove any additional leading dashes that might appear at line breaks
-      content = content.replace(/\n\s*[-•*]\s*/g, '\n').trim()
-      
-      if (title && content) {
-        cards.push({
-          title,
-          category,
-          content,
-          urls
-        })
-      }
-    }
-  }
-  
-  // If no categorized content found, create a single general card
-  if (cards.length === 0 && summary.trim()) {
-    const urlMatches = Array.from(summary.matchAll(/\[View\]\((https?:\/\/[^\)]+)\)/g))
-    const urls = urlMatches.map((match, index) => {
-      const url = match[1]
-      
-      // Try to extract email from the URL query parameter
-      const emailMatch = url.match(/query=([^&]+)/)
-      let customerName = `Customer ${index + 1}`
-      
-      if (emailMatch) {
-        const email = decodeURIComponent(emailMatch[1].replace(/%.+/g, ''))
-        if (email.includes('@')) {
-          customerName = email
-        }
-      }
-      
-      // If no email in URL, try to extract from the summary text around the URL
-      if (customerName.startsWith('Customer')) {
-        const beforeUrl = summary.substring(0, summary.indexOf(match[0]))
-        const emailInText = beforeUrl.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g)
-        if (emailInText && emailInText.length > 0) {
-          customerName = emailInText[emailInText.length - 1] // Use the last email found before this URL
-        }
-      }
-      
-      return {
-        text: customerName,
-        url: url
-      }
-    })
-    
-    const cleanContent = summary.replace(/\[View\]\(https?:\/\/[^\)]+\)/g, '').trim()
-    const title = cleanContent.split('.')[0].trim()
-    const content = cleanContent.substring(title.length).replace(/^[.\s]+/, '').trim()
-    
-    cards.push({
-      title: title || 'Analysis Summary',
-      category: 'OTHER',
-      content: content || cleanContent,
-      urls
-    })
-  }
-  
-  return cards
-}
-
-function formatSummaryWithLinks(summary: string): string {
-  // Convert markdown links to HTML links with styling
-  let formatted = summary
-    .replace(/\[View\]\((https?:\/\/[^\)]+)\)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline ml-1">[View]</a>')
-    .replace(/\n/g, '<br />')
-  
-  // Format categories with colors
-  formatted = formatted.replace(/\[(BUG|FEATURE_REQUEST|CONFUSION|COMPLAINT|PROCESS_ISSUE|OTHER)\]/g, (match, category) => {
-    const colors: Record<string, string> = {
-      BUG: 'text-red-600 font-semibold',
-      FEATURE_REQUEST: 'text-purple-600 font-semibold',
-      CONFUSION: 'text-yellow-600 font-semibold',
-      COMPLAINT: 'text-orange-600 font-semibold',
-      PROCESS_ISSUE: 'text-blue-600 font-semibold',
-      OTHER: 'text-gray-600 font-semibold'
-    }
-    return `<span class="${colors[category] || 'font-semibold'}">[${category}]</span>`
-  })
-  
-  // Format email addresses
-  formatted = formatted.replace(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g, '<span class="text-blue-600">$1</span>')
-  
-  return formatted
 }

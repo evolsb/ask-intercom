@@ -100,30 +100,32 @@ class IntercomClient:
         return None
 
     async def fetch_conversations(
-        self, filters: ConversationFilters
+        self, filters: ConversationFilters, progress_callback=None
     ) -> List[Conversation]:
         """Fetch conversations based on filters."""
         try:
             # TODO: Implement MCP client when available
             logger.info("MCP not implemented yet, using REST API")
-            return await self._fetch_via_rest(filters)
+            return await self._fetch_via_rest(filters, progress_callback)
         except Exception as e:
             logger.error(f"Failed to fetch conversations: {e}", exc_info=True)
             raise
 
-    async def _fetch_via_rest(self, filters: ConversationFilters) -> List[Conversation]:
+    async def _fetch_via_rest(
+        self, filters: ConversationFilters, progress_callback=None
+    ) -> List[Conversation]:
         """Fetch conversations via REST API."""
         try:
             # Try Search API first (much faster)
-            return await self._fetch_via_search_api(filters)
+            return await self._fetch_via_search_api(filters, progress_callback)
         except Exception as e:
             logger.warning(
                 f"Search API failed ({e}), falling back to list + details method"
             )
-            return await self._fetch_via_list_and_details(filters)
+            return await self._fetch_via_list_and_details(filters, progress_callback)
 
     async def _fetch_via_search_api(
-        self, filters: ConversationFilters
+        self, filters: ConversationFilters, progress_callback=None
     ) -> List[Conversation]:
         """Fetch conversations using the Search API (much faster)."""
         conversations = []
@@ -169,6 +171,7 @@ class IntercomClient:
             page = 1
             per_page = 150  # Search API max is 150 - use full page size for efficiency
             max_conversations = 1000  # Safety limit to prevent infinite loops
+            estimated_total = None  # Will be set after first API call
 
             while len(conversations) < max_conversations:
                 # Build request body with pagination and sorting
@@ -194,6 +197,16 @@ class IntercomClient:
                 data = response.json()
                 page_conversations = data.get("conversations", [])
 
+                # Set estimated total from first response
+                if estimated_total is None:
+                    estimated_total = data.get("total_count", 0)
+                    if progress_callback and estimated_total > 0:
+                        await progress_callback(
+                            "fetching",
+                            f"Found {estimated_total} conversations to fetch...",
+                            25,
+                        )
+
                 # No more results
                 if not page_conversations:
                     logger.debug(
@@ -214,6 +227,17 @@ class IntercomClient:
                 logger.info(
                     f"Page {page}: Parsed {page_count} conversations (total: {len(conversations)})"
                 )
+
+                # Report progress if callback provided
+                if progress_callback and estimated_total and estimated_total > 0:
+                    # Calculate progress: 25% (initial) + 25% (fetching progress)
+                    fetch_progress = min(len(conversations) / estimated_total, 1.0)
+                    total_percent = 25 + int(fetch_progress * 25)  # 25% to 50%
+                    await progress_callback(
+                        "fetching",
+                        f"Fetched {len(conversations)}/{estimated_total} conversations...",
+                        total_percent,
+                    )
 
                 # Check if this was the last page
                 total_count = data.get("total_count", len(page_conversations))
@@ -258,7 +282,7 @@ class IntercomClient:
         return conversations
 
     async def _fetch_via_list_and_details(
-        self, filters: ConversationFilters
+        self, filters: ConversationFilters, progress_callback=None
     ) -> List[Conversation]:
         """Fetch conversations via old method (list + individual details)."""
         conversations = []

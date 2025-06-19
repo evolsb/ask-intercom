@@ -143,6 +143,45 @@ class AnalysisResponse(BaseModel):
     request_id: str
 
 
+class StructuredInsightCustomer(BaseModel):
+    email: str
+    conversation_id: str
+    intercom_url: str
+    issue_summary: str
+
+
+class StructuredInsightImpact(BaseModel):
+    customer_count: int
+    percentage: float
+    severity: str
+
+
+class StructuredInsight(BaseModel):
+    id: str
+    category: str
+    title: str
+    description: str
+    impact: StructuredInsightImpact
+    customers: list[StructuredInsightCustomer]
+    priority_score: int
+    recommendation: str
+
+
+class StructuredAnalysisSummary(BaseModel):
+    total_conversations: int
+    total_messages: int
+    analysis_timestamp: str
+
+
+class StructuredAnalysisResponse(BaseModel):
+    insights: list[StructuredInsight]
+    summary: StructuredAnalysisSummary
+    cost: float
+    response_time_ms: int
+    session_id: str
+    request_id: str
+
+
 class ErrorResponse(BaseModel):
     error_category: str
     message: str
@@ -387,29 +426,36 @@ async def generate_sse_events(
         # Start processing
         start_time = time()
 
-        # Run the actual processing
-        # TODO: Modify QueryProcessor to accept a progress callback
-        result = await processor.process_query(query)
+        # We need to create a queue to capture progress events from the callback
+        progress_queue = []
 
-        # Progress: Fetching conversations
+        # Create a progress callback that stores events
+        async def progress_callback(stage: str, message: str, percent: int):
+            progress_queue.append(
+                {"stage": stage, "message": message, "percent": percent}
+            )
+
+        # We can't easily stream during processing, so we'll simulate progress
+        # and then get the detailed progress from the QueryProcessor
+
+        # Initial progress events
         yield send_event(
             "progress",
             {
-                "stage": "fetching",
-                "message": f"Found {result.conversation_count} conversations to analyze...",
-                "percent": 50,
+                "stage": "starting",
+                "message": "Initializing query processor...",
+                "percent": 0,
             },
         )
 
-        # Progress: Analyzing
-        yield send_event(
-            "progress",
-            {
-                "stage": "analyzing",
-                "message": "Analyzing conversations with AI...",
-                "percent": 75,
-            },
+        # Run the actual processing with progress callback
+        result = await processor.process_query(
+            query, progress_callback=progress_callback
         )
+
+        # Send any captured progress events
+        for progress_event in progress_queue:
+            yield send_event("progress", progress_event)
 
         # Progress: Complete
         duration_ms = int((time() - start_time) * 1000)
@@ -438,19 +484,67 @@ async def generate_sse_events(
             duration_ms,
         )
 
-        # Send final result
-        yield send_event(
-            "complete",
-            {
-                "insights": result.key_insights,
-                "summary": result.summary,  # Include full summary with URLs
-                "cost": result.cost_info.estimated_cost_usd,
-                "response_time_ms": duration_ms,
-                "conversation_count": result.conversation_count,
-                "session_id": session_id,
-                "request_id": request_id,
-            },
-        )
+        # Get structured result if available
+        structured_result = processor.get_last_structured_result()
+
+        if structured_result:
+            # Send structured result
+            structured_insights = []
+            for insight in structured_result.insights:
+                structured_insights.append(
+                    {
+                        "id": insight.id,
+                        "category": insight.category,
+                        "title": insight.title,
+                        "description": insight.description,
+                        "impact": {
+                            "customer_count": insight.impact.customer_count,
+                            "percentage": insight.impact.percentage,
+                            "severity": insight.impact.severity,
+                        },
+                        "customers": [
+                            {
+                                "email": customer.email,
+                                "conversation_id": customer.conversation_id,
+                                "intercom_url": customer.intercom_url,
+                                "issue_summary": customer.issue_summary,
+                            }
+                            for customer in insight.customers
+                        ],
+                        "priority_score": insight.priority_score,
+                        "recommendation": insight.recommendation,
+                    }
+                )
+
+            yield send_event(
+                "complete",
+                {
+                    "insights": structured_insights,
+                    "summary": {
+                        "total_conversations": structured_result.summary.total_conversations,
+                        "total_messages": structured_result.summary.total_messages,
+                        "analysis_timestamp": structured_result.summary.analysis_timestamp.isoformat(),
+                    },
+                    "cost": result.cost_info.estimated_cost_usd,
+                    "response_time_ms": duration_ms,
+                    "session_id": session_id,
+                    "request_id": request_id,
+                },
+            )
+        else:
+            # Fallback to legacy format
+            yield send_event(
+                "complete",
+                {
+                    "insights": result.key_insights,
+                    "summary": result.summary,
+                    "cost": result.cost_info.estimated_cost_usd,
+                    "response_time_ms": duration_ms,
+                    "conversation_count": result.conversation_count,
+                    "session_id": session_id,
+                    "request_id": request_id,
+                },
+            )
 
     except Exception as e:
         session_logger.error(
@@ -719,6 +813,254 @@ async def analyze_conversations(request: AnalysisRequest, http_request: Request)
         )
 
         # Return generic error response
+        error_response = ErrorResponse(
+            error_category="processing_error",
+            message="An unexpected error occurred",
+            user_action="Please try again or contact support if the problem persists",
+            retryable=True,
+            session_id=session_id,
+            request_id=request_id,
+            timestamp=datetime.utcnow().isoformat() + "Z",
+        )
+
+        raise HTTPException(status_code=500, detail=error_response.dict()) from e
+
+
+@app.post("/api/analyze/structured", response_model=StructuredAnalysisResponse)
+async def analyze_conversations_structured(
+    request: AnalysisRequest, http_request: Request
+):
+    """
+    Analyze Intercom conversations and return structured insights.
+
+    This endpoint returns the new structured JSON format instead of legacy text parsing.
+    """
+    session_id = http_request.headers.get("X-Session-ID", "unknown")
+    request_id = http_request.headers.get("X-Request-ID", "unknown")
+
+    try:
+        # Log query start
+        session_logger.log_query_start(
+            request.query, {"max_conversations": request.max_conversations}
+        )
+
+        # Get tokens from request or environment
+        intercom_token = request.intercom_token or os.getenv("INTERCOM_ACCESS_TOKEN")
+        openai_key = request.openai_key or os.getenv("OPENAI_API_KEY")
+
+        # Validate tokens (same validation as regular endpoint)
+        if not intercom_token:
+            raise APIError(
+                category="environment_error",
+                message="Intercom access token is missing",
+                user_action="Please provide your Intercom access token in the API Key Setup section",
+                retryable=True,
+                status_code=400,
+            )
+
+        if not openai_key:
+            raise APIError(
+                category="environment_error",
+                message="OpenAI API key is missing",
+                user_action="Please provide your OpenAI API key in the API Key Setup section",
+                retryable=True,
+                status_code=400,
+            )
+
+        if not openai_key.startswith("sk-"):
+            raise APIError(
+                category="validation_error",
+                message="OpenAI API key has invalid format",
+                user_action="OpenAI keys should start with 'sk-'. Please check your key.",
+                retryable=True,
+                status_code=400,
+            )
+
+        # Create config
+        try:
+            config = Config(
+                intercom_token=intercom_token,
+                openai_key=openai_key,
+                max_conversations=min(request.max_conversations, 200),
+            )
+        except Exception as e:
+            raise APIError(
+                category="environment_error",
+                message=f"Configuration error: {str(e)}",
+                user_action="Please check your API keys and try again",
+                retryable=True,
+                status_code=400,
+            ) from e
+
+        # Process the query
+        start_time = time()
+        try:
+            processor = QueryProcessor(config)
+            legacy_result = await processor.process_query(request.query)
+            structured_result = processor.get_last_structured_result()
+
+            if not structured_result:
+                raise APIError(
+                    category="processing_error",
+                    message="Structured analysis not available",
+                    user_action="The analysis fell back to legacy mode. Try again or use the regular analyze endpoint.",
+                    retryable=True,
+                    status_code=500,
+                )
+
+        except APIError:
+            raise  # Re-raise API errors
+        except Exception as e:
+            # Handle processing errors the same way as regular endpoint
+            session_logger.log_api_error(
+                "query_processor",
+                "processing_error",
+                str(e),
+                {
+                    "query": request.query,
+                    "config": {"max_conversations": request.max_conversations},
+                },
+            )
+
+            error_str = str(e).lower()
+            if "unauthorized" in error_str or "401" in error_str:
+                raise APIError(
+                    category="connectivity_error",
+                    message="API authentication failed",
+                    user_action="Please check that your API keys are valid and have the correct permissions",
+                    retryable=True,
+                    status_code=401,
+                ) from e
+            elif "rate limit" in error_str or "429" in error_str:
+                raise APIError(
+                    category="rate_limit_error",
+                    message="API rate limit exceeded",
+                    user_action="Please wait a few minutes and try again",
+                    retryable=True,
+                    status_code=429,
+                ) from e
+            elif "connection" in error_str or "timeout" in error_str:
+                raise APIError(
+                    category="connectivity_error",
+                    message="Unable to connect to external services",
+                    user_action="Please check your internet connection and try again",
+                    retryable=True,
+                    status_code=503,
+                ) from e
+            else:
+                raise APIError(
+                    category="processing_error",
+                    message=f"Query processing failed: {str(e)}",
+                    user_action="Please try again with a different query or contact support",
+                    retryable=False,
+                    status_code=500,
+                ) from e
+
+        end_time = time()
+        duration_ms = int((end_time - start_time) * 1000)
+
+        # Log successful completion
+        session_logger.log_query_complete(
+            request.query,
+            {
+                "conversation_count": structured_result.summary.total_conversations,
+                "insights": [insight.title for insight in structured_result.insights],
+                "cost": legacy_result.cost_info.estimated_cost_usd,
+                "tokens_used": legacy_result.cost_info.tokens_used,
+            },
+            duration_ms,
+        )
+
+        # Update session
+        session_manager.log_session_query(
+            session_id,
+            request.query,
+            {
+                "insights": [insight.title for insight in structured_result.insights],
+                "cost": legacy_result.cost_info.estimated_cost_usd,
+                "conversation_count": structured_result.summary.total_conversations,
+            },
+            duration_ms,
+        )
+
+        # Convert structured result to API response
+        structured_insights = []
+        for insight in structured_result.insights:
+            structured_insights.append(
+                StructuredInsight(
+                    id=insight.id,
+                    category=insight.category,
+                    title=insight.title,
+                    description=insight.description,
+                    impact=StructuredInsightImpact(
+                        customer_count=insight.impact.customer_count,
+                        percentage=insight.impact.percentage,
+                        severity=insight.impact.severity,
+                    ),
+                    customers=[
+                        StructuredInsightCustomer(
+                            email=customer.email,
+                            conversation_id=customer.conversation_id,
+                            intercom_url=customer.intercom_url,
+                            issue_summary=customer.issue_summary,
+                        )
+                        for customer in insight.customers
+                    ],
+                    priority_score=insight.priority_score,
+                    recommendation=insight.recommendation,
+                )
+            )
+
+        return StructuredAnalysisResponse(
+            insights=structured_insights,
+            summary=StructuredAnalysisSummary(
+                total_conversations=structured_result.summary.total_conversations,
+                total_messages=structured_result.summary.total_messages,
+                analysis_timestamp=structured_result.summary.analysis_timestamp.isoformat(),
+            ),
+            cost=legacy_result.cost_info.estimated_cost_usd,
+            response_time_ms=duration_ms,
+            session_id=session_id,
+            request_id=request_id,
+        )
+
+    except APIError as e:
+        # Same error handling as regular endpoint
+        session_logger.error(
+            f"API error: {e.category} - {e.detail}",
+            event="api_error",
+            data={
+                "category": e.category,
+                "message": e.detail,
+                "user_action": e.user_action,
+                "retryable": e.retryable,
+                "query": request.query,
+            },
+        )
+
+        error_response = ErrorResponse(
+            error_category=e.category,
+            message=e.detail,
+            user_action=e.user_action,
+            retryable=e.retryable,
+            session_id=session_id,
+            request_id=request_id,
+            timestamp=datetime.utcnow().isoformat() + "Z",
+        )
+
+        raise HTTPException(
+            status_code=e.status_code, detail=error_response.dict()
+        ) from None
+
+    except Exception as e:
+        # Same unexpected error handling
+        session_logger.error(
+            f"Unexpected error in structured analyze endpoint: {str(e)}",
+            event="unexpected_error",
+            data={"query": request.query},
+            exc_info=True,
+        )
+
         error_response = ErrorResponse(
             error_category="processing_error",
             message="An unexpected error occurred",

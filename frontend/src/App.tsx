@@ -12,7 +12,8 @@ function App() {
     setError, 
     setResult, 
     addToHistory,
-    maxConversations 
+    maxConversations,
+    setProgress
   } = useAppStore()
 
   const handleQuery = async (query: string) => {
@@ -31,12 +32,14 @@ function App() {
 
     setLoading(true)
     setError(null)
+    setProgress(null)
     
     // Get session ID for request tracking
     const sessionId = useAppStore.getState().getSessionId()
 
     try {
-      const response = await fetch('/api/analyze', {
+      // Use Server-Sent Events for real-time progress with structured results
+      const response = await fetch('/api/analyze/stream', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -71,9 +74,90 @@ function App() {
         return
       }
 
-      const result = await response.json()
-      setResult(result)
-      addToHistory(query, result)
+      // Handle Server-Sent Events
+      const reader = response.body?.getReader()
+      const decoder = new TextDecoder()
+
+      if (!reader) {
+        throw new Error('Failed to get response reader')
+      }
+
+      while (true) {
+        const { done, value } = await reader.read()
+        
+        if (done) break
+
+        const chunk = decoder.decode(value)
+        const lines = chunk.split('\n')
+
+        for (const line of lines) {
+          if (line.startsWith('event: ')) {
+            const eventType = line.substring(7)
+            continue
+          }
+          
+          if (line.startsWith('data: ')) {
+            const data = JSON.parse(line.substring(6))
+            
+            if (data.stage && data.message && typeof data.percent === 'number') {
+              // Update progress in store
+              setProgress({
+                stage: data.stage,
+                message: data.message,
+                percent: data.percent
+              })
+            } else if (data.insights && data.summary) {
+              // Final result - check if it's structured or legacy format
+              if (Array.isArray(data.insights) && data.insights.length > 0 && data.insights[0].id) {
+                // Structured format - use directly
+                const structuredResult = {
+                  insights: data.insights,
+                  summary: data.summary,
+                  cost: data.cost,
+                  response_time_ms: data.response_time_ms,
+                  session_id: data.session_id,
+                  request_id: data.request_id
+                }
+                setResult(structuredResult)
+                addToHistory(query, structuredResult)
+              } else {
+                // Legacy format - convert to structured (fallback)
+                const structuredResult = {
+                  insights: data.insights.map((insight: string, index: number) => ({
+                    id: `insight_${index}`,
+                    category: 'GENERAL',
+                    title: insight,
+                    description: insight,
+                    impact: {
+                      customer_count: 1,
+                      percentage: 0,
+                      severity: 'medium'
+                    },
+                    customers: [],
+                    priority_score: 50,
+                    recommendation: ''
+                  })),
+                  summary: {
+                    total_conversations: data.conversation_count || 0,
+                    total_messages: (data.conversation_count || 0) * 5,
+                    analysis_timestamp: new Date().toISOString()
+                  },
+                  cost: data.cost,
+                  response_time_ms: data.response_time_ms,
+                  session_id: data.session_id,
+                  request_id: data.request_id
+                }
+                setResult(structuredResult)
+                addToHistory(query, structuredResult)
+              }
+            } else if (data.error_category) {
+              // Error event
+              setError(data)
+              return
+            }
+          }
+        }
+      }
       
       // Update session query count
       const currentSession = useAppStore.getState().sessionInfo
