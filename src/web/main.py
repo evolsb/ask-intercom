@@ -4,6 +4,7 @@ FastAPI web application wrapping the Ask-Intercom CLI functionality.
 import asyncio
 import json
 import os
+import re
 from datetime import datetime
 from pathlib import Path
 from time import time
@@ -14,7 +15,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 # Import our existing CLI components
 from ..ai_client import AIClient
@@ -37,6 +38,60 @@ app = FastAPI(
     description="Transform Intercom conversations into actionable insights",
     version="0.1.0",
 )
+
+
+# Global exception handlers
+@app.exception_handler(ValidationError)
+async def validation_exception_handler(request: Request, exc: ValidationError):
+    """Handle Pydantic validation errors."""
+    session_id = request.headers.get("X-Session-ID", "unknown")
+    request_id = request.headers.get("X-Request-ID", "unknown")
+
+    # Set context for logging
+    set_session_context(session_id, request_id)
+
+    session_logger.error(
+        f"Validation error: {str(exc)}",
+        event="validation_error",
+        data={"errors": exc.errors()},
+        exc_info=True,
+    )
+
+    # Return structured error
+    api_error = APIError(
+        category="validation_error",
+        message="Invalid request data",
+        user_action="Please check your API keys and request parameters",
+        retryable=True,
+        status_code=400,
+    )
+    return api_error.to_response()
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Handle all other unhandled exceptions."""
+    session_id = request.headers.get("X-Session-ID", "unknown")
+    request_id = request.headers.get("X-Request-ID", "unknown")
+
+    # Set context for logging
+    set_session_context(session_id, request_id)
+
+    session_logger.error(
+        f"Unhandled exception: {str(exc)}",
+        event="unhandled_exception",
+        exc_info=True,
+    )
+
+    # Return structured error
+    api_error = APIError(
+        category="server_error",
+        message="An unexpected server error occurred",
+        user_action="Please try again. If the problem persists, contact support.",
+        retryable=True,
+        status_code=500,
+    )
+    return api_error.to_response()
 
 
 # Session tracking middleware
@@ -445,9 +500,22 @@ async def generate_sse_events(
 ) -> AsyncGenerator[str, None]:
     """Generate SSE events during query processing."""
 
+    # Set session context for SSE generation
+    set_session_context(session_id, request_id)
+
+    session_logger.info(
+        "SSE generation started",
+        event="sse_start",
+    )
+
     def send_event(event_type: str, data: dict) -> str:
         """Format data as SSE event."""
         json_data = json.dumps(data)
+        session_logger.info(
+            f"Sending SSE event: {event_type}",
+            event="sse_event",
+            data={"event_type": event_type, "data_keys": list(data.keys())},
+        )
         return f"event: {event_type}\ndata: {json_data}\n\n"
 
     try:
@@ -506,8 +574,6 @@ async def generate_sse_events(
             )
             # Special handling for conversation count
             if "conversations to analyze" in message:
-                import re
-
                 match = re.search(r"(\d+) conversations", message)
                 if match:
                     progress_state["conversation_count"] = int(match.group(1))
@@ -708,6 +774,14 @@ async def analyze_conversations_stream(request: AnalysisRequest, http_request: R
     session_id = http_request.headers.get("X-Session-ID", "unknown")
     request_id = http_request.headers.get("X-Request-ID", "unknown")
 
+    # Set session context for all logging in this request
+    set_session_context(session_id, request_id)
+
+    session_logger.info(
+        "SSE endpoint reached",
+        event="sse_endpoint_start",
+    )
+
     # Log query start
     session_logger.log_query_start(
         request.query, {"max_conversations": request.max_conversations}
@@ -736,9 +810,20 @@ async def analyze_conversations_stream(request: AnalysisRequest, http_request: R
             status_code=400,
         )
 
+    session_logger.info(
+        "Starting smart limit calculation",
+        event="smart_limit_start",
+    )
+
     # Calculate smart max_conversations
     smart_max, adjustment_msg = get_smart_max_conversations(
         request.query, request.max_conversations
+    )
+
+    session_logger.info(
+        f"Smart limit calculation complete: {smart_max}",
+        event="smart_limit_complete",
+        data={"smart_max": smart_max, "adjustment_msg": adjustment_msg},
     )
 
     # Log adjustment if made
@@ -746,8 +831,6 @@ async def analyze_conversations_stream(request: AnalysisRequest, http_request: R
         session_logger.info(
             f"Smart limit adjustment: {adjustment_msg}",
             event="smart_limit_adjustment",
-            session_id=session_id,
-            request_id=request_id,
             data={
                 "query": request.query,
                 "adjusted_max": smart_max,
@@ -755,22 +838,61 @@ async def analyze_conversations_stream(request: AnalysisRequest, http_request: R
             },
         )
 
-    # Create config
-    config = Config(
-        intercom_token=intercom_token,
-        openai_key=openai_key,
-        max_conversations=smart_max,
+    session_logger.info(
+        "Creating config",
+        event="config_creation_start",
     )
 
-    # Return SSE response
-    return StreamingResponse(
-        generate_sse_events(request.query, config, session_id, request_id),
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "X-Accel-Buffering": "no",  # Disable nginx buffering
-        },
+    # Create config with proper error handling
+    try:
+        config = Config(
+            intercom_token=intercom_token,
+            openai_key=openai_key,
+            max_conversations=smart_max,
+        )
+    except Exception as e:
+        session_logger.error(
+            f"Config validation failed: {str(e)}",
+            event="config_validation_error",
+            exc_info=True,
+        )
+
+        # Return proper API error response
+        raise APIError(
+            category="environment_error",
+            message="Invalid API credentials provided",
+            user_action="Please check your Intercom and OpenAI API keys in the settings",
+            retryable=True,
+            status_code=400,
+        ) from e
+
+    session_logger.info(
+        "Config created successfully",
+        event="config_creation_complete",
     )
+
+    try:
+        session_logger.info(
+            "Creating SSE response",
+            event="sse_response_start",
+        )
+
+        # Return SSE response
+        return StreamingResponse(
+            generate_sse_events(request.query, config, session_id, request_id),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "X-Accel-Buffering": "no",  # Disable nginx buffering
+            },
+        )
+    except Exception as e:
+        session_logger.error(
+            f"Failed to create SSE response: {str(e)}",
+            event="sse_creation_error",
+            exc_info=True,
+        )
+        raise
 
 
 @app.post("/api/analyze", response_model=AnalysisResponse)

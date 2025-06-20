@@ -1,0 +1,637 @@
+INFO:     Will watch for changes in these directories: ['/Users/chris-home/Developer/ask-intercom']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [81633] using StatReload
+INFO:     Started server process [81644]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T00:05:50.707981Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T00:05:50.708480Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T00:05:51.283921Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T00:05:51.284050Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+{"timestamp": "2025-06-20T00:06:09.287358Z", "level": "INFO", "service": "backend", "event": "request_start", "message": "POST /api/analyze/stream", "session_id": "test_session", "request_id": "req_732807b82842", "data": {"method": "POST", "path": "/api/analyze/stream", "query_params": {}, "user_agent": "curl/8.7.1"}}
+ERROR:    Exception in ASGI application
+  + Exception Group Traceback (most recent call last):
+  |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_utils.py", line 76, in collapse_excgroups
+  |     yield
+  |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/base.py", line 177, in __call__
+  |     async with anyio.create_task_group() as task_group:
+  |                ~~~~~~~~~~~~~~~~~~~~~~~^^
+  |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 772, in __aexit__
+  |     raise BaseExceptionGroup(
+  |         "unhandled errors in a TaskGroup", self._exceptions
+  |     ) from None
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/errors.py", line 165, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/base.py", line 176, in __call__
+    |     with recv_stream, send_stream, collapse_excgroups():
+    |                                    ~~~~~~~~~~~~~~~~~~^^
+    |   File "/opt/homebrew/Cellar/python@3.13/3.13.3_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/contextlib.py", line 162, in __exit__
+    |     self.gen.throw(value)
+    |     ~~~~~~~~~~~~~~^^^^^^^
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_utils.py", line 82, in collapse_excgroups
+    |     raise exc
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/base.py", line 178, in __call__
+    |     response = await self.dispatch_func(request, call_next)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/chris-home/Developer/ask-intercom/src/web/main.py", line 124, in session_middleware
+    |     response = await call_next(request)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/base.py", line 156, in call_next
+    |     raise app_exc
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/base.py", line 141, in coro
+    |     await self.app(scope, receive_or_disconnect, send_no_error)
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py", line 714, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py", line 734, in app
+    |     await route.handle(scope, receive, send)
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py", line 288, in handle
+    |     await self.app(scope, receive, send)
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py", line 76, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py", line 73, in app
+    |     response = await f(request)
+    |                ^^^^^^^^^^^^^^^^
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/fastapi/routing.py", line 301, in app
+    |     raw_response = await run_endpoint_function(
+    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |     ...<3 lines>...
+    |     )
+    |     ^
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/fastapi/routing.py", line 212, in run_endpoint_function
+    |     return await dependant.call(**values)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/Users/chris-home/Developer/ask-intercom/src/web/main.py", line 777, in analyze_conversations_stream
+    |     session_logger.info(
+    |     ~~~~~~~~~~~~~~~~~~~^
+    |         "SSE endpoint reached",
+    |         ^^^^^^^^^^^^^^^^^^^^^^^
+    |     ...<2 lines>...
+    |         request_id=request_id,
+    |         ^^^^^^^^^^^^^^^^^^^^^^
+    |     )
+    |     ^
+    | TypeError: SessionLogger.info() got an unexpected keyword argument 'session_id'
+    +------------------------------------
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/errors.py", line 165, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/base.py", line 176, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.3_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_utils.py", line 82, in collapse_excgroups
+    raise exc
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/base.py", line 178, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chris-home/Developer/ask-intercom/src/web/main.py", line 124, in session_middleware
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/base.py", line 156, in call_next
+    raise app_exc
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/base.py", line 141, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py", line 714, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py", line 734, in app
+    await route.handle(scope, receive, send)
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py", line 73, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/fastapi/routing.py", line 301, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/fastapi/routing.py", line 212, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chris-home/Developer/ask-intercom/src/web/main.py", line 777, in analyze_conversations_stream
+    session_logger.info(
+    ~~~~~~~~~~~~~~~~~~~^
+        "SSE endpoint reached",
+        ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        request_id=request_id,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+TypeError: SessionLogger.info() got an unexpected keyword argument 'session_id'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/uvicorn/protocols/http/h11_impl.py", line 403, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.scope, self.receive, self.send
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/fastapi/applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/applications.py", line 112, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/errors.py", line 177, in __call__
+    response = await self.handler(request, exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chris-home/Developer/ask-intercom/src/web/main.py", line 76, in global_exception_handler
+    session_logger.error(
+    ~~~~~~~~~~~~~~~~~~~~^
+        f"Unhandled exception: {str(exc)}",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        exc_info=True,
+        ^^^^^^^^^^^^^^
+    )
+    ^
+TypeError: SessionLogger.error() got an unexpected keyword argument 'session_id'
+INFO:     127.0.0.1:61990 - "POST /api/analyze/stream HTTP/1.1" 500 Internal Server Error
+WARNING:  StatReload detected changes in 'src/web/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [81644]
+INFO:     Started server process [83546]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T00:06:57.389699Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T00:06:57.390123Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T00:06:57.878487Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T00:06:57.878599Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/web/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [83546]
+INFO:     Started server process [83604]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T00:07:11.551855Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T00:07:11.552367Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T00:07:12.280779Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T00:07:12.280877Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/web/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [83604]
+INFO:     Started server process [83618]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T00:07:17.595435Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T00:07:17.595746Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T00:07:17.965913Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T00:07:17.966080Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/web/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [83618]
+INFO:     Started server process [83645]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T00:07:27.360276Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T00:07:27.360756Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T00:07:27.909006Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T00:07:27.909143Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/web/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [83645]
+INFO:     Started server process [83657]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T00:07:33.489467Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T00:07:33.489955Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T00:07:33.995514Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T00:07:33.995656Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/web/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [83657]
+INFO:     Started server process [83705]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T00:07:46.143100Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T00:07:46.143639Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T00:07:46.600165Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T00:07:46.600631Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/web/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [83705]
+INFO:     Started server process [83741]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T00:07:55.738888Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T00:07:55.739339Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T00:07:56.650616Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T00:07:56.650910Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+{"timestamp": "2025-06-20T00:08:05.241500Z", "level": "INFO", "service": "backend", "event": "request_start", "message": "POST /api/analyze/stream", "session_id": "test_session", "request_id": "req_8bd5598766b9", "data": {"method": "POST", "path": "/api/analyze/stream", "query_params": {}, "user_agent": "curl/8.7.1"}}
+{"timestamp": "2025-06-20T00:08:05.243110Z", "level": "INFO", "service": "backend", "event": "sse_endpoint_start", "message": "SSE endpoint reached", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:08:05.243192Z", "level": "INFO", "service": "backend", "event": "query_start", "message": "Query processing started: test query", "session_id": "test_session", "request_id": "unknown", "data": {"query": "test query", "max_conversations": null, "start_time": "2025-06-20T00:08:05.243177"}}
+{"timestamp": "2025-06-20T00:08:05.243239Z", "level": "INFO", "service": "backend", "event": "smart_limit_start", "message": "Starting smart limit calculation", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:08:05.249079Z", "level": "INFO", "service": "backend", "event": "general", "message": "Parsing timeframe from query: 'test query'", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:08:05.249685Z", "level": "INFO", "service": "backend", "event": "general", "message": "Parsed timeframe: Last 30 days (default) (2025-05-20 20:08:05 to 2025-06-19 20:08:05)", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:08:05.249767Z", "level": "INFO", "service": "backend", "event": "smart_limit_complete", "message": "Smart limit calculation complete: 500", "session_id": "test_session", "request_id": "unknown", "data": {"smart_max": 500, "adjustment_msg": "Using 500 conversations for Last 30 days (default) (monthly timeframe)"}}
+{"timestamp": "2025-06-20T00:08:05.249804Z", "level": "INFO", "service": "backend", "event": "smart_limit_adjustment", "message": "Smart limit adjustment: Using 500 conversations for Last 30 days (default) (monthly timeframe)", "session_id": "test_session", "request_id": "unknown", "data": {"query": "test query", "adjusted_max": 500, "message": "Using 500 conversations for Last 30 days (default) (monthly timeframe)"}}
+{"timestamp": "2025-06-20T00:08:05.249835Z", "level": "INFO", "service": "backend", "event": "config_creation_start", "message": "Creating config", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:08:05.249910Z", "level": "ERROR", "service": "backend", "event": "config_validation_error", "message": "Config validation failed: 2 validation errors for Config\nintercom_token\n  Value error, Invalid Intercom access token [type=value_error, input_value='fake', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.11/v/value_error\nopenai_key\n  Value error, Invalid OpenAI API key [type=value_error, input_value='fake', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.11/v/value_error", "session_id": "test_session", "request_id": "unknown", "exception": "Traceback (most recent call last):\n  File \"/Users/chris-home/Developer/ask-intercom/src/web/main.py\", line 849, in analyze_conversations_stream\n    config = Config(\n        intercom_token=intercom_token,\n        openai_key=openai_key,\n        max_conversations=smart_max,\n    )\n  File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/pydantic/main.py\", line 253, in __init__\n    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)\npydantic_core._pydantic_core.ValidationError: 2 validation errors for Config\nintercom_token\n  Value error, Invalid Intercom access token [type=value_error, input_value='fake', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.11/v/value_error\nopenai_key\n  Value error, Invalid OpenAI API key [type=value_error, input_value='fake', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.11/v/value_error"}
+{"timestamp": "2025-06-20T00:08:05.252591Z", "level": "INFO", "service": "backend", "event": "request_complete", "message": "POST /api/analyze/stream completed in 10ms", "session_id": "test_session", "request_id": "req_8bd5598766b9", "data": {"method": "POST", "path": "/api/analyze/stream", "status_code": 400, "duration_ms": 10}}
+INFO:     127.0.0.1:62755 - "POST /api/analyze/stream HTTP/1.1" 400 Bad Request
+{"timestamp": "2025-06-20T00:08:17.141150Z", "level": "INFO", "service": "backend", "event": "request_start", "message": "POST /api/analyze/stream", "session_id": "test_session_2", "request_id": "req_282a1d23388b", "data": {"method": "POST", "path": "/api/analyze/stream", "query_params": {}, "user_agent": "curl/8.7.1"}}
+{"timestamp": "2025-06-20T00:08:17.141524Z", "level": "INFO", "service": "backend", "event": "sse_endpoint_start", "message": "SSE endpoint reached", "session_id": "test_session_2", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:08:17.141568Z", "level": "INFO", "service": "backend", "event": "query_start", "message": "Query processing started: test query", "session_id": "test_session_2", "request_id": "unknown", "data": {"query": "test query", "max_conversations": 1, "start_time": "2025-06-20T00:08:17.141558"}}
+{"timestamp": "2025-06-20T00:08:17.141602Z", "level": "INFO", "service": "backend", "event": "smart_limit_start", "message": "Starting smart limit calculation", "session_id": "test_session_2", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:08:17.145946Z", "level": "INFO", "service": "backend", "event": "general", "message": "Parsing timeframe from query: 'test query'", "session_id": "test_session_2", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:08:17.146003Z", "level": "INFO", "service": "backend", "event": "general", "message": "Parsed timeframe: Last 30 days (default) (2025-05-20 20:08:17 to 2025-06-19 20:08:17)", "session_id": "test_session_2", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:08:17.146039Z", "level": "INFO", "service": "backend", "event": "smart_limit_complete", "message": "Smart limit calculation complete: 500", "session_id": "test_session_2", "request_id": "unknown", "data": {"smart_max": 500, "adjustment_msg": "Using 500 conversations for Last 30 days (default) (monthly timeframe)"}}
+{"timestamp": "2025-06-20T00:08:17.146068Z", "level": "INFO", "service": "backend", "event": "smart_limit_adjustment", "message": "Smart limit adjustment: Using 500 conversations for Last 30 days (default) (monthly timeframe)", "session_id": "test_session_2", "request_id": "unknown", "data": {"query": "test query", "adjusted_max": 500, "message": "Using 500 conversations for Last 30 days (default) (monthly timeframe)"}}
+{"timestamp": "2025-06-20T00:08:17.146094Z", "level": "INFO", "service": "backend", "event": "config_creation_start", "message": "Creating config", "session_id": "test_session_2", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:08:17.146125Z", "level": "INFO", "service": "backend", "event": "config_creation_complete", "message": "Config created successfully", "session_id": "test_session_2", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:08:17.146147Z", "level": "INFO", "service": "backend", "event": "sse_response_start", "message": "Creating SSE response", "session_id": "test_session_2", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:08:17.146586Z", "level": "INFO", "service": "backend", "event": "sse_start", "message": "SSE generation started", "session_id": "test_session_2", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:08:17.146628Z", "level": "ERROR", "service": "backend", "event": "sse_error", "message": "SSE processing error: 'SessionLogger' object has no attribute 'debug'", "session_id": "test_session_2", "request_id": "unknown", "data": {"query": "test query"}, "exception": "Traceback (most recent call last):\n  File \"/Users/chris-home/Developer/ask-intercom/src/web/main.py\", line 524, in generate_sse_events\n    yield send_event(\n          ~~~~~~~~~~^\n        \"progress\",\n        ^^^^^^^^^^^\n    ...<4 lines>...\n        },\n        ^^\n    )\n    ^\n  File \"/Users/chris-home/Developer/ask-intercom/src/web/main.py\", line 515, in send_event\n    session_logger.debug(\n    ^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'SessionLogger' object has no attribute 'debug'"}
+{"timestamp": "2025-06-20T00:08:17.147327Z", "level": "INFO", "service": "backend", "event": "request_complete", "message": "POST /api/analyze/stream completed in 6ms", "session_id": "test_session_2", "request_id": "req_282a1d23388b", "data": {"method": "POST", "path": "/api/analyze/stream", "status_code": 200, "duration_ms": 6}}
+INFO:     127.0.0.1:62816 - "POST /api/analyze/stream HTTP/1.1" 200 OK
+{"timestamp": "2025-06-20T00:08:17.147775Z", "level": "ERROR", "service": "backend", "event": "unhandled_exception", "message": "Unhandled exception: 'SessionLogger' object has no attribute 'debug'", "session_id": "test_session_2", "request_id": "unknown", "exception": "  + Exception Group Traceback (most recent call last):\n  |   File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_utils.py\", line 76, in collapse_excgroups\n  |     yield\n  |   File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/responses.py\", line 263, in __call__\n  |     async with anyio.create_task_group() as task_group:\n  |                ~~~~~~~~~~~~~~~~~~~~~~~^^\n  |   File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/anyio/_backends/_asyncio.py\", line 772, in __aexit__\n  |     raise BaseExceptionGroup(\n  |         \"unhandled errors in a TaskGroup\", self._exceptions\n  |     ) from None\n  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)\n  +-+---------------- 1 ----------------\n    | Traceback (most recent call last):\n    |   File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/errors.py\", line 165, in __call__\n    |     await self.app(scope, receive, _send)\n    |   File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/cors.py\", line 85, in __call__\n    |     await self.app(scope, receive, send)\n    |   File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/base.py\", line 183, in __call__\n    |     raise app_exc\n    |   File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/base.py\", line 141, in coro\n    |     await self.app(scope, receive_or_disconnect, send_no_error)\n    |   File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/exceptions.py\", line 62, in __call__\n    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)\n    |   File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_exception_handler.py\", line 53, in wrapped_app\n    |     raise exc\n    |   File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_exception_handler.py\", line 42, in wrapped_app\n    |     await app(scope, receive, sender)\n    |   File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py\", line 714, in __call__\n    |     await self.middleware_stack(scope, receive, send)\n    |   File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py\", line 734, in app\n    |     await route.handle(scope, receive, send)\n    |   File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py\", line 288, in handle\n    |     await self.app(scope, receive, send)\n    |   File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py\", line 76, in app\n    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)\n    |   File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_exception_handler.py\", line 53, in wrapped_app\n    |     raise exc\n    |   File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_exception_handler.py\", line 42, in wrapped_app\n    |     await app(scope, receive, sender)\n    |   File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py\", line 74, in app\n    |     await response(scope, receive, send)\n    |   File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/responses.py\", line 262, in __call__\n    |     with collapse_excgroups():\n    |          ~~~~~~~~~~~~~~~~~~^^\n    |   File \"/opt/homebrew/Cellar/python@3.13/3.13.3_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/contextlib.py\", line 162, in __exit__\n    |     self.gen.throw(value)\n    |     ~~~~~~~~~~~~~~^^^^^^^\n    |   File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_utils.py\", line 82, in collapse_excgroups\n    |     raise exc\n    |   File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/responses.py\", line 266, in wrap\n    |     await func()\n    |   File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/responses.py\", line 246, in stream_response\n    |     async for chunk in self.body_iterator:\n    |     ...<2 lines>...\n    |         await send({\"type\": \"http.response.body\", \"body\": chunk, \"more_body\": True})\n    |   File \"/Users/chris-home/Developer/ask-intercom/src/web/main.py\", line 759, in generate_sse_events\n    |     yield send_event(\n    |           ~~~~~~~~~~^\n    |         \"error\",\n    |         ^^^^^^^^\n    |     ...<7 lines>...\n    |         },\n    |         ^^\n    |     )\n    |     ^\n    |   File \"/Users/chris-home/Developer/ask-intercom/src/web/main.py\", line 515, in send_event\n    |     session_logger.debug(\n    |     ^^^^^^^^^^^^^^^^^^^^\n    | AttributeError: 'SessionLogger' object has no attribute 'debug'\n    +------------------------------------\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/errors.py\", line 165, in __call__\n    await self.app(scope, receive, _send)\n  File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/cors.py\", line 85, in __call__\n    await self.app(scope, receive, send)\n  File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/base.py\", line 183, in __call__\n    raise app_exc\n  File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/base.py\", line 141, in coro\n    await self.app(scope, receive_or_disconnect, send_no_error)\n  File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/exceptions.py\", line 62, in __call__\n    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)\n  File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_exception_handler.py\", line 53, in wrapped_app\n    raise exc\n  File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_exception_handler.py\", line 42, in wrapped_app\n    await app(scope, receive, sender)\n  File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py\", line 714, in __call__\n    await self.middleware_stack(scope, receive, send)\n  File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py\", line 734, in app\n    await route.handle(scope, receive, send)\n  File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py\", line 288, in handle\n    await self.app(scope, receive, send)\n  File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py\", line 76, in app\n    await wrap_app_handling_exceptions(app, request)(scope, receive, send)\n  File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_exception_handler.py\", line 53, in wrapped_app\n    raise exc\n  File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_exception_handler.py\", line 42, in wrapped_app\n    await app(scope, receive, sender)\n  File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py\", line 74, in app\n    await response(scope, receive, send)\n  File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/responses.py\", line 262, in __call__\n    with collapse_excgroups():\n         ~~~~~~~~~~~~~~~~~~^^\n  File \"/opt/homebrew/Cellar/python@3.13/3.13.3_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/contextlib.py\", line 162, in __exit__\n    self.gen.throw(value)\n    ~~~~~~~~~~~~~~^^^^^^^\n  File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_utils.py\", line 82, in collapse_excgroups\n    raise exc\n  File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/responses.py\", line 266, in wrap\n    await func()\n  File \"/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/responses.py\", line 246, in stream_response\n    async for chunk in self.body_iterator:\n    ...<2 lines>...\n        await send({\"type\": \"http.response.body\", \"body\": chunk, \"more_body\": True})\n  File \"/Users/chris-home/Developer/ask-intercom/src/web/main.py\", line 759, in generate_sse_events\n    yield send_event(\n          ~~~~~~~~~~^\n        \"error\",\n        ^^^^^^^^\n    ...<7 lines>...\n        },\n        ^^\n    )\n    ^\n  File \"/Users/chris-home/Developer/ask-intercom/src/web/main.py\", line 515, in send_event\n    session_logger.debug(\n    ^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'SessionLogger' object has no attribute 'debug'"}
+ERROR:    Exception in ASGI application
+  + Exception Group Traceback (most recent call last):
+  |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_utils.py", line 76, in collapse_excgroups
+  |     yield
+  |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/responses.py", line 263, in __call__
+  |     async with anyio.create_task_group() as task_group:
+  |                ~~~~~~~~~~~~~~~~~~~~~~~^^
+  |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 772, in __aexit__
+  |     raise BaseExceptionGroup(
+  |         "unhandled errors in a TaskGroup", self._exceptions
+  |     ) from None
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/errors.py", line 165, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/base.py", line 183, in __call__
+    |     raise app_exc
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/base.py", line 141, in coro
+    |     await self.app(scope, receive_or_disconnect, send_no_error)
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py", line 714, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py", line 734, in app
+    |     await route.handle(scope, receive, send)
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py", line 288, in handle
+    |     await self.app(scope, receive, send)
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py", line 76, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py", line 74, in app
+    |     await response(scope, receive, send)
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/responses.py", line 262, in __call__
+    |     with collapse_excgroups():
+    |          ~~~~~~~~~~~~~~~~~~^^
+    |   File "/opt/homebrew/Cellar/python@3.13/3.13.3_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/contextlib.py", line 162, in __exit__
+    |     self.gen.throw(value)
+    |     ~~~~~~~~~~~~~~^^^^^^^
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_utils.py", line 82, in collapse_excgroups
+    |     raise exc
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/responses.py", line 266, in wrap
+    |     await func()
+    |   File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/responses.py", line 246, in stream_response
+    |     async for chunk in self.body_iterator:
+    |     ...<2 lines>...
+    |         await send({"type": "http.response.body", "body": chunk, "more_body": True})
+    |   File "/Users/chris-home/Developer/ask-intercom/src/web/main.py", line 759, in generate_sse_events
+    |     yield send_event(
+    |           ~~~~~~~~~~^
+    |         "error",
+    |         ^^^^^^^^
+    |     ...<7 lines>...
+    |         },
+    |         ^^
+    |     )
+    |     ^
+    |   File "/Users/chris-home/Developer/ask-intercom/src/web/main.py", line 515, in send_event
+    |     session_logger.debug(
+    |     ^^^^^^^^^^^^^^^^^^^^
+    | AttributeError: 'SessionLogger' object has no attribute 'debug'
+    +------------------------------------
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/errors.py", line 165, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/base.py", line 183, in __call__
+    raise app_exc
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/base.py", line 141, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py", line 714, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py", line 734, in app
+    await route.handle(scope, receive, send)
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/routing.py", line 74, in app
+    await response(scope, receive, send)
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/responses.py", line 262, in __call__
+    with collapse_excgroups():
+         ~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.3_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/_utils.py", line 82, in collapse_excgroups
+    raise exc
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/responses.py", line 266, in wrap
+    await func()
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/responses.py", line 246, in stream_response
+    async for chunk in self.body_iterator:
+    ...<2 lines>...
+        await send({"type": "http.response.body", "body": chunk, "more_body": True})
+  File "/Users/chris-home/Developer/ask-intercom/src/web/main.py", line 759, in generate_sse_events
+    yield send_event(
+          ~~~~~~~~~~^
+        "error",
+        ^^^^^^^^
+    ...<7 lines>...
+        },
+        ^^
+    )
+    ^
+  File "/Users/chris-home/Developer/ask-intercom/src/web/main.py", line 515, in send_event
+    session_logger.debug(
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'SessionLogger' object has no attribute 'debug'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/uvicorn/protocols/http/h11_impl.py", line 403, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.scope, self.receive, self.send
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/fastapi/applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/applications.py", line 112, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/chris-home/Library/Caches/pypoetry/virtualenvs/ask-intercom-5bnQBG2c-py3.13/lib/python3.13/site-packages/starlette/middleware/errors.py", line 177, in __call__
+    response = await self.handler(request, exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chris-home/Developer/ask-intercom/src/web/main.py", line 87, in global_exception_handler
+    from ..error_handler import APIError
+ModuleNotFoundError: No module named 'src.error_handler'
+WARNING:  StatReload detected changes in 'src/web/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [83741]
+INFO:     Started server process [83840]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T00:08:35.195502Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T00:08:35.195986Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T00:08:35.751877Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T00:08:35.751974Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/web/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [83840]
+INFO:     Started server process [83939]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T00:09:10.172323Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T00:09:10.172763Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T00:09:10.856323Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T00:09:10.856471Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/web/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [83939]
+INFO:     Started server process [83949]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T00:09:17.196246Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T00:09:17.196742Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T00:09:17.798957Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T00:09:17.799065Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+{"timestamp": "2025-06-20T00:09:28.130545Z", "level": "INFO", "service": "backend", "event": "request_start", "message": "POST /api/analyze/stream", "session_id": "test_session_final", "request_id": "req_13c9ac31e73e", "data": {"method": "POST", "path": "/api/analyze/stream", "query_params": {}, "user_agent": "curl/8.7.1"}}
+{"timestamp": "2025-06-20T00:09:28.133950Z", "level": "INFO", "service": "backend", "event": "sse_endpoint_start", "message": "SSE endpoint reached", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:09:28.134081Z", "level": "INFO", "service": "backend", "event": "query_start", "message": "Query processing started: test query", "session_id": "test_session_final", "request_id": "unknown", "data": {"query": "test query", "max_conversations": 1, "start_time": "2025-06-20T00:09:28.134068"}}
+{"timestamp": "2025-06-20T00:09:28.134192Z", "level": "INFO", "service": "backend", "event": "smart_limit_start", "message": "Starting smart limit calculation", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:09:28.141149Z", "level": "INFO", "service": "backend", "event": "general", "message": "Parsing timeframe from query: 'test query'", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:09:28.141953Z", "level": "INFO", "service": "backend", "event": "general", "message": "Parsed timeframe: Last 30 days (default) (2025-05-20 20:09:28 to 2025-06-19 20:09:28)", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:09:28.142042Z", "level": "INFO", "service": "backend", "event": "smart_limit_complete", "message": "Smart limit calculation complete: 500", "session_id": "test_session_final", "request_id": "unknown", "data": {"smart_max": 500, "adjustment_msg": "Using 500 conversations for Last 30 days (default) (monthly timeframe)"}}
+{"timestamp": "2025-06-20T00:09:28.142080Z", "level": "INFO", "service": "backend", "event": "smart_limit_adjustment", "message": "Smart limit adjustment: Using 500 conversations for Last 30 days (default) (monthly timeframe)", "session_id": "test_session_final", "request_id": "unknown", "data": {"query": "test query", "adjusted_max": 500, "message": "Using 500 conversations for Last 30 days (default) (monthly timeframe)"}}
+{"timestamp": "2025-06-20T00:09:28.142109Z", "level": "INFO", "service": "backend", "event": "config_creation_start", "message": "Creating config", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:09:28.142179Z", "level": "INFO", "service": "backend", "event": "config_creation_complete", "message": "Config created successfully", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:09:28.142215Z", "level": "INFO", "service": "backend", "event": "sse_response_start", "message": "Creating SSE response", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:09:28.142947Z", "level": "INFO", "service": "backend", "event": "sse_start", "message": "SSE generation started", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:09:28.142995Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session_final", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:09:28.143112Z", "level": "INFO", "service": "backend", "event": "request_complete", "message": "POST /api/analyze/stream completed in 12ms", "session_id": "test_session_final", "request_id": "req_13c9ac31e73e", "data": {"method": "POST", "path": "/api/analyze/stream", "status_code": 200, "duration_ms": 12}}
+INFO:     127.0.0.1:63236 - "POST /api/analyze/stream HTTP/1.1" 200 OK
+{"timestamp": "2025-06-20T00:09:28.143642Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session_final", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:09:28.143856Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session_final", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:09:28.144098Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session_final", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:09:28.144325Z", "level": "INFO", "service": "backend", "event": "general", "message": "Starting query processing", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:09:28.144367Z", "level": "INFO", "service": "backend", "event": "general", "message": "Fetching Intercom app ID for conversation links...", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:09:28.252346Z", "level": "INFO", "service": "backend", "event": "general", "message": "Found app ID via /me endpoint: sc3pepw3", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:09:28.253042Z", "level": "INFO", "service": "backend", "event": "general", "message": "Using app ID: sc3pepw3", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:09:28.260551Z", "level": "INFO", "service": "backend", "event": "general", "message": "Interpreting query timeframe...", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:09:28.260613Z", "level": "INFO", "service": "backend", "event": "general", "message": "Parsing timeframe from query: 'test query'", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:09:28.260660Z", "level": "INFO", "service": "backend", "event": "general", "message": "Parsed timeframe: Last 30 days (default) (2025-05-20 20:09:28 to 2025-06-19 20:09:28)", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:09:28.260709Z", "level": "INFO", "service": "backend", "event": "general", "message": "openai_timeframe API call", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:09:28.260739Z", "level": "INFO", "service": "backend", "event": "general", "message": "Fetching conversations from Last 30 days (default)...", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:09:28.260799Z", "level": "INFO", "service": "backend", "event": "general", "message": "Using limit of 500 conversations for Last 30 days (default)", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:09:28.260938Z", "level": "INFO", "service": "backend", "event": "general", "message": "MCP not implemented yet, using REST API", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:09:28.945378Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session_final", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:09:51.306951Z", "level": "INFO", "service": "backend", "event": "general", "message": "Page 1: Parsed 120 conversations (total: 120)", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:09:51.376003Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session_final", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:10:11.680057Z", "level": "INFO", "service": "backend", "event": "general", "message": "Page 2: Parsed 120 conversations (total: 240)", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:10:12.200013Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session_final", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:10:20.020627Z", "level": "INFO", "service": "backend", "event": "request_start", "message": "POST /api/analyze/stream", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "req_0aa393009a86", "data": {"method": "POST", "path": "/api/analyze/stream", "query_params": {}, "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"}}
+{"timestamp": "2025-06-20T00:10:20.022472Z", "level": "INFO", "service": "backend", "event": "sse_endpoint_start", "message": "SSE endpoint reached", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:10:20.022609Z", "level": "INFO", "service": "backend", "event": "query_start", "message": "Query processing started: Show me issues from the last 24 hours", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"query": "Show me issues from the last 24 hours", "max_conversations": null, "start_time": "2025-06-20T00:10:20.022585"}}
+{"timestamp": "2025-06-20T00:10:20.022752Z", "level": "INFO", "service": "backend", "event": "smart_limit_start", "message": "Starting smart limit calculation", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:10:20.033886Z", "level": "INFO", "service": "backend", "event": "general", "message": "Parsing timeframe from query: 'Show me issues from the last 24 hours'", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:10:20.034022Z", "level": "INFO", "service": "backend", "event": "general", "message": "Parsed timeframe: Last 24 hours (2025-06-18 20:10:20 to 2025-06-19 20:10:20)", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:10:20.034145Z", "level": "INFO", "service": "backend", "event": "smart_limit_complete", "message": "Smart limit calculation complete: 100", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"smart_max": 100, "adjustment_msg": "Using 100 conversations for Last 24 hours (short timeframe)"}}
+{"timestamp": "2025-06-20T00:10:20.034194Z", "level": "INFO", "service": "backend", "event": "smart_limit_adjustment", "message": "Smart limit adjustment: Using 100 conversations for Last 24 hours (short timeframe)", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"query": "Show me issues from the last 24 hours", "adjusted_max": 100, "message": "Using 100 conversations for Last 24 hours (short timeframe)"}}
+{"timestamp": "2025-06-20T00:10:20.034259Z", "level": "INFO", "service": "backend", "event": "config_creation_start", "message": "Creating config", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:10:20.034375Z", "level": "INFO", "service": "backend", "event": "config_creation_complete", "message": "Config created successfully", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:10:20.034411Z", "level": "INFO", "service": "backend", "event": "sse_response_start", "message": "Creating SSE response", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:10:20.035313Z", "level": "INFO", "service": "backend", "event": "sse_start", "message": "SSE generation started", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:10:20.035368Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:10:20.035527Z", "level": "INFO", "service": "backend", "event": "request_complete", "message": "POST /api/analyze/stream completed in 14ms", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "req_0aa393009a86", "data": {"method": "POST", "path": "/api/analyze/stream", "status_code": 200, "duration_ms": 14}}
+INFO:     127.0.0.1:63519 - "POST /api/analyze/stream HTTP/1.1" 200 OK
+{"timestamp": "2025-06-20T00:10:20.036843Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:10:20.037069Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:10:20.037778Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:10:20.038501Z", "level": "INFO", "service": "backend", "event": "general", "message": "Starting query processing", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:10:20.038579Z", "level": "INFO", "service": "backend", "event": "general", "message": "Fetching Intercom app ID for conversation links...", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:10:20.186150Z", "level": "INFO", "service": "backend", "event": "general", "message": "Found app ID via /me endpoint: sc3pepw3", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:10:20.186342Z", "level": "INFO", "service": "backend", "event": "general", "message": "Using app ID: sc3pepw3", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:10:20.191191Z", "level": "INFO", "service": "backend", "event": "general", "message": "Interpreting query timeframe...", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:10:20.191268Z", "level": "INFO", "service": "backend", "event": "general", "message": "Parsing timeframe from query: 'Show me issues from the last 24 hours'", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:10:20.191311Z", "level": "INFO", "service": "backend", "event": "general", "message": "Parsed timeframe: Last 24 hours (2025-06-18 20:10:20 to 2025-06-19 20:10:20)", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:10:20.191355Z", "level": "INFO", "service": "backend", "event": "general", "message": "openai_timeframe API call", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:10:20.191381Z", "level": "INFO", "service": "backend", "event": "general", "message": "Fetching conversations from Last 24 hours...", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:10:20.191413Z", "level": "INFO", "service": "backend", "event": "general", "message": "Using limit of 100 conversations for Last 24 hours", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:10:20.191606Z", "level": "INFO", "service": "backend", "event": "general", "message": "MCP not implemented yet, using REST API", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:10:20.839286Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:10:29.572681Z", "level": "INFO", "service": "backend", "event": "general", "message": "Page 1: Parsed 59 conversations (total: 59)", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:10:29.573355Z", "level": "INFO", "service": "backend", "event": "general", "message": "Reached end of results (page_size=70, total=70)", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:10:29.573509Z", "level": "INFO", "service": "backend", "event": "general", "message": "Found 59 total conversations in the specified timeframe", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:10:29.573545Z", "level": "INFO", "service": "backend", "event": "general", "message": "Fetched 59 conversations (within requested limit of 100)", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:10:29.573714Z", "level": "INFO", "service": "backend", "event": "general", "message": "intercom API call", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:10:29.573912Z", "level": "INFO", "service": "backend", "event": "general", "message": "Analyzing 59 conversations...", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+🧠 Analyzing 59 conversations...{"timestamp": "2025-06-20T00:10:29.573957Z", "level": "INFO", "service": "backend", "event": "general", "message": "Attempting structured JSON analysis...", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:10:29.690124Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:10:31.292995Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:10:32.895519Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:10:33.664709Z", "level": "INFO", "service": "backend", "event": "general", "message": "Page 3: Parsed 120 conversations (total: 360)", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:10:33.825955Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session_final", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:10:34.497959Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:10:36.100263Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:10:36.902786Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:10:37.704073Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:10:39.306231Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:10:40.907796Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:10:42.509286Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:10:44.111677Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:10:45.714501Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:10:46.515774Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:10:47.317340Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:10:48.919058Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:10:50.521864Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:10:52.124438Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:10:53.821734Z", "level": "INFO", "service": "backend", "event": "general", "message": "Page 4: Parsed 120 conversations (total: 480)", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:10:53.849237Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session_final", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:11:15.860215Z", "level": "INFO", "service": "backend", "event": "general", "message": "Page 5: Parsed 20 conversations (total: 500)", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:11:16.063292Z", "level": "INFO", "service": "backend", "event": "general", "message": "Found 500 total conversations in the specified timeframe", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:11:16.063533Z", "level": "INFO", "service": "backend", "event": "general", "message": "Fetched 500 conversations (within requested limit of 500)", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:11:16.064255Z", "level": "INFO", "service": "backend", "event": "general", "message": "intercom API call", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:11:16.064438Z", "level": "WARNING", "service": "backend", "event": "general", "message": "Large dataset detected: 500 conversations. Estimated time: 165.0s, cost: $2.01", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:11:16.064509Z", "level": "INFO", "service": "backend", "event": "general", "message": "Analyzing 500 conversations...", "session_id": "test_session_final", "request_id": "unknown"}
+
+⚠️  Found 500 conversations to analyze
+📊 Estimated processing time: 165.0 seconds
+💰 Estimated cost: $2.01
+
+🧠 Analyzing 500 conversations...{"timestamp": "2025-06-20T00:11:16.064591Z", "level": "INFO", "service": "backend", "event": "general", "message": "Attempting structured JSON analysis...", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:11:16.278105Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session_final", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:11:49.712809Z", "level": "INFO", "service": "backend", "event": "general", "message": "Successfully used structured analysis", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:11:49.713318Z", "level": "INFO", "service": "backend", "event": "general", "message": "openai_analysis API call", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:11:49.713490Z", "level": "INFO", "service": "backend", "event": "general", "message": "Query completed", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+✅ Analysis complete (80.1s)          
+✨ Query completed in 89.7s, cost: $0.015    
+{"timestamp": "2025-06-20T00:11:49.713579Z", "level": "INFO", "service": "backend", "event": "general", "message": "Query completed in 89.7s, cost: $0.015", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:11:49.812504Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:11:49.812796Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T00:11:49.813304Z", "level": "INFO", "service": "backend", "event": "query_complete", "message": "Query processing completed in 89775ms", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"query": "Show me issues from the last 24 hours", "duration_ms": 89775, "conversation_count": 59, "insights_count": 3, "cost_usd": 0.01488, "tokens_used": 496}}
+{"timestamp": "2025-06-20T00:11:49.813788Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: complete", "session_id": "sess_1750378220013_ykrmp9rhp", "request_id": "unknown", "data": {"event_type": "complete", "data_keys": ["insights", "summary", "cost", "response_time_ms", "session_id", "request_id"]}}
+{"timestamp": "2025-06-20T00:12:24.004582Z", "level": "INFO", "service": "backend", "event": "general", "message": "Successfully used structured analysis", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:12:24.005119Z", "level": "INFO", "service": "backend", "event": "general", "message": "openai_analysis API call", "session_id": "test_session_final", "request_id": "unknown"}
+{"timestamp": "2025-06-20T00:12:24.005233Z", "level": "INFO", "service": "backend", "event": "general", "message": "Query completed", "session_id": "test_session_final", "request_id": "unknown"}
+✅ Analysis complete (67.9s)          
+✨ Query completed in 175.9s, cost: $0.010    
+{"timestamp": "2025-06-20T00:12:24.005341Z", "level": "INFO", "service": "backend", "event": "general", "message": "Query completed in 175.9s, cost: $0.010", "session_id": "test_session_final", "request_id": "unknown"}
+WARNING:  StatReload detected changes in 'src/web/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [83949]
+INFO:     Started server process [84809]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T00:14:06.918298Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T00:14:06.918886Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T00:14:07.440421Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T00:14:07.440516Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/web/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [84809]
+INFO:     Started server process [84836]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T00:14:15.655331Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T00:14:15.655670Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T00:14:16.290262Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T00:14:16.290554Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.

@@ -8,6 +8,9 @@ _private/
 # Development testing data
 .ask-intercom-dev/
 
+# Analytics and logs
+.ask-intercom-analytics/
+
 # Python cache files
 __pycache__/
 *.pyc
