@@ -6,7 +6,21 @@ AI-powered analysis tool with web interface and CLI. Ask natural language questi
 
 ## 🚀 Quick Start
 
-### Web Interface (Recommended)
+### 🐳 Docker (One Command - Recommended) ✅
+```bash
+# Clone and setup
+git clone https://github.com/your-username/ask-intercom
+cd ask-intercom
+cp .env.example .env
+# Edit .env with your API keys
+
+# Run with Docker
+docker-compose up
+
+# Access at http://localhost:8000
+```
+
+### 🌐 Development (Local)
 ```bash
 # Start backend and frontend
 env -i HOME="$HOME" PATH="$PATH" ~/.local/bin/poetry run uvicorn src.web.main:app --port 8000 --reload &
@@ -15,12 +29,12 @@ cd frontend && npm run dev &
 # Open http://localhost:5173
 ```
 
-### CLI Usage
+### 💻 CLI Usage
 ```bash
 # Setup environment  
 ~/.local/bin/poetry install
-echo "INTERCOM_ACCESS_TOKEN=your_token_here" > .env
-echo "OPENAI_API_KEY=your_key_here" >> .env
+cp .env.example .env
+# Edit .env with your API keys
 
 # Ask questions
 env -i HOME="$HOME" PATH="$PATH" ~/.local/bin/poetry run python -m src.cli "What are the top customer complaints this month?"

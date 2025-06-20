@@ -27,7 +27,7 @@ WORKDIR /app
 # Copy Python dependencies
 COPY pyproject.toml poetry.lock ./
 RUN poetry config virtualenvs.create false \
-    && poetry install --no-dev --no-root
+    && poetry install --only main --no-root
 
 # Copy application code
 COPY src/ ./src/
@@ -35,8 +35,10 @@ COPY src/ ./src/
 # Copy built frontend
 COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 
-# Create non-root user
-RUN useradd --create-home --shell /bin/bash app
+# Create non-root user and app directory with proper permissions
+RUN useradd --create-home --shell /bin/bash app && \
+    mkdir -p /app/.ask-intercom-analytics/logs /app/.ask-intercom-analytics/sessions && \
+    chown -R app:app /app
 USER app
 
 # Expose port

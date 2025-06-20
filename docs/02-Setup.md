@@ -4,12 +4,60 @@
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### 🐳 Docker Deployment (Recommended)
+
+**Prerequisites**: Docker and Docker Compose
+
+```bash
+# Clone repository
+git clone https://github.com/your-username/ask-intercom
+cd ask-intercom
+
+# Setup environment
+cp .env.example .env
+# Edit .env with your API keys (see Environment Variables section below)
+
+# One-command deployment
+docker-compose up
+
+# Access web interface
+open http://localhost:8000
+```
+
+**That's it!** The Docker setup handles all dependencies, builds the frontend, and starts the web application.
+
+## 🔧 Environment Variables
+
+Create `.env` file from template:
+```bash
+cp .env.example .env
+```
+
+**Required variables**:
+```bash
+# Get from: https://developers.intercom.com/building-apps/docs/authentication-types#how-to-get-your-access-token
+INTERCOM_ACCESS_TOKEN=your_intercom_token_here
+
+# Get from: https://platform.openai.com/api-keys  
+OPENAI_API_KEY=your_openai_key_here
+```
+
+**Optional variables** (with defaults):
+```bash
+OPENAI_MODEL=gpt-4                    # AI model to use
+# MAX_CONVERSATIONS=100               # Conversation limit (default: no limit)
+# DEBUG=true                         # Show full error tracebacks (for debugging)
+ENVIRONMENT=development              # Environment name
+```
+
+### 🛠️ Development Setup (Advanced)
+
+**Prerequisites**:
 - Python 3.13.3 (available at `/opt/homebrew/bin/python3`)
 - Poetry 2.1.3 (available at `~/.local/bin/poetry`)
 - Node.js and npm (for frontend)
 
-### Environment Setup
+**Setup**:
 
 1. **Clone and setup backend**:
 ```bash
@@ -17,10 +65,10 @@ cd ask-intercom
 ~/.local/bin/poetry install
 ```
 
-2. **Environment variables** (create `.env` file):
+2. **Environment variables**:
 ```bash
-INTERCOM_ACCESS_TOKEN=your_token_here
-OPENAI_API_KEY=your_key_here
+cp .env.example .env
+# Edit .env with your API keys
 ```
 
 3. **Test the CLI**:
@@ -34,9 +82,11 @@ cd frontend
 npm install
 ```
 
-### Running the Application
+### Running the Development Application
 
-**Start both servers**:
+**For Docker deployment**: Use `docker-compose up` (see above)
+
+**For development with hot reload**:
 ```bash
 # Backend (in background)
 env -i HOME="$HOME" PATH="$PATH" ~/.local/bin/poetry run uvicorn src.web.main:app --host 0.0.0.0 --port 8000 --reload > server.log 2>&1 &
@@ -45,7 +95,9 @@ env -i HOME="$HOME" PATH="$PATH" ~/.local/bin/poetry run uvicorn src.web.main:ap
 cd frontend && npm run dev > /dev/null 2>&1 &
 ```
 
-**Access the app**: http://localhost:5173
+**Access the app**: 
+- **Docker**: http://localhost:8000
+- **Development**: http://localhost:5173
 
 ### Development Commands
 

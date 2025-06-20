@@ -2,55 +2,72 @@
 
 > **Planned improvements and future direction**
 
-## 🎯 Immediate Next Steps (v0.4)
+## 🎯 Immediate Next Steps (v0.4 - In Progress)
 
-### Priority Track A: MCP + Universal Agent (High Priority)
-**Goal**: Foundation for multi-platform intelligence
-- **MCP integration**: Implement Model Context Protocol for performance and extensibility
-- **Universal agent architecture**: Modular skills-based system
-- **Performance optimization**: <30 second response times via MCP
-- **Multi-platform foundation**: Architecture prep for Slack, Linear, etc.
+### Phase 1: Docker Experience ✅ **COMPLETED**
+**Goal**: Bulletproof one-command deployment for developers
+- ✅ **Docker setup complete**: Multi-stage build with health checks and security
+- ✅ **End-to-end tested**: Full deployment validation with real Docker daemon
+- ✅ **Build issues resolved**: Frontend TypeScript and Poetry 2.x compatibility fixed
+- ✅ **CI/CD pipeline**: GitHub Actions workflow with automated Docker testing
+- ✅ **Documentation updated**: Clear README and setup guide  
+- ✅ **Environment template**: Comprehensive .env.example
+- ✅ **Developer workflow**: `git clone` → `cp .env.example .env` → `docker-compose up` → working app
 
-### Parallel Track B: Deployment & Infrastructure
-**Goal**: Make it accessible and scalable
-- **Docker containerization**: Single-command deployment
-- **Hosted version**: Deploy to cloud with usage analytics
-- **GitHub polish**: Better README, examples, contribution guide
+### Phase 2: Cloud Deployment (In Progress)
+**Goal**: Enable hosted SaaS for non-technical users
+- **Platform decision**: Choose between Railway.app vs Render.com vs Fly.io
+- **Deployment pipeline**: GitHub → automatic cloud deployment using existing Docker setup
+- **Production instance**: Get first hosted version live for user testing
+- **Hosted features**: Landing page, usage analytics, enhanced UI
 - **Production monitoring**: Error tracking and performance metrics
 
 ## 🚀 Medium-term Vision (v0.5-v1.0)
 
-### v0.5: Enhanced User Experience
-**Goal**: Bring CLI features to web + improve usability
+### v0.5: Enhanced User Experience 
+**Goal**: Improve usability based on user feedback from deployed versions
 - **Follow-up questions**: Port CLI's conversation memory to web interface
-- **Drill-down analysis**: "Tell me more about verification issues" 
-- **UI improvements**: Streamline API key entry into Settings modal
-- **Better onboarding**: Guided setup and example queries
-- **Export functionality**: CSV/PDF reports, shareable insights
+- **Drill-down analysis**: "Tell me more about verification issues"
+- **Export functionality**: CSV/PDF reports, shareable insights  
+- **Usage analytics**: Track popular queries and optimize performance
+- **Better onboarding**: Guided setup with example queries
 
-### v0.6: Multi-platform Intelligence  
-**Goal**: Expand beyond Intercom using universal agent foundation
-- **Slack integration**: Analyze team discussions about customers
+### v0.6: Performance & Scale
+**Goal**: Handle larger user base and improve response times
+- **MCP integration**: Model Context Protocol for faster queries (<30s target)
+- **Caching layer**: Cache frequently accessed conversations
+- **Rate limiting**: Smart throttling for hosted version
+- **Enterprise features**: Team collaboration, custom branding
+
+### v0.7: Multi-platform Intelligence
+**Goal**: Expand beyond Intercom (post-MVP)
+- **Slack integration**: Analyze team discussions about customers  
 - **Linear integration**: Connect customer feedback to product decisions
 - **Cross-platform queries**: "What customer issues are blocking our roadmap?"
-- **Context management**: Maintain state across platforms
+- **Universal agent**: Skills-based architecture for extensibility
 
 ## 📋 Decision Points
 
-### Current Priority Decision
-**MCP + Universal Agent first** because:
-- Foundation for all future multi-platform work
-- Performance improvements benefit current users
-- Architectural investment pays dividends later
+### Cloud Platform Decision (Pending)
+**Need to choose hosting platform for SaaS deployment**:
 
-**Deployment in parallel** because:
-- Can work independently of MCP development  
-- Makes current functionality accessible to more users
-- Provides feedback loop for prioritizing features
+**Option A: Railway.app**
+- ✅ Pros: GitHub integration, simple deployment, good Docker support  
+- ❓ Cons: Smaller platform, newer company
+
+**Option B: Render.com**
+- ✅ Pros: More established, good free tier, excellent docs
+- ❓ Cons: Can be slower cold starts
+
+**Option C: Fly.io**  
+- ✅ Pros: Edge deployment, very fast, Docker-first
+- ❓ Cons: More complex for beginners
+
+**Decision criteria**: Easy deployment, reliable uptime, cost-effective scaling
 
 ### Success Metrics
-- **v0.4**: MCP working + <30 second response times + deployed app
-- **v0.5**: Follow-up questions working + streamlined UI
+- **v0.4**: Docker deployment working + cloud platform chosen + hosted app live
+- **v0.5**: Follow-up questions working + streamlined UI  
 - **v0.6**: Multi-platform queries functional
 
 ## 🛣️ Longer-term Roadmap
@@ -78,11 +95,11 @@
 - **Simple by default**: Complex features should be optional
 - **Open source**: Community contributions and transparency
 
-### Next Session Planning
-1. **Choose direction**: Performance, Deployment, or Features
-2. **Set measurable goals**: Clear success criteria
-3. **Time-box effort**: Limit scope to maintain momentum  
-4. **Get user feedback**: Validate direction early
+### Immediate Next Session Planning
+1. **Test Docker deployment**: End-to-end validation of developer experience
+2. **Evaluate cloud platforms**: Detailed comparison of Railway vs Render vs Fly.io
+3. **Set up hosted deployment**: Get first version live for non-technical users
+4. **Gather feedback**: Share with initial target personas for validation
 
 ## 🤔 Open Questions
 
