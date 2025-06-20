@@ -635,3 +635,326 @@ INFO:     Waiting for application startup.
 {"timestamp": "2025-06-20T00:14:16.290262Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
 {"timestamp": "2025-06-20T00:14:16.290554Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
 INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/web/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [84836]
+INFO:     Started server process [85796]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T00:20:03.468016Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T00:20:03.468314Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T00:20:04.079464Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T00:20:04.079565Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/web/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [85796]
+INFO:     Started server process [85825]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T00:20:15.464224Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T00:20:15.464591Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T00:20:16.106534Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T00:20:16.106745Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/web/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [85825]
+INFO:     Started server process [85851]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T00:20:24.993729Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T00:20:24.994119Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T00:20:25.486834Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T00:20:25.486978Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/query_processor.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [85851]
+INFO:     Started server process [86235]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T00:50:44.999693Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T00:50:45.000247Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T00:50:45.557393Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T00:50:45.557478Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/query_processor.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [86235]
+INFO:     Started server process [86665]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T00:53:45.279288Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T00:53:45.279688Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T00:53:45.952178Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T00:53:45.952289Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/web/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [86665]
+INFO:     Started server process [86747]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T00:54:21.308053Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T00:54:21.308442Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T00:54:22.027373Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T00:54:22.027503Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/web/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [86747]
+INFO:     Started server process [86836]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T00:54:56.903494Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T00:54:56.903851Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T00:54:57.366480Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T00:54:57.366648Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/web/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [86836]
+INFO:     Started server process [86907]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T00:55:21.087433Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T00:55:21.087760Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T00:55:21.886389Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T00:55:21.886558Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/web/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [86907]
+INFO:     Started server process [87603]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T00:59:58.943301Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T00:59:58.943752Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T00:59:59.577562Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T00:59:59.577652Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/web/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [87603]
+INFO:     Started server process [87641]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T01:00:17.822530Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T01:00:17.822819Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T01:00:18.445471Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T01:00:18.445567Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/query_processor.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [87641]
+INFO:     Started server process [87681]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T01:00:29.007064Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T01:00:29.007576Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T01:00:29.624177Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T01:00:29.624301Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/models.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [87681]
+INFO:     Started server process [87745]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T01:00:46.894521Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T01:00:46.895010Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T01:00:47.510461Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T01:00:47.510552Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/intercom_client.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [87745]
+INFO:     Started server process [87827]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T01:01:14.168399Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T01:01:14.168837Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T01:01:14.888058Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T01:01:14.888176Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/intercom_client.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [87827]
+INFO:     Started server process [87872]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T01:01:37.815750Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T01:01:37.816075Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T01:01:38.379418Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T01:01:38.379506Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/intercom_client.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [87872]
+INFO:     Started server process [87906]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T01:01:49.184753Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T01:01:49.185224Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T01:01:49.712523Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T01:01:49.712782Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/intercom_client.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [87906]
+INFO:     Started server process [87989]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T01:02:22.458849Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T01:02:22.459334Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T01:02:22.866013Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T01:02:22.866141Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+{"timestamp": "2025-06-20T01:02:52.660872Z", "level": "INFO", "service": "backend", "event": "request_start", "message": "GET /health", "session_id": "sess_166b1e9cabf2", "request_id": "req_24f665b7d1a0", "data": {"method": "GET", "path": "/health", "query_params": {}, "user_agent": "curl/8.7.1"}}
+{"timestamp": "2025-06-20T01:02:52.662324Z", "level": "INFO", "service": "backend", "event": "request_complete", "message": "GET /health completed in 1ms", "session_id": "sess_166b1e9cabf2", "request_id": "req_24f665b7d1a0", "data": {"method": "GET", "path": "/health", "status_code": 404, "duration_ms": 1}}
+INFO:     127.0.0.1:65419 - "GET /health HTTP/1.1" 404 Not Found
+{"timestamp": "2025-06-20T01:02:58.339789Z", "level": "INFO", "service": "backend", "event": "request_start", "message": "GET /api/health", "session_id": "sess_282b91ba86eb", "request_id": "req_9aa51289db27", "data": {"method": "GET", "path": "/api/health", "query_params": {}, "user_agent": "curl/8.7.1"}}
+{"timestamp": "2025-06-20T01:02:58.340238Z", "level": "INFO", "service": "backend", "event": "request_complete", "message": "GET /api/health completed in 0ms", "session_id": "sess_282b91ba86eb", "request_id": "req_9aa51289db27", "data": {"method": "GET", "path": "/api/health", "status_code": 200, "duration_ms": 0}}
+INFO:     127.0.0.1:65425 - "GET /api/health HTTP/1.1" 200 OK
+{"timestamp": "2025-06-20T01:03:10.620741Z", "level": "INFO", "service": "backend", "event": "request_start", "message": "POST /api/analyze/stream", "session_id": "test_session", "request_id": "req_df6db0ed8059", "data": {"method": "POST", "path": "/api/analyze/stream", "query_params": {}, "user_agent": "curl/8.7.1"}}
+{"timestamp": "2025-06-20T01:03:10.622147Z", "level": "INFO", "service": "backend", "event": "sse_endpoint_start", "message": "SSE endpoint reached", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:03:10.622208Z", "level": "INFO", "service": "backend", "event": "query_start", "message": "Query processing started: show me issues from the last 24 hours", "session_id": "test_session", "request_id": "unknown", "data": {"query": "show me issues from the last 24 hours", "max_conversations": null, "start_time": "2025-06-20T01:03:10.622198"}}
+{"timestamp": "2025-06-20T01:03:10.622252Z", "level": "INFO", "service": "backend", "event": "conversation_limit_set", "message": "Using 100 conversation limit", "session_id": "test_session", "request_id": "unknown", "data": {"max_conversations": 100}}
+{"timestamp": "2025-06-20T01:03:10.622278Z", "level": "INFO", "service": "backend", "event": "config_creation_start", "message": "Creating config", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:03:10.622341Z", "level": "INFO", "service": "backend", "event": "config_creation_complete", "message": "Config created successfully", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:03:10.622366Z", "level": "INFO", "service": "backend", "event": "sse_response_start", "message": "Creating SSE response", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:03:10.622492Z", "level": "INFO", "service": "backend", "event": "sse_start", "message": "SSE generation started", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:03:10.622526Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:03:10.622592Z", "level": "INFO", "service": "backend", "event": "request_complete", "message": "POST /api/analyze/stream completed in 1ms", "session_id": "test_session", "request_id": "req_df6db0ed8059", "data": {"method": "POST", "path": "/api/analyze/stream", "status_code": 200, "duration_ms": 1}}
+INFO:     127.0.0.1:65436 - "POST /api/analyze/stream HTTP/1.1" 200 OK
+{"timestamp": "2025-06-20T01:03:10.622842Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:03:10.622909Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:03:10.623029Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:03:10.623160Z", "level": "INFO", "service": "backend", "event": "general", "message": "Starting query processing", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:03:10.623189Z", "level": "INFO", "service": "backend", "event": "general", "message": "Fetching Intercom app ID for conversation links...", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:03:10.753861Z", "level": "INFO", "service": "backend", "event": "general", "message": "Found app ID via /me endpoint: sc3pepw3", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:03:10.754053Z", "level": "INFO", "service": "backend", "event": "general", "message": "Using app ID: sc3pepw3", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:03:10.758714Z", "level": "INFO", "service": "backend", "event": "general", "message": "Interpreting query timeframe...", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:03:10.758795Z", "level": "INFO", "service": "backend", "event": "general", "message": "Parsing timeframe from query: 'show me issues from the last 24 hours'", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:03:10.759035Z", "level": "INFO", "service": "backend", "event": "general", "message": "Parsed timeframe: Last 24 hours (2025-06-18 21:03:10 to 2025-06-19 21:03:10)", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:03:10.759084Z", "level": "INFO", "service": "backend", "event": "general", "message": "openai_timeframe API call", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:03:10.759113Z", "level": "INFO", "service": "backend", "event": "general", "message": "Fetching conversations from Last 24 hours...", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:03:10.759148Z", "level": "INFO", "service": "backend", "event": "general", "message": "Using limit of 100 conversations for Last 24 hours", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:03:10.759199Z", "level": "INFO", "service": "backend", "event": "general", "message": "MCP not implemented yet, using REST API", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:03:11.424121Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:03:20.372747Z", "level": "INFO", "service": "backend", "event": "general", "message": "Page 1: Parsed 59 conversations (total: 59)", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:03:20.372873Z", "level": "INFO", "service": "backend", "event": "general", "message": "Reached end of results (page_size=70, total=70)", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:03:20.373041Z", "level": "INFO", "service": "backend", "event": "general", "message": "Found 59 total conversations in the specified timeframe", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:03:20.373072Z", "level": "INFO", "service": "backend", "event": "general", "message": "Fetched 59 conversations (within requested limit of 100)", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:03:20.373200Z", "level": "INFO", "service": "backend", "event": "general", "message": "intercom API call", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:03:20.373310Z", "level": "INFO", "service": "backend", "event": "general", "message": "Analyzing 59 conversations...", "session_id": "test_session", "request_id": "unknown"}
+🧠 Analyzing 59 conversations...{"timestamp": "2025-06-20T01:03:20.373348Z", "level": "INFO", "service": "backend", "event": "general", "message": "Attempting structured JSON analysis...", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:03:21.035817Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:03:22.638857Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:03:24.240210Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:03:25.841565Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:03:27.443445Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:03:28.244721Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:03:29.847086Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:03:31.448661Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:03:33.051157Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:03:34.653556Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:03:36.255662Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:03:37.056254Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:03:37.859287Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:03:39.461701Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "test_session", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:03:59.040399Z", "level": "INFO", "service": "backend", "event": "general", "message": "Successfully used structured analysis", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:03:59.040800Z", "level": "INFO", "service": "backend", "event": "general", "message": "openai_analysis API call", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:03:59.040873Z", "level": "INFO", "service": "backend", "event": "general", "message": "Query completed", "session_id": "test_session", "request_id": "unknown"}
+✅ Analysis complete (38.7s)          
+✨ Query completed in 48.4s, cost: $0.016    
+{"timestamp": "2025-06-20T01:03:59.040937Z", "level": "INFO", "service": "backend", "event": "general", "message": "Query completed in 48.4s, cost: $0.016", "session_id": "test_session", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:04:34.689548Z", "level": "INFO", "service": "backend", "event": "request_start", "message": "POST /api/analyze/stream", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "req_788c77fcda1f", "data": {"method": "POST", "path": "/api/analyze/stream", "query_params": {}, "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"}}
+{"timestamp": "2025-06-20T01:04:34.694209Z", "level": "INFO", "service": "backend", "event": "sse_endpoint_start", "message": "SSE endpoint reached", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:04:34.694493Z", "level": "INFO", "service": "backend", "event": "query_start", "message": "Query processing started: Show me issues from the last 24 hours", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown", "data": {"query": "Show me issues from the last 24 hours", "max_conversations": null, "start_time": "2025-06-20T01:04:34.694459"}}
+{"timestamp": "2025-06-20T01:04:34.694622Z", "level": "INFO", "service": "backend", "event": "conversation_limit_set", "message": "Using 100 conversation limit", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown", "data": {"max_conversations": 100}}
+{"timestamp": "2025-06-20T01:04:34.694713Z", "level": "INFO", "service": "backend", "event": "config_creation_start", "message": "Creating config", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:04:34.694876Z", "level": "INFO", "service": "backend", "event": "config_creation_complete", "message": "Config created successfully", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:04:34.694962Z", "level": "INFO", "service": "backend", "event": "sse_response_start", "message": "Creating SSE response", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:04:34.695340Z", "level": "INFO", "service": "backend", "event": "sse_start", "message": "SSE generation started", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:04:34.695466Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:04:34.695638Z", "level": "INFO", "service": "backend", "event": "request_complete", "message": "POST /api/analyze/stream completed in 3ms", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "req_788c77fcda1f", "data": {"method": "POST", "path": "/api/analyze/stream", "status_code": 200, "duration_ms": 3}}
+INFO:     127.0.0.1:65491 - "POST /api/analyze/stream HTTP/1.1" 200 OK
+{"timestamp": "2025-06-20T01:04:34.697005Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:04:34.697641Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:04:34.699783Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:04:34.700338Z", "level": "INFO", "service": "backend", "event": "general", "message": "Starting query processing", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:04:34.700726Z", "level": "INFO", "service": "backend", "event": "general", "message": "Fetching Intercom app ID for conversation links...", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:04:34.841731Z", "level": "INFO", "service": "backend", "event": "general", "message": "Found app ID via /me endpoint: sc3pepw3", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:04:34.841911Z", "level": "INFO", "service": "backend", "event": "general", "message": "Using app ID: sc3pepw3", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:04:34.846549Z", "level": "INFO", "service": "backend", "event": "general", "message": "Interpreting query timeframe...", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:04:34.846600Z", "level": "INFO", "service": "backend", "event": "general", "message": "Parsing timeframe from query: 'Show me issues from the last 24 hours'", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:04:34.846643Z", "level": "INFO", "service": "backend", "event": "general", "message": "Parsed timeframe: Last 24 hours (2025-06-18 21:04:34 to 2025-06-19 21:04:34)", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:04:34.846680Z", "level": "INFO", "service": "backend", "event": "general", "message": "openai_timeframe API call", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:04:34.846711Z", "level": "INFO", "service": "backend", "event": "general", "message": "Fetching conversations from Last 24 hours...", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:04:34.846738Z", "level": "INFO", "service": "backend", "event": "general", "message": "Using limit of 100 conversations for Last 24 hours", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:04:34.846798Z", "level": "INFO", "service": "backend", "event": "general", "message": "MCP not implemented yet, using REST API", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:04:35.502923Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:04:46.102387Z", "level": "INFO", "service": "backend", "event": "general", "message": "Page 1: Parsed 59 conversations (total: 59)", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:04:46.102972Z", "level": "INFO", "service": "backend", "event": "general", "message": "Reached end of results (page_size=70, total=70)", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:04:46.103156Z", "level": "INFO", "service": "backend", "event": "general", "message": "Found 59 total conversations in the specified timeframe", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:04:46.103201Z", "level": "INFO", "service": "backend", "event": "general", "message": "Fetched 59 conversations (within requested limit of 100)", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:04:46.103398Z", "level": "INFO", "service": "backend", "event": "general", "message": "intercom API call", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:04:46.103470Z", "level": "INFO", "service": "backend", "event": "general", "message": "Analyzing 59 conversations...", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown"}
+🧠 Analyzing 59 conversations...{"timestamp": "2025-06-20T01:04:46.103522Z", "level": "INFO", "service": "backend", "event": "general", "message": "Attempting structured JSON analysis...", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:04:46.717325Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:04:48.319717Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:04:49.922140Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:04:51.524841Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:04:53.129357Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:04:53.930616Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:04:54.731877Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:04:56.333233Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:04:57.134510Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:04:58.736921Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:05:00.339341Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:05:01.941434Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:05:02.744257Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:05:03.545686Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:05:05.146601Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:05:06.748932Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:05:08.351282Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:05:32.264623Z", "level": "INFO", "service": "backend", "event": "general", "message": "Successfully used structured analysis", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:05:32.265642Z", "level": "INFO", "service": "backend", "event": "general", "message": "openai_analysis API call", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:05:32.265685Z", "level": "INFO", "service": "backend", "event": "general", "message": "Query completed", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown"}
+✅ Analysis complete (46.2s)          
+✨ Query completed in 57.6s, cost: $0.016    
+{"timestamp": "2025-06-20T01:05:32.265723Z", "level": "INFO", "service": "backend", "event": "general", "message": "Query completed in 57.6s, cost: $0.016", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown"}
+{"timestamp": "2025-06-20T01:05:32.378834Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:05:32.379021Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: progress", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown", "data": {"event_type": "progress", "data_keys": ["stage", "message", "percent"]}}
+{"timestamp": "2025-06-20T01:05:32.379283Z", "level": "INFO", "service": "backend", "event": "query_complete", "message": "Query processing completed in 57679ms", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown", "data": {"query": "Show me issues from the last 24 hours", "duration_ms": 57679, "conversation_count": 59, "insights_count": 4, "cost_usd": 0.016050000000000002, "tokens_used": 535}}
+{"timestamp": "2025-06-20T01:05:32.379689Z", "level": "INFO", "service": "backend", "event": "sse_event", "message": "Sending SSE event: complete", "session_id": "sess_1750381474676_kvh4ey3zx", "request_id": "unknown", "data": {"event_type": "complete", "data_keys": ["insights", "summary", "cost", "response_time_ms", "session_id", "request_id"]}}
+WARNING:  StatReload detected changes in 'src/intercom_client.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [87989]
+INFO:     Started server process [91312]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-20T01:22:11.491480Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-20T01:22:11.491982Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-20T01:22:12.028341Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-20T01:22:12.028608Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.

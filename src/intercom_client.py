@@ -172,8 +172,8 @@ class IntercomClient:
             # Pagination loop to get ALL conversations within the timeframe
             page = 1
             per_page = 150  # Search API max is 150 - use full page size for efficiency
-            max_conversations = min(
-                filters.limit, 1000
+            max_conversations = (
+                min(filters.limit, 1000) if filters.limit is not None else 1000
             )  # Use requested limit, capped at 1000 for safety
             estimated_total = None  # Will be set after first API call
             fetch_start_time = None  # Track fetching start time for rate calculation
@@ -297,7 +297,7 @@ class IntercomClient:
         )
 
         # Only trim if we exceed requested limit (shouldn't happen with new logic)
-        if len(conversations) > filters.limit:
+        if filters.limit is not None and len(conversations) > filters.limit:
             logger.warning(
                 f"Found {len(conversations)} conversations, exceeding requested limit of {filters.limit}. Trimming to limit."
             )
@@ -306,9 +306,14 @@ class IntercomClient:
                 f"Fetched {len(conversations)} conversations (trimmed from {total_found})"
             )
         else:
-            logger.info(
-                f"Fetched {len(conversations)} conversations (within requested limit of {filters.limit})"
-            )
+            if filters.limit is not None:
+                logger.info(
+                    f"Fetched {len(conversations)} conversations (within requested limit of {filters.limit})"
+                )
+            else:
+                logger.info(
+                    f"Fetched {len(conversations)} conversations (no limit set)"
+                )
 
         return conversations
 
@@ -321,7 +326,7 @@ class IntercomClient:
         async with httpx.AsyncClient(timeout=30.0) as client:
             # Build query parameters
             params = {
-                "per_page": min(filters.limit, 50),  # Intercom max is 50
+                "per_page": min(filters.limit or 50, 50),  # Intercom max is 50
                 "order": "desc",
                 "sort": "created_at",
             }
@@ -347,7 +352,10 @@ class IntercomClient:
                 if conversation:
                     conversations.append(conversation)
 
-                    if len(conversations) >= filters.limit:
+                    if (
+                        filters.limit is not None
+                        and len(conversations) >= filters.limit
+                    ):
                         break
 
         logger.info(f"Fetched {len(conversations)} conversations via list + details")

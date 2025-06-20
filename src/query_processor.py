@@ -52,26 +52,6 @@ class QueryProcessor:
         base_cost = 0.01  # Timeframe interpretation
         return base_cost + (conversation_count * cost_per_conversation)
 
-    def _calculate_smart_limit(self, timeframe: TimeFrame) -> int:
-        """Calculate smart conversation limit based on timeframe duration."""
-        if not timeframe.start_date or not timeframe.end_date:
-            return self.config.max_conversations
-
-        duration_days = (timeframe.end_date - timeframe.start_date).days
-
-        # Smart limits based on timeframe
-        if duration_days <= 1:  # Today/yesterday
-            limit = 100
-        elif duration_days <= 7:  # This/last week
-            limit = 300
-        elif duration_days <= 30:  # This/last month
-            limit = 800
-        else:  # Longer periods
-            limit = self.config.max_conversations
-
-        # Never exceed the configured max
-        return min(limit, self.config.max_conversations)
-
     async def count_conversations_for_query(self, query: str) -> tuple[int, TimeFrame]:
         """Preview how many conversations would be analyzed for a query."""
         # Initialize AI client if needed
@@ -194,21 +174,27 @@ class QueryProcessor:
                 )
             logger.info(f"Fetching conversations from {timeframe.description}...")
 
-            # Smart limit based on timeframe duration
-            smart_limit = self._calculate_smart_limit(timeframe)
-            if smart_limit != self.config.max_conversations:
-                adjustment_msg = f"Adjusted max conversations from {self.config.max_conversations} to {smart_limit} for {timeframe.description}"
-                logger.info(adjustment_msg)
-                print(f"📊 {adjustment_msg}")
+            # Use simple conversation limit - respect user configuration
+            max_conversations = self.config.max_conversations
+            if max_conversations is not None and max_conversations > 1000:
+                max_conversations = 1000
+                logger.info(
+                    f"Conversation limit capped at 1000 (requested: {self.config.max_conversations})"
+                )
+                print(
+                    f"📊 Conversation limit capped at 1000 (requested: {self.config.max_conversations})"
+                )
+            elif max_conversations is None:
+                logger.info(f"No conversation limit set for {timeframe.description}")
             else:
                 logger.info(
-                    f"Using limit of {smart_limit} conversations for {timeframe.description}"
+                    f"Using limit of {max_conversations} conversations for {timeframe.description}"
                 )
 
             filters = ConversationFilters(
                 start_date=timeframe.start_date,
                 end_date=timeframe.end_date,
-                limit=smart_limit,
+                limit=max_conversations,
             )
 
             # Start fetching conversations and analyzing in parallel

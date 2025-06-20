@@ -18,7 +18,6 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ValidationError
 
 # Import our existing CLI components
-from ..ai_client import AIClient
 from ..config import Config
 from ..health import HealthStatus, health_checker
 from ..logging import (
@@ -182,63 +181,6 @@ async def validate_environment():
 frontend_dir = Path(__file__).parent.parent.parent / "frontend" / "dist"
 
 
-def get_smart_max_conversations(
-    query: str, requested_max: int | None = None
-) -> tuple[int, str | None]:
-    """Calculate smart max_conversations based on query timeframe.
-
-    Returns:
-        tuple: (max_conversations, adjustment_message)
-    """
-    # If user explicitly requested a high limit, respect it but cap at 500
-    if requested_max is not None and requested_max > 100:
-        if requested_max > 500:
-            return (
-                500,
-                f"Capped user-requested limit from {requested_max} to 500 conversations",
-            )
-        return requested_max, None
-
-    # Ignore small hardcoded limits (50, 100) and use smart limits instead
-    # This handles legacy frontend requests that hardcode max_conversations: 50
-
-    # Use smart limits based on timeframe
-    try:
-        ai_client = AIClient("dummy", "gpt-4")  # Just for timeframe parsing
-        timeframe = ai_client._parse_timeframe_deterministic(query)
-
-        duration_days = (
-            (timeframe.end_date - timeframe.start_date).days
-            if timeframe.start_date and timeframe.end_date
-            else 30
-        )
-
-        # Smart limits based on timeframe
-        if duration_days <= 1:  # Today/yesterday
-            return (
-                100,
-                f"Using 100 conversations for {timeframe.description} (short timeframe)",
-            )
-        elif duration_days <= 7:  # This/last week
-            return (
-                300,
-                f"Using 300 conversations for {timeframe.description} (weekly timeframe)",
-            )
-        elif duration_days <= 30:  # This/last month
-            return (
-                500,
-                f"Using 500 conversations for {timeframe.description} (monthly timeframe)",
-            )
-        else:  # Longer periods
-            return (
-                500,
-                f"Using 500 conversations for {timeframe.description} (extended timeframe)",
-            )
-    except Exception:
-        # Fallback if timeframe parsing fails
-        return 100, "Using 100 conversations (fallback - could not determine timeframe)"
-
-
 class HealthResponse(BaseModel):
     status: str
     message: str
@@ -248,7 +190,7 @@ class AnalysisRequest(BaseModel):
     query: str
     intercom_token: str | None = None
     openai_key: str | None = None
-    max_conversations: int | None = None  # If None, use smart limits
+    max_conversations: int | None = None  # If None, no limit
 
 
 class AnalysisResponse(BaseModel):
@@ -810,33 +752,26 @@ async def analyze_conversations_stream(request: AnalysisRequest, http_request: R
             status_code=400,
         )
 
-    session_logger.info(
-        "Starting smart limit calculation",
-        event="smart_limit_start",
-    )
+    # Use user-specified max_conversations or default to reasonable limit
+    max_conversations = request.max_conversations or 100
 
-    # Calculate smart max_conversations
-    smart_max, adjustment_msg = get_smart_max_conversations(
-        request.query, request.max_conversations
-    )
-
-    session_logger.info(
-        f"Smart limit calculation complete: {smart_max}",
-        event="smart_limit_complete",
-        data={"smart_max": smart_max, "adjustment_msg": adjustment_msg},
-    )
-
-    # Log adjustment if made
-    if adjustment_msg:
+    # Cap at 500 to prevent excessive API usage
+    if max_conversations > 500:
+        max_conversations = 500
         session_logger.info(
-            f"Smart limit adjustment: {adjustment_msg}",
-            event="smart_limit_adjustment",
+            f"Conversation limit capped at 500 (requested: {request.max_conversations})",
+            event="conversation_limit_capped",
             data={
-                "query": request.query,
-                "adjusted_max": smart_max,
-                "message": adjustment_msg,
+                "requested": request.max_conversations,
+                "actual": max_conversations,
             },
         )
+
+    session_logger.info(
+        f"Using {max_conversations} conversation limit",
+        event="conversation_limit_set",
+        data={"max_conversations": max_conversations},
+    )
 
     session_logger.info(
         "Creating config",
@@ -848,7 +783,7 @@ async def analyze_conversations_stream(request: AnalysisRequest, http_request: R
         config = Config(
             intercom_token=intercom_token,
             openai_key=openai_key,
-            max_conversations=smart_max,
+            max_conversations=max_conversations,
         )
     except Exception as e:
         session_logger.error(
@@ -944,22 +879,17 @@ async def analyze_conversations(request: AnalysisRequest, http_request: Request)
                 status_code=400,
             )
 
-        # Calculate smart max_conversations
-        smart_max, adjustment_msg = get_smart_max_conversations(
-            request.query, request.max_conversations
-        )
-
-        # Log adjustment if made
-        if adjustment_msg:
+        # Use simple conversation limit logic
+        max_conversations = request.max_conversations
+        if max_conversations is not None and max_conversations > 1000:
+            max_conversations = 1000
             session_logger.info(
-                f"Smart limit adjustment: {adjustment_msg}",
-                event="smart_limit_adjustment",
-                session_id=session_id,
-                request_id=request_id,
+                f"Conversation limit capped at 1000 (requested: {request.max_conversations})",
+                event="conversation_limit_capped",
                 data={
                     "query": request.query,
-                    "adjusted_max": smart_max,
-                    "message": adjustment_msg,
+                    "requested_max": request.max_conversations,
+                    "capped_max": 1000,
                 },
             )
 
@@ -968,7 +898,7 @@ async def analyze_conversations(request: AnalysisRequest, http_request: Request)
             config = Config(
                 intercom_token=intercom_token,
                 openai_key=openai_key,
-                max_conversations=smart_max,
+                max_conversations=max_conversations,
             )
         except Exception as e:
             raise APIError(
@@ -1171,22 +1101,17 @@ async def analyze_conversations_structured(
                 status_code=400,
             )
 
-        # Calculate smart max_conversations
-        smart_max, adjustment_msg = get_smart_max_conversations(
-            request.query, request.max_conversations
-        )
-
-        # Log adjustment if made
-        if adjustment_msg:
+        # Use simple conversation limit logic
+        max_conversations = request.max_conversations
+        if max_conversations is not None and max_conversations > 1000:
+            max_conversations = 1000
             session_logger.info(
-                f"Smart limit adjustment: {adjustment_msg}",
-                event="smart_limit_adjustment",
-                session_id=session_id,
-                request_id=request_id,
+                f"Conversation limit capped at 1000 (requested: {request.max_conversations})",
+                event="conversation_limit_capped",
                 data={
                     "query": request.query,
-                    "adjusted_max": smart_max,
-                    "message": adjustment_msg,
+                    "requested_max": request.max_conversations,
+                    "capped_max": 1000,
                 },
             )
 
@@ -1195,7 +1120,7 @@ async def analyze_conversations_structured(
             config = Config(
                 intercom_token=intercom_token,
                 openai_key=openai_key,
-                max_conversations=smart_max,
+                max_conversations=max_conversations,
             )
         except Exception as e:
             raise APIError(

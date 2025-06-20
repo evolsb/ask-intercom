@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Send } from 'lucide-react'
 import { useAppStore } from '../store/useAppStore'
 import { cn } from '../lib/utils'
-import { SmartLimits } from './SmartLimits'
 
 interface QueryInputProps {
   onSubmit: (query: string) => void
@@ -16,7 +15,7 @@ const EXAMPLE_QUERIES = [
 ]
 
 export function QueryInput({ onSubmit }: QueryInputProps) {
-  const { currentQuery, setCurrentQuery, isLoading, maxConversations, setMaxConversations } = useAppStore()
+  const { currentQuery, setCurrentQuery, isLoading } = useAppStore()
   const [localQuery, setLocalQuery] = useState(currentQuery)
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -77,13 +76,6 @@ export function QueryInput({ onSubmit }: QueryInputProps) {
             Press Enter to submit • Ctrl+Enter for new line
           </p>
         </div>
-        
-        {/* Smart Limits Component */}
-        <SmartLimits
-          maxConversations={maxConversations}
-          onMaxConversationsChange={setMaxConversations}
-          disabled={isLoading}
-        />
         
         <div className="flex justify-end">
           <button

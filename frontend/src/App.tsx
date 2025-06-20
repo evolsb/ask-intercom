@@ -4,6 +4,7 @@ import { ApiKeySetup } from './components/ApiKeySetup'
 import { QueryInput } from './components/QueryInput'
 import { ResultsDisplay } from './components/ResultsDisplay'
 import { ThemeToggle } from './components/ThemeToggle'
+import { Settings } from './components/Settings'
 
 function App() {
   const { 
@@ -267,7 +268,10 @@ function App() {
                 Transform your Intercom conversations into actionable insights
               </p>
             </div>
-            <ThemeToggle />
+            <div className="flex items-center space-x-2">
+              <Settings />
+              <ThemeToggle />
+            </div>
           </div>
         </header>
 

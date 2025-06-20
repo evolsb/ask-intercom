@@ -1,8 +1,0 @@
-{
-	"nodes":[
-		{"id":"fffe97f3850adf71","type":"file","file":"docs/vision.md","x":-160,"y":-400,"width":250,"height":180},
-		{"id":"25232d277ee2bdfa","type":"text","text":"User Stories","x":-160,"y":-180,"width":250,"height":70},
-		{"id":"8ab96e8cd596f1ac","type":"text","text":"Backlog ","x":-160,"y":-60,"width":250,"height":60}
-	],
-	"edges":[]
-}

@@ -8,9 +8,9 @@ This file provides crucial guidance to Claude Code (claude.ai/code) when working
 **Claude MUST read project documentation BEFORE any coding work:**
 ```bash
 # REQUIRED: Read these files first, in order:
-# 1. docs/index.md (project overview)
-# 2. docs/planning/current-focus.md (current priorities)
-# 3. Relevant docs/web/ or docs/mcp/ files based on focus
+# 1. docs/01-README.md (project overview and current status)
+# 2. docs/04-Current-Status.md (what works now, recent changes)
+# 3. docs/05-Next-Steps.md (planned improvements and priorities)
 ```
 
 **⚠️ IF YOU START CODING WITHOUT READING DOCS FIRST, YOU ARE DOING IT WRONG!**
@@ -34,7 +34,7 @@ tail -f .ask-intercom-analytics/logs/backend-$(date +%Y-%m-%d).jsonl
 
 Ask-Intercom is an AI-powered tool that turns raw Intercom conversations into actionable product, support, and roadmap insights. The project follows a risk-first development approach.
 
-**Current Status:** Check `docs/planning/current-focus.md` for latest phase and priorities
+**Current Status:** Web application complete with smart limits removed. See `docs/04-Current-Status.md` for latest updates.
 
 ## Core Architecture
 
@@ -168,31 +168,17 @@ src/
 - No customer data persistence
 - Process conversations in memory only
 
-## 📋 Documentation Maintenance (CRITICAL - NEVER SKIP)
+## 📋 Documentation Updates
 
-**🚨 CLAUDE MUST FOLLOW THIS WORKFLOW EVERY SINGLE SESSION 🚨**
+**Keep docs current as you work:**
 
-### ⚠️ BEFORE ANY CODING (MANDATORY):
-1. **Read current state**: `docs/index.md` → `docs/planning/current-focus.md`
-2. **Choose track**: MCP integration OR Web deployment  
-3. **Check tasks**: Read relevant `tasks.md` and `progress.md` files
-4. **STOP AND CONFIRM**: You understand the current project state
+### Before Coding:
+1. **Read current state**: Start with `docs/01-README.md` and `docs/04-Current-Status.md`
+2. **Understand priorities**: Check `docs/05-Next-Steps.md` for planned work
 
-### During Work (REQUIRED):
-5. **Update progress**: Mark tasks in progress, add new discoveries
-6. **Document decisions**: Add to `docs/reference/decisions.md` if architectural
+### After Major Changes:
+3. **Update status**: Modify `docs/04-Current-Status.md` with what you completed
+4. **Document decisions**: Add significant technical choices to `docs/06-Decisions.md`
+5. **Update next steps**: Revise `docs/05-Next-Steps.md` if priorities changed
 
-### ⚠️ AFTER COMPLETING WORK (MANDATORY):
-7. **Mark completion**: Update task status and add results
-8. **Update focus**: Modify `docs/planning/current-focus.md` with next steps  
-9. **Log important findings**: Update relevant progress files
-10. **CONFIRM DOCS UPDATED**: Explicitly state you've updated documentation
-
-**🚨 FAILURE TO UPDATE DOCS IS A CRITICAL ERROR 🚨**
-
-**The documentation structure in `docs/` is the single source of truth for project state.**
-
-### Enforcement Reminders:
-- **If you code without reading docs first → YOU FAILED**
-- **If you finish work without updating docs → YOU FAILED**  
-- **Documentation updates are NOT optional → THEY ARE MANDATORY**
+**Simple rule**: If it's a significant change, update the docs. No complex workflows needed.

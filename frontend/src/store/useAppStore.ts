@@ -60,7 +60,7 @@ interface AppState {
   // API Configuration
   intercomToken: string
   openaiKey: string
-  maxConversations: number | null  // null = use smart limits
+  maxConversations: number | null  // null = no limit
   
   // Session Management
   sessionInfo: SessionInfo | null
@@ -101,7 +101,7 @@ export const useAppStore = create<AppState>()(
       // Initial state
       intercomToken: '',
       openaiKey: '',
-      maxConversations: null,  // Use smart limits by default
+      maxConversations: null,  // No limit by default
       sessionInfo: null,
       currentQuery: '',
       isLoading: false,

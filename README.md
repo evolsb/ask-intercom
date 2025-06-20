@@ -1,55 +1,56 @@
 # Ask-Intercom
 
-Ask natural language questions about your Intercom conversations and get AI-powered insights.
+> **Transform your Intercom conversations into actionable insights**
 
-## Quick Start
+AI-powered analysis tool with web interface and CLI. Ask natural language questions like "show me issues from last week" and get structured insights with customer details.
 
-1. **Setup the environment:**
-   ```bash
-   ./setup.sh
-   ```
+## 🚀 Quick Start
 
-2. **Configure your API credentials:**
-   Edit `.env` file with your credentials:
-   ```bash
-   INTERCOM_ACCESS_TOKEN=your_token_here
-   OPENAI_API_KEY=your_key_here
-   # INTERCOM_APP_ID=your_app_id_here  # Optional - auto-detected
-   ```
+### Web Interface (Recommended)
+```bash
+# Start backend and frontend
+env -i HOME="$HOME" PATH="$PATH" ~/.local/bin/poetry run uvicorn src.web.main:app --port 8000 --reload &
+cd frontend && npm run dev &
 
-3. **Run interactively:**
-   ```bash
-   ./test
-   ```
+# Open http://localhost:5173
+```
 
-4. **Or run single queries:**
-   ```bash
-   poetry run python -m src.cli "What are the top customer complaints this month?"
-   ```
+### CLI Usage
+```bash
+# Setup environment  
+~/.local/bin/poetry install
+echo "INTERCOM_ACCESS_TOKEN=your_token_here" > .env
+echo "OPENAI_API_KEY=your_key_here" >> .env
 
-## Features
+# Ask questions
+env -i HOME="$HOME" PATH="$PATH" ~/.local/bin/poetry run python -m src.cli "What are the top customer complaints this month?"
+```
 
-- 🤖 AI-powered conversation analysis
-- 🔗 Clickable links to Intercom conversations
-- ⚡ Fast timeframe interpretation ("this month", "last week", etc.)
-- 💰 Cost tracking and optimization
-- 🎯 Structured insights with categories and metrics
+## ✨ Features
 
-## Requirements
+- 🌐 **Web interface** with real-time progress tracking
+- 🤖 **AI-powered analysis** using OpenAI GPT-4  
+- ⚡ **Natural language queries** ("show me issues from last week")
+- 🎯 **Structured insights** with customer details and priorities
+- 🔗 **Direct links** to Intercom conversations
+- ⚙️ **Optional conversation limits** (user-controlled via Settings)
+- 💰 **Cost tracking** and optimization
 
-- Python 3.13+
-- Poetry (automatically installed by setup.sh)
-- Intercom API access token
-- OpenAI API key
-- Intercom App ID (optional - auto-detected for conversation links, see [docs/finding-app-id.md](docs/finding-app-id.md))
+## 📋 Requirements
 
-## Documentation
+- **Python 3.13+** and Poetry
+- **Node.js** and npm (for web interface)
+- **Intercom access token** 
+- **OpenAI API key**
 
-- **[📚 Full Documentation](docs/index.md)** - Complete documentation hub
-- **[🚀 Quick Setup](docs/reference/setup-guide.md)** - Development environment setup
-- **[🎯 Current Focus](docs/planning/current-focus.md)** - What's being worked on now
-- **[🗺️ Project Roadmap](docs/planning/roadmap.md)** - Strategic overview and timeline
+## 📚 Documentation
 
-## Development
+- **[📖 Getting Started](docs/01-README.md)** - Project overview
+- **[⚙️ Setup Guide](docs/02-Setup.md)** - Development environment  
+- **[🏗️ Architecture](docs/03-Architecture.md)** - System design
+- **[📊 Current Status](docs/04-Current-Status.md)** - What works now
+- **[🎯 Next Steps](docs/05-Next-Steps.md)** - Future plans
 
-See **[CLAUDE.md](CLAUDE.md)** for Claude Code specific setup and **[docs/](docs/)** for comprehensive project documentation.
+## 🛠️ Development
+
+See **[CLAUDE.md](CLAUDE.md)** for Claude Code specific guidance and **[docs/](docs/)** for full documentation.

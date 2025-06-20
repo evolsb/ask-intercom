@@ -77,7 +77,7 @@ class ConversationFilters:
     end_date: Optional[datetime] = None
     tags: Optional[List[str]] = None
     customer_email: Optional[str] = None
-    limit: int = 50
+    limit: Optional[int] = None
 
 
 @dataclass
