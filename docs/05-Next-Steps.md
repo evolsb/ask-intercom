@@ -111,10 +111,23 @@
 - **Open source**: Community contributions and transparency
 
 ### Immediate Next Session Planning
-1. **Railway deployment**: Follow action plan above to get hosted version live
+1. ✅ **Railway deployment**: Live at https://ask-intercom-production.up.railway.app/
 2. **Template marketplace**: Package and submit to Railway templates
 3. **User testing**: Share hosted URL with target personas for feedback
-4. **Performance monitoring**: Use Railway metrics to establish baselines
+4. **Performance monitoring**: Use Railway metrics and remote debugging tools
+
+### 🔧 Remote Debugging (Production)
+**Critical for monitoring live deployment:**
+- **Live logs**: `railway logs | grep -i "error\|json\|parse"`
+- **Web logs API**: `GET https://ask-intercom-production.up.railway.app/api/logs?lines=100`
+- **Debug status**: `GET https://ask-intercom-production.up.railway.app/api/debug`
+- **Health check**: `GET https://ask-intercom-production.up.railway.app/api/health`
+
+**Common Issues to Monitor:**
+- JSON parsing failures ("Failed to parse structured response")
+- API rate limits or authentication errors
+- Performance degradation (response times > 2 minutes)
+- Memory/resource issues in Railway dashboard
 
 ## 🤔 Open Questions
 

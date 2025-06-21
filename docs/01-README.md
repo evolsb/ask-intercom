@@ -9,8 +9,20 @@
 - Web interface: ✅ Complete
 - Smart conversation limits: ✅ Removed (user-controlled optional limits)
 - Real-time progress: ✅ Complete
+- Production deployment: ✅ Live at https://ask-intercom-production.up.railway.app/
 
 **Get Started**: See [02-Setup.md](02-Setup.md)
+
+## 🔧 Production Debugging
+
+**Live App**: https://ask-intercom-production.up.railway.app/
+
+**Debug Endpoints**:
+- Logs: `https://ask-intercom-production.up.railway.app/api/logs?lines=50`
+- Health: `https://ask-intercom-production.up.railway.app/api/health`
+- Debug info: `https://ask-intercom-production.up.railway.app/api/debug`
+
+**Railway CLI**: `railway logs | grep -i "error\|json\|parse"`
 
 ## 📂 Documentation Structure
 
