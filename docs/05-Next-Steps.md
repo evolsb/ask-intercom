@@ -112,9 +112,16 @@
 
 ### Immediate Next Session Planning
 1. ✅ **Railway deployment**: Live at https://ask-intercom-production.up.railway.app/
-2. **Template marketplace**: Package and submit to Railway templates
-3. **User testing**: Share hosted URL with target personas for feedback
-4. **Performance monitoring**: Use Railway metrics and remote debugging tools
+2. **Pre-merge tasks** (HIGH PRIORITY):
+   - Test JSON parsing fix with real query on live app
+   - Add unit tests for structured JSON parsing
+   - Add error boundaries to React frontend
+   - Add basic performance metrics collection
+   - Verify all improvements work end-to-end
+3. **Post-merge tasks** (MEDIUM PRIORITY):
+   - Create Railway template for marketplace
+   - User testing and feedback collection
+   - Performance monitoring dashboard
 
 ### 🔧 Remote Debugging (Production)
 **Critical for monitoring live deployment:**
