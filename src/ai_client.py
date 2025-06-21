@@ -352,7 +352,26 @@ class AIClient:
 
         except (json.JSONDecodeError, KeyError, ValueError) as e:
             logger.error(f"Failed to parse structured response: {e}")
-            logger.error(f"Raw response content: {raw_content[:500]}...")
+            logger.error(
+                f"Raw response content (first 500 chars): {raw_content[:500]}..."
+            )
+            logger.error(
+                f"Raw response content (last 500 chars): ...{raw_content[-500:]}"
+            )
+            logger.error(f"Total response length: {len(raw_content)} characters")
+
+            # Save full response for debugging
+            import tempfile
+
+            try:
+                with tempfile.NamedTemporaryFile(
+                    mode="w", delete=False, suffix=".json", prefix="failed_response_"
+                ) as f:
+                    f.write(raw_content)
+                    logger.error(f"Full response saved to: {f.name}")
+            except Exception as save_error:
+                logger.error(f"Could not save response for debugging: {save_error}")
+
             raise ValueError(f"Failed to parse AI response: {e}") from e
 
     def _cleanup_json_response(self, content: str) -> str:

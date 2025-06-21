@@ -437,6 +437,49 @@ async def status():
     }
 
 
+@app.get("/api/logs")
+async def get_recent_logs(lines: int = 50):
+    """Get recent application logs for debugging."""
+    try:
+        import glob
+        from datetime import datetime
+
+        # Find today's log file
+        log_dir = Path(".ask-intercom-analytics/logs")
+        today = datetime.now().strftime("%Y-%m-%d")
+        log_files = glob.glob(str(log_dir / f"*{today}*.jsonl"))
+
+        if not log_files:
+            return {"error": "No log files found for today", "logs": []}
+
+        # Read last N lines from the most recent log file
+        log_file = max(log_files, key=os.path.getmtime)
+
+        logs = []
+        try:
+            with open(log_file, "r") as f:
+                all_lines = f.readlines()
+                recent_lines = (
+                    all_lines[-lines:] if len(all_lines) > lines else all_lines
+                )
+
+                for line in recent_lines:
+                    try:
+                        log_entry = json.loads(line.strip())
+                        logs.append(log_entry)
+                    except json.JSONDecodeError:
+                        # Include non-JSON lines as text
+                        logs.append({"message": line.strip(), "level": "RAW"})
+        except Exception as e:
+            return {"error": f"Failed to read log file: {e}", "logs": []}
+
+        return {"log_file": log_file, "total_lines": len(logs), "logs": logs}
+
+    except Exception as e:
+        session_logger.error(f"Failed to retrieve logs: {e}", event="logs_error")
+        return {"error": f"Failed to retrieve logs: {e}", "logs": []}
+
+
 async def generate_sse_events(
     query: str, config: Config, session_id: str, request_id: str
 ) -> AsyncGenerator[str, None]:

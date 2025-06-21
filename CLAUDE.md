@@ -71,12 +71,27 @@ env -i HOME="$HOME" PATH="$PATH" ~/.local/bin/poetry run python tests/integratio
 **Environment Variables** are loaded from `.env` file automatically - do NOT set in `.claude/settings.json`
 
 ### Debugging & Logs
+
+#### Local Development
 - **Debug logs**: `.ask-intercom-analytics/logs/` (structured JSON, daily rotation)
 - **Session logs**: `.ask-intercom-analytics/sessions/` (user session history)
 - **Error logs**: `.ask-intercom-analytics/logs/errors-YYYY-MM-DD.jsonl` (error tracking)
 - **View recent logs**: `tail -50 .ask-intercom-analytics/logs/backend-$(date +%Y-%m-%d).jsonl`
 - **Search logs**: `grep "ERROR\|error" .ask-intercom-analytics/logs/*.jsonl`
 - **Debug mode**: Add `--debug` flag to CLI commands for verbose console output
+
+#### Railway Production Debugging
+- **Railway CLI logs**: `railway logs` (live streaming)
+- **Filter Railway logs**: `railway logs | grep -i "error\|json\|parse"`
+- **Remote logs API**: `GET https://ask-intercom-production.up.railway.app/api/logs?lines=100`
+- **Debug endpoint**: `GET https://ask-intercom-production.up.railway.app/api/debug`
+- **Health status**: `GET https://ask-intercom-production.up.railway.app/api/health`
+
+#### Common Debugging Patterns
+- **JSON parse errors**: Look for "Failed to parse structured response" in logs
+- **API failures**: Check for "HTTP error" or status code errors
+- **Token issues**: Search for "token" or "authentication" in logs
+- **Performance issues**: Check response times and "Query completed" logs
 
 **⚠️ IMPORTANT SERVER MANAGEMENT:**
 - **ALWAYS run servers in background:** `command > /dev/null 2>&1 &`
