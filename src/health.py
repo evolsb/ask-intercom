@@ -218,8 +218,95 @@ class PerformanceTracker:
 
     def get_performance_metrics(self) -> PerformanceMetrics:
         """Get current performance metrics from logs."""
-        # This would analyze log files for metrics
-        # For now, return placeholder values
+        import json
+        from datetime import datetime, timedelta
+
+        try:
+            # Path to log files
+            log_dir = Path(".ask-intercom-analytics/logs")
+            if not log_dir.exists():
+                return self._default_metrics()
+
+            # Get log files from last 24 hours
+            cutoff_time = datetime.now() - timedelta(hours=24)
+            response_times = []
+            total_queries = 0
+            error_count = 0
+            last_query_time = 0
+
+            # Process log files
+            for log_file in log_dir.glob("backend-*.jsonl"):
+                try:
+                    # Extract date from filename (backend-YYYY-MM-DD.jsonl)
+                    date_str = log_file.stem.replace("backend-", "")
+                    file_date = datetime.strptime(date_str, "%Y-%m-%d")
+
+                    # Skip files older than 24 hours
+                    if file_date < cutoff_time.replace(
+                        hour=0, minute=0, second=0, microsecond=0
+                    ):
+                        continue
+
+                    with open(log_file, "r") as f:
+                        for line in f:
+                            try:
+                                entry = json.loads(line.strip())
+
+                                # Skip entries older than 24 hours
+                                if "timestamp" in entry:
+                                    entry_time = datetime.fromisoformat(
+                                        entry["timestamp"].replace("Z", "+00:00")
+                                    )
+                                    if entry_time < cutoff_time:
+                                        continue
+
+                                # Track query completions
+                                if entry.get(
+                                    "event_type"
+                                ) == "query_completed" or "Query completed" in entry.get(
+                                    "message", ""
+                                ):
+                                    total_queries += 1
+                                    # Convert duration from seconds to milliseconds
+                                    duration_ms = int(
+                                        entry.get("duration_seconds", 0) * 1000
+                                    )
+                                    response_times.append(duration_ms)
+                                    last_query_time = max(last_query_time, duration_ms)
+
+                                # Track errors
+                                if (
+                                    entry.get("level") == "ERROR"
+                                    or entry.get("event_type") == "query_error"
+                                    or "error" in entry.get("message", "").lower()
+                                ):
+                                    error_count += 1
+
+                            except (json.JSONDecodeError, KeyError, ValueError):
+                                continue
+
+                except Exception:
+                    continue
+
+            # Calculate metrics
+            avg_response_time = (
+                sum(response_times) / len(response_times) if response_times else 0.0
+            )
+            error_rate = error_count / max(total_queries + error_count, 1)
+
+            return PerformanceMetrics(
+                last_query_time_ms=last_query_time,
+                avg_response_time_24h=avg_response_time,
+                error_rate_24h=error_rate,
+                total_queries_24h=total_queries,
+            )
+
+        except Exception as e:
+            self.logger.error(f"Failed to calculate performance metrics: {e}")
+            return self._default_metrics()
+
+    def _default_metrics(self) -> PerformanceMetrics:
+        """Return default metrics when calculation fails."""
         return PerformanceMetrics(
             last_query_time_ms=0,
             avg_response_time_24h=0.0,

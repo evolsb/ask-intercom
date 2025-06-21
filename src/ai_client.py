@@ -390,6 +390,9 @@ class AIClient:
         if content.endswith("```"):
             content = content[:-3]
 
+        # Strip again after removing code blocks
+        content = content.strip()
+
         # Handle unterminated strings by finding the last valid JSON
         try:
             # Try to parse as-is first

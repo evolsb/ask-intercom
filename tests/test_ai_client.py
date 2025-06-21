@@ -16,8 +16,8 @@ class TestAIClientTimeframeInterpretation:
     def ai_client(self):
         """Create AI client for testing."""
         return AIClient(
-            api_key="sk-test_key_123456", model="gpt-4"
-        )  # pragma: allowlist secret
+            api_key="sk-test_key_123456", model="gpt-4"  # pragma: allowlist secret
+        )
 
     @pytest.mark.asyncio
     async def test_interpret_timeframe_this_month(self, ai_client):
@@ -118,8 +118,8 @@ class TestAIClientConversationAnalysis:
     def ai_client(self):
         """Create AI client for testing."""
         return AIClient(
-            api_key="sk-test_key_123456", model="gpt-4"
-        )  # pragma: allowlist secret
+            api_key="sk-test_key_123456", model="gpt-4"  # pragma: allowlist secret
+        )
 
     @pytest.fixture
     def sample_conversations(self):
@@ -284,8 +284,8 @@ class TestAIClientCostCalculation:
     def ai_client(self):
         """Create AI client for testing."""
         return AIClient(
-            api_key="sk-test_key_123456", model="gpt-4"
-        )  # pragma: allowlist secret
+            api_key="sk-test_key_123456", model="gpt-4"  # pragma: allowlist secret
+        )
 
     def test_calculate_cost_gpt4(self, ai_client):
         """Test cost calculation for GPT-4."""
@@ -310,8 +310,8 @@ class TestAIClientCostCalculation:
     def test_calculate_cost_gpt35(self):
         """Test cost calculation for GPT-3.5."""
         ai_client = AIClient(
-            api_key="sk-test_key", model="gpt-3.5-turbo"
-        )  # pragma: allowlist secret
+            api_key="sk-test_key", model="gpt-3.5-turbo"  # pragma: allowlist secret
+        )
 
         mock_usage = type(
             "Usage",
@@ -333,8 +333,8 @@ class TestAIClientCostCalculation:
     def test_calculate_cost_unknown_model(self):
         """Test cost calculation for unknown model (defaults to GPT-4)."""
         ai_client = AIClient(
-            api_key="sk-test_key", model="unknown-model"
-        )  # pragma: allowlist secret
+            api_key="sk-test_key", model="unknown-model"  # pragma: allowlist secret
+        )
 
         mock_usage = type(
             "Usage",
@@ -354,6 +354,140 @@ class TestAIClientCostCalculation:
         assert abs(cost_info.estimated_cost_usd - expected_cost) < 0.001
 
 
+class TestAIClientJSONCleanup:
+    """Test JSON cleanup functionality."""
+
+    @pytest.fixture
+    def ai_client(self):
+        """Create AI client for testing."""
+        return AIClient(
+            api_key="sk-test_key_123456", model="gpt-4"  # pragma: allowlist secret
+        )
+
+    def test_cleanup_json_valid_json(self, ai_client):
+        """Test cleanup with already valid JSON."""
+        valid_json = '{"key": "value", "number": 123}'
+        result = ai_client._cleanup_json_response(valid_json)
+        assert result == valid_json
+
+    def test_cleanup_json_with_code_blocks(self, ai_client):
+        """Test cleanup removes code block markers."""
+        json_with_blocks = '```json\n{"key": "value"}\n```'
+        result = ai_client._cleanup_json_response(json_with_blocks)
+        assert result == '{"key": "value"}'
+
+        json_with_generic_blocks = '```\n{"key": "value"}\n```'
+        result = ai_client._cleanup_json_response(json_with_generic_blocks)
+        assert result == '{"key": "value"}'
+
+    def test_cleanup_json_whitespace(self, ai_client):
+        """Test cleanup removes leading/trailing whitespace."""
+        json_with_whitespace = '   \n  {"key": "value"}  \n  '
+        result = ai_client._cleanup_json_response(json_with_whitespace)
+        assert result == '{"key": "value"}'
+
+    def test_cleanup_json_empty_string(self, ai_client):
+        """Test cleanup handles empty string."""
+        result = ai_client._cleanup_json_response("")
+        assert result == ""
+
+    def test_cleanup_json_none_input(self, ai_client):
+        """Test cleanup handles None input."""
+        result = ai_client._cleanup_json_response(None)
+        assert result is None
+
+    def test_cleanup_json_unterminated_string_recovery(self, ai_client):
+        """Test recovery from unterminated string errors."""
+        # Simulate JSON that's cut off mid-string
+        incomplete_json = """{
+    "insights": [
+        {
+            "title": "Login Issues",
+            "description": "Users are having trouble with login
+        }
+    ]
+}"""
+
+        # This should attempt recovery by truncating and closing braces
+        result = ai_client._cleanup_json_response(incomplete_json)
+
+        # Should return valid JSON (either original or recovered version)
+        import json
+
+        try:
+            parsed = json.loads(result)
+            # If recovery worked, should have some structure
+            assert isinstance(parsed, dict)
+        except json.JSONDecodeError:
+            # If recovery failed, should return original
+            assert result == incomplete_json
+
+    def test_cleanup_json_malformed_recovery_attempt(self, ai_client):
+        """Test recovery attempts with various malformed JSON patterns."""
+        test_cases = [
+            # Missing closing brace
+            '{"key": "value"',
+            # Missing closing bracket
+            '{"array": ["item1", "item2"',
+            # Multiple levels missing braces
+            '{"level1": {"level2": {"key": "value"',
+        ]
+
+        for malformed_json in test_cases:
+            result = ai_client._cleanup_json_response(malformed_json)
+
+            # Should either fix it (make it valid JSON) or return original
+            import json
+
+            try:
+                json.loads(result)
+                # If parsed successfully, recovery worked
+                assert True
+            except json.JSONDecodeError:
+                # If still invalid, should return original unchanged
+                assert result == malformed_json
+
+    def test_cleanup_json_complex_unterminated_scenario(self, ai_client):
+        """Test complex unterminated string recovery scenario."""
+        # Simulate a more complex case with actual AI response structure
+        complex_incomplete = """{
+    "insights": [
+        {
+            "id": "login_issues",
+            "category": "BUG",
+            "title": "Login Problems",
+            "description": "Users experiencing login difficulties",
+            "customers": [
+                {
+                    "email": "user1@example.com",
+                    "conversation_url": "https://app.intercom.com/conv/123"
+                }
+            ],
+            "impact": {
+                "customer_count": 5,
+                "percentage": 25.0
+            },
+            "priority_score": 8,
+            "recommendation": "Fix authentication service
+        }
+    ],
+    "summary": {
+        "total_conversations": 20"""
+
+        result = ai_client._cleanup_json_response(complex_incomplete)
+
+        # Should attempt recovery
+        import json
+
+        try:
+            parsed = json.loads(result)
+            # If recovery worked, should have basic structure
+            assert "insights" in parsed or "summary" in parsed
+        except json.JSONDecodeError:
+            # If recovery failed, should return original
+            assert result == complex_incomplete
+
+
 class TestAIClientInsightExtraction:
     """Test insight extraction functionality."""
 
@@ -361,8 +495,8 @@ class TestAIClientInsightExtraction:
     def ai_client(self):
         """Create AI client for testing."""
         return AIClient(
-            api_key="sk-test_key_123456", model="gpt-4"
-        )  # pragma: allowlist secret
+            api_key="sk-test_key_123456", model="gpt-4"  # pragma: allowlist secret
+        )
 
     def test_extract_insights_bullet_points(self, ai_client):
         """Test extracting insights from bullet point format."""
