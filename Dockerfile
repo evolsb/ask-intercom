@@ -35,18 +35,18 @@ COPY src/ ./src/
 # Copy built frontend
 COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 
+# Copy startup script
+COPY start.sh ./start.sh
+RUN chmod +x ./start.sh
+
 # Create non-root user and app directory with proper permissions
 RUN useradd --create-home --shell /bin/bash app && \
     mkdir -p /app/.ask-intercom-analytics/logs /app/.ask-intercom-analytics/sessions && \
     chown -R app:app /app
 USER app
 
-# Expose port
+# Expose default port (Railway will override)
 EXPOSE 8000
 
-# Health check with dynamic port
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:${PORT:-8000}/api/health || exit 1
-
-# Run the application with Railway's dynamic port
-CMD ["sh", "-c", "python -m uvicorn src.web.main:app --host 0.0.0.0 --port $PORT"]
+# Run the application using startup script
+CMD ["./start.sh"]
