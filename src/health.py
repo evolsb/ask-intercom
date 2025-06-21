@@ -89,14 +89,9 @@ class EnvironmentValidator:
             results["log_directory"] = "readonly"
 
         # Determine overall validity
-        is_valid = all(
-            status in ["present", "writable"]
-            for status in [
-                results["intercom_token"],
-                results["openai_key"],
-                results["log_directory"],
-            ]
-        )
+        # For Railway/production deployment, API keys are optional (user-provided via UI)
+        # Only require log directory to be writable for system health
+        is_valid = results["log_directory"] == "writable"
 
         status = EnvironmentStatus(valid=is_valid, **results)
 
@@ -335,8 +330,12 @@ class HealthChecker:
             if not env_status.valid:
                 overall_status = "unhealthy"
             elif (
-                connectivity_status.intercom_api != "reachable"
-                or connectivity_status.openai_api != "reachable"
+                # Only check connectivity if API keys are actually present
+                env_status.intercom_token == "present"
+                and connectivity_status.intercom_api != "reachable"
+            ) or (
+                env_status.openai_key == "present"
+                and connectivity_status.openai_api != "reachable"
             ):
                 overall_status = "degraded"
             else:
