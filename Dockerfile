@@ -45,8 +45,5 @@ RUN useradd --create-home --shell /bin/bash app && \
     chown -R app:app /app
 USER app
 
-# Expose default port (Railway will override)
-EXPOSE 8000
-
-# Run the application using startup script
-CMD ["./start.sh"]
+# Railway will auto-detect port from CMD
+CMD ["python", "-m", "uvicorn", "src.web.main:app", "--host", "0.0.0.0", "--port", "8000"]
