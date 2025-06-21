@@ -10,7 +10,7 @@
 
 ```bash
 # Clone repository
-git clone https://github.com/your-username/ask-intercom
+git clone https://github.com/evolsb/ask-intercom
 cd ask-intercom
 
 # Setup environment
