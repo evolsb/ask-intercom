@@ -379,31 +379,41 @@ class AIClient:
         except json.JSONDecodeError as e:
             # If it's an unterminated string, try to fix it
             if "Unterminated string" in str(e):
-                # Find the position of the error and truncate
-                lines = content.split("\n")
-                if len(lines) > 154:  # Based on the error "line 155"
-                    # Try truncating at a safe point
-                    for i in range(154, max(0, 154 - 20), -1):
-                        if i < len(lines):
-                            truncated = "\n".join(lines[:i])
-                            # Try to close any open objects/arrays
-                            if truncated.count("{") > truncated.count("}"):
-                                truncated += "\n}" * (
-                                    truncated.count("{") - truncated.count("}")
-                                )
-                            if truncated.count("[") > truncated.count("]"):
-                                truncated += "\n]" * (
-                                    truncated.count("[") - truncated.count("]")
-                                )
+                # Extract line number from error message
+                import re
 
-                            try:
-                                json.loads(truncated)
-                                logger.info(
-                                    f"Successfully recovered JSON by truncating at line {i}"
-                                )
-                                return truncated
-                            except json.JSONDecodeError:
-                                continue
+                line_match = re.search(r"line (\d+)", str(e))
+                error_line = int(line_match.group(1)) if line_match else 100
+
+                lines = content.split("\n")
+                logger.info(f"Attempting JSON recovery from error at line {error_line}")
+
+                # Try truncating at various points before the error
+                for offset in [1, 2, 5, 10, 20]:
+                    truncate_line = max(1, error_line - offset)
+                    if truncate_line < len(lines):
+                        truncated = "\n".join(lines[:truncate_line])
+
+                        # Close open braces/brackets
+                        open_braces = truncated.count("{") - truncated.count("}")
+                        open_brackets = truncated.count("[") - truncated.count("]")
+
+                        if open_braces > 0:
+                            truncated += "}" * open_braces
+                        if open_brackets > 0:
+                            truncated += "]" * open_brackets
+
+                        try:
+                            json.loads(truncated)  # Validate JSON is parseable
+                            logger.info(
+                                f"JSON recovery successful at line {truncate_line}"
+                            )
+                            return truncated
+                        except json.JSONDecodeError as parse_error:
+                            logger.debug(
+                                f"Recovery attempt at line {truncate_line} failed: {parse_error}"
+                            )
+                            continue
 
             # If we can't fix it, return original
             return content
