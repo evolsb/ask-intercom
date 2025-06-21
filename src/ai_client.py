@@ -310,7 +310,11 @@ class AIClient:
 
         # Parse JSON response
         try:
-            response_json = json.loads(response.choices[0].message.content)
+            raw_content = response.choices[0].message.content
+
+            # Clean up common JSON issues
+            cleaned_content = self._cleanup_json_response(raw_content)
+            response_json = json.loads(cleaned_content)
 
             # Convert to dataclass objects
             insights = []
@@ -348,7 +352,61 @@ class AIClient:
 
         except (json.JSONDecodeError, KeyError, ValueError) as e:
             logger.error(f"Failed to parse structured response: {e}")
+            logger.error(f"Raw response content: {raw_content[:500]}...")
             raise ValueError(f"Failed to parse AI response: {e}") from e
+
+    def _cleanup_json_response(self, content: str) -> str:
+        """Clean up common JSON formatting issues from AI responses."""
+        if not content:
+            return content
+
+        # Remove any leading/trailing whitespace
+        content = content.strip()
+
+        # Remove code block markers if present
+        if content.startswith("```json"):
+            content = content[7:]
+        if content.startswith("```"):
+            content = content[3:]
+        if content.endswith("```"):
+            content = content[:-3]
+
+        # Handle unterminated strings by finding the last valid JSON
+        try:
+            # Try to parse as-is first
+            json.loads(content)
+            return content
+        except json.JSONDecodeError as e:
+            # If it's an unterminated string, try to fix it
+            if "Unterminated string" in str(e):
+                # Find the position of the error and truncate
+                lines = content.split("\n")
+                if len(lines) > 154:  # Based on the error "line 155"
+                    # Try truncating at a safe point
+                    for i in range(154, max(0, 154 - 20), -1):
+                        if i < len(lines):
+                            truncated = "\n".join(lines[:i])
+                            # Try to close any open objects/arrays
+                            if truncated.count("{") > truncated.count("}"):
+                                truncated += "\n}" * (
+                                    truncated.count("{") - truncated.count("}")
+                                )
+                            if truncated.count("[") > truncated.count("]"):
+                                truncated += "\n]" * (
+                                    truncated.count("[") - truncated.count("]")
+                                )
+
+                            try:
+                                json.loads(truncated)
+                                logger.info(
+                                    f"Successfully recovered JSON by truncating at line {i}"
+                                )
+                                return truncated
+                            except json.JSONDecodeError:
+                                continue
+
+            # If we can't fix it, return original
+            return content
 
     def _get_system_prompt(self) -> str:
         """Get the system prompt for conversation analysis."""

@@ -124,13 +124,14 @@ React Frontend ←→ FastAPI Backend ←→ QueryProcessor
 - ✅ **Production testing**: End-to-end Docker deployment validation with health checks
 - ✅ **Documentation complete**: Updated README, setup guide, and environment templates
 - ✅ **Developer experience perfected**: `git clone` → `docker-compose up` → working app
+- ✅ **Cloud platform selected**: Railway chosen for superior DX and agent marketplace alignment
 
 **Next Session Priorities**: 
-1. **Cloud platform decision**: Choose between Railway, Render, or Fly.io for hosted version
-2. **Hosted deployment**: Get first production instance live for non-technical users
-3. **User feedback collection**: Test with both developer and business user personas
-4. See [05-Next-Steps.md](05-Next-Steps.md) for detailed roadmap
+1. **Railway deployment**: Sign up and deploy using Docker setup with $5 trial
+2. **Template creation**: Package as Railway template for marketplace discovery
+3. **User testing**: Share hosted URL with target personas for feedback
+4. See [05-Next-Steps.md](05-Next-Steps.md) for detailed Railway deployment plan
 
 ---
 
-*Last updated: June 20, 2025*
+*Last updated: December 20, 2024 - Railway platform selected*

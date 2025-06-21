@@ -141,14 +141,27 @@
 
 **Current Thinking**: Evaluate based on performance needs
 
-### Deployment Strategy  
-**Question**: How to handle hosting and deployment?  
-**Options**:
-- Docker + cloud deployment
-- SaaS platform with user accounts
-- Hybrid (local + hosted options)
+### Deployment Strategy ✅ **DECIDED**
+**Decision**: Railway for cloud deployment  
+**Rationale**:
+- Excellent developer experience with Project Canvas
+- Auto PR environments perfect for open source
+- Template marketplace for discoverability
+- Enterprise-grade scaling (112 vCPU/2TB RAM)
+- Pay-as-you-go pricing aligns with agent workloads
+- Built-in secrets management for API keys
+- Future-proof for agent marketplace listings
 
-**Current Thinking**: Start with Docker, evolve to SaaS
+**Alternatives Considered**: 
+- Render (good balance but rougher DX)
+- Fly.io (performance-first but steeper learning curve)
+- Vercel (frontend-only, not suitable for FastAPI)
+- AWS/GCP (too complex for initial launch)
+- Coolify (self-hosted, no home server available)
+- Heroku (expensive, legacy platform)
+
+**Date**: December 2024  
+**Status**: ✅ Ready to deploy
 
 ### Multi-platform Architecture
 **Question**: How to structure for Slack, Linear, etc.?  
@@ -159,6 +172,24 @@
 
 **Current Thinking**: Skills architecture for flexibility
 
+## 🚀 Platform Evaluation Summary
+
+### Railway Selection Rationale
+**Why Railway Won**:
+1. **Agent Marketplace Alignment**: Enterprise scaling capabilities essential for agent workloads
+2. **Developer Experience**: Best-in-class for open source projects (auto PR environments)
+3. **Template Ecosystem**: Built-in discovery channel for developers
+4. **Security Compliance**: Meets requirements for handling API keys and customer data
+5. **Cost Structure**: Pay-as-you-go model perfect for variable AI workloads
+6. **Future-Proof**: Container-first architecture ready for multi-LLM expansion
+
+**Key Decision Factors**:
+- No self-hosting requirement (no home server)
+- Need for professional enterprise-ready platform
+- Agent marketplace listing compatibility
+- Balance of simplicity and scalability
+- Strong developer community and documentation
+
 ---
 
-*Last updated: June 20, 2025*
+*Last updated: December 20, 2024 - Added Railway deployment decision*

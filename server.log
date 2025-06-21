@@ -987,3 +987,39 @@ INFO:     Waiting for application startup.
 {"timestamp": "2025-06-20T02:14:33.098399Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
 {"timestamp": "2025-06-20T02:14:33.098500Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
 INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/ai_client.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [99782]
+INFO:     Started server process [35154]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-21T01:22:16.183479Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-21T01:22:16.184038Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-21T01:22:17.159847Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-21T01:22:17.159937Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/ai_client.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [35154]
+INFO:     Started server process [35166]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-21T01:22:31.502205Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-21T01:22:31.502555Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-21T01:22:32.121967Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-21T01:22:32.122201Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/ai_client.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [35166]
+INFO:     Started server process [35230]
+INFO:     Waiting for application startup.
+{"timestamp": "2025-06-21T01:22:40.782164Z", "level": "INFO", "service": "backend", "event": "startup", "message": "Starting Ask-Intercom API"}
+{"timestamp": "2025-06-21T01:22:40.783383Z", "level": "INFO", "service": "backend", "event": "environment_validation", "message": "Environment validation passed", "data": {"results": {"intercom_token": "present", "openai_key": "present", "log_directory": "writable"}}}
+{"timestamp": "2025-06-21T01:22:41.468216Z", "level": "INFO", "service": "backend", "event": "health_check", "message": "Health check completed: healthy", "data": {"status": "healthy"}}
+{"timestamp": "2025-06-21T01:22:41.468311Z", "level": "INFO", "service": "backend", "event": "startup_complete", "message": "API started with status: healthy", "data": {"health_status": "healthy"}}
+INFO:     Application startup complete.
