@@ -1,4 +1,4 @@
-"""Intercom API client with MCP fallback."""
+"""Intercom API client with MCP integration."""
 
 import asyncio
 import time
@@ -7,6 +7,7 @@ from typing import List, Optional
 
 import httpx
 
+from .config import Config
 from .logger import get_logger
 from .models import Conversation, ConversationFilters, Message
 
@@ -14,10 +15,11 @@ logger = get_logger("intercom_client")
 
 
 class IntercomClient:
-    """Intercom API client with MCP support and REST fallback."""
+    """Intercom API client with MCP integration."""
 
-    def __init__(self, access_token: str):
+    def __init__(self, access_token: str, config: Optional[Config] = None):
         self.access_token = access_token
+        self.config = config or Config.from_env()
         self.base_url = "https://api.intercom.io"
         self.headers = {
             "Authorization": f"Bearer {access_token}",
@@ -25,6 +27,27 @@ class IntercomClient:
             "Content-Type": "application/json",
         }
         self._cached_app_id = None
+
+        # Initialize Universal MCP adapter if enabled
+        self.mcp_adapter = None
+        if self.config.enable_mcp:
+            try:
+                from .mcp.universal_adapter import create_universal_adapter
+
+                # Create universal adapter with configured backend preference
+                force_backend = self.config.mcp_backend
+
+                self.universal_adapter = asyncio.create_task(
+                    create_universal_adapter(
+                        intercom_token=access_token,
+                        prefer_fastintercom=(self.config.mcp_backend == "fastintercom"),
+                        force_backend=force_backend,
+                    )
+                )
+                logger.info("Universal MCP adapter initializing...")
+            except Exception as e:
+                logger.warning(f"Failed to initialize Universal MCP adapter: {e}")
+                self.universal_adapter = None
 
     async def get_app_id(self) -> Optional[str]:
         """Fetch the workspace/app ID from Intercom API."""
@@ -104,11 +127,31 @@ class IntercomClient:
     async def fetch_conversations(
         self, filters: ConversationFilters, progress_callback=None
     ) -> List[Conversation]:
-        """Fetch conversations based on filters."""
+        """Fetch conversations using MCP if available, otherwise REST API."""
         try:
-            # TODO: Implement MCP client when available
-            logger.info("MCP not implemented yet, using REST API")
-            return await self._fetch_via_rest(filters, progress_callback)
+            # Use MCP if available and enabled
+            if self.config.enable_mcp and hasattr(self, "universal_adapter"):
+                logger.info("Using MCP adapter for conversation fetching")
+                try:
+                    # Wait for adapter to be ready
+                    adapter = await self.universal_adapter
+                    conversations = await adapter.search_conversations(filters)
+
+                    if progress_callback:
+                        progress_callback(len(conversations), len(conversations))
+
+                    logger.info(
+                        f"MCP adapter fetched {len(conversations)} conversations"
+                    )
+                    return conversations
+
+                except Exception as mcp_error:
+                    logger.warning(f"MCP failed, falling back to REST: {mcp_error}")
+                    logger.info("Using REST API fallback for conversation fetching")
+                    return await self._fetch_via_rest(filters, progress_callback)
+            else:
+                logger.info("Using REST API for conversation fetching")
+                return await self._fetch_via_rest(filters, progress_callback)
         except Exception as e:
             logger.error(f"Failed to fetch conversations: {e}", exc_info=True)
             raise

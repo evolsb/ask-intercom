@@ -22,6 +22,21 @@ class Config(BaseModel):
     )
     debug: bool = Field(default=False, description="Enable debug mode")
 
+    # MCP Configuration
+    enable_mcp: bool = Field(default=False, description="Enable MCP client")
+    mcp_server_url: str = Field(
+        default="https://mcp.intercom.com/sse", description="MCP server endpoint"
+    )
+    mcp_oauth_client_id: str = Field(default="", description="MCP OAuth client ID")
+    mcp_oauth_client_secret: str = Field(
+        default="", description="MCP OAuth client secret"
+    )
+    mcp_timeout: int = Field(default=30, description="MCP connection timeout")
+    mcp_backend: str = Field(
+        default="fastintercom",
+        description="MCP backend to use: fastintercom, official, local",
+    )
+
     model_config = ConfigDict(
         env_file=[".env", str(Path(__file__).parent.parent / ".env")],
         env_file_encoding="utf-8",
@@ -84,6 +99,13 @@ class Config(BaseModel):
             model=os.getenv("OPENAI_MODEL", "gpt-4"),
             max_conversations=int(os.getenv("MAX_CONVERSATIONS", "1000")),
             debug=os.getenv("DEBUG", "false").lower() == "true",
+            # MCP settings
+            enable_mcp=os.getenv("ENABLE_MCP", "false").lower() == "true",
+            mcp_server_url=os.getenv("MCP_SERVER_URL", "https://mcp.intercom.com/sse"),
+            mcp_oauth_client_id=os.getenv("MCP_OAUTH_CLIENT_ID", ""),
+            mcp_oauth_client_secret=os.getenv("MCP_OAUTH_CLIENT_SECRET", ""),
+            mcp_timeout=int(os.getenv("MCP_TIMEOUT", "30")),
+            mcp_backend=os.getenv("MCP_BACKEND", "fastintercom"),
         )
 
     def validate(self) -> None:

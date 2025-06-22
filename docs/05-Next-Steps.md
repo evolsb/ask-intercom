@@ -4,6 +4,7 @@
 
 ## ✅ v0.4 - COMPLETED (June 21, 2025)
 
+<<<<<<< HEAD
 **All pre-merge requirements completed and merged to main:**
 - ✅ JSON parsing robustness with comprehensive unit tests
 - ✅ React error boundaries with user-friendly error UI
@@ -12,6 +13,23 @@
 - ✅ Railway deployment updated and functional
 
 ## 🎯 Current Work: v0.5 Conversational UI & Follow-up Questions (In Progress)
+=======
+### Priority Track A: MCP Performance Optimization (Next Focus)
+**Goal**: Investigate if MCP can exceed REST API performance beyond initial expectations
+- **✅ Basic MCP integration**: Complete with universal adapter pattern
+- **✅ Performance framework**: A/B testing infrastructure ready
+- **🔄 Optimization investigation**: Explore advanced MCP capabilities
+- **❓ Performance ceiling**: Can MCP exceed REST by more than 20%?
+
+**Current Status**: Foundation complete, optimization research beginning
+
+**Key Research Questions**:
+- Can persistent SSE connections provide >20% improvement?
+- Are there undocumented MCP optimizations available?
+- Is there potential for parallel tool execution?
+- Can streaming responses reduce perceived latency?
+- Are there MCP-specific caching opportunities?
+>>>>>>> 4468b20 (feat: integrate FastIntercomMCP with universal adapter architecture)
 
 **Current Status**: Major UI redesign for conversational experience
 
@@ -24,6 +42,7 @@
 - ✅ **Conversation context**: Reuse previous conversations for follow-ups
 - 🚧 **Rich text responses**: Modify follow-up responses to include conversation IDs naturally
 
+<<<<<<< HEAD
 #### Phase 2: Conversational UI Architecture (In Progress)
 **Goal**: Transform from structured cards to chat-like experience
 - ✅ **Frontend store fixes**: Resolved React hook errors, unified Zustand store
@@ -31,6 +50,14 @@
 - ❌ **Response format switching**: Structured cards → free text for follow-ups
 - ❌ **Customer link detection**: Parse emails in responses, create interactive elements
 - ❌ **Card collapse**: Initial cards collapse when chat begins
+=======
+**Optimization Investigation Plan**:
+- **Phase 1**: Baseline performance measurement (REST vs basic MCP)
+- **Phase 2**: Connection optimization (persistent SSE, pooling)
+- **Phase 3**: Tool execution optimization (parallelization, streaming)
+- **Phase 4**: Advanced features exploration (caching, pre-fetching)
+- **Phase 5**: Document findings and performance ceiling
+>>>>>>> 4468b20 (feat: integrate FastIntercomMCP with universal adapter architecture)
 
 #### Phase 3: Interactive Customer References (Not Started)
 **Goal**: Clickable customer references with actions
@@ -191,9 +218,12 @@
 
 ## 🤔 Open Questions
 
-- **Performance**: Are current response times acceptable for the value provided?
+- **MCP Performance Ceiling**: Can MCP optimization exceed REST API by 50%+ or more?
+- **Advanced MCP Features**: What undocumented/experimental capabilities exist?
+- **Parallel Execution**: Can multiple MCP tool calls run simultaneously?
+- **Streaming Architecture**: Is real-time response streaming possible with MCP?
+- **Performance vs Complexity**: Is optimization worth the implementation complexity?
 - **Market fit**: Is Intercom analysis the right starting point, or should we go multi-platform sooner?
-- **Architecture**: Should we invest in MCP now or later?
 - **Business model**: Open source with hosted option, or SaaS from the start?
 
 ## 💡 Ideas for Later
@@ -203,6 +233,9 @@
 - **Automation**: Scheduled reports, alert systems
 - **Integrations**: Zapier, webhooks, API access
 - **Team features**: Shared insights, collaboration tools
+- **User feedback system**: Users can provide feedback on individual analytics responses
+- **Bug reporting**: Users can report bugs with full metadata and log context for analysis
+- **Quality improvement loop**: Associate feedback/bugs with session data for iterative improvements
 
 ---
 
