@@ -758,9 +758,11 @@ class AIClient:
     ) -> str:
         """Analyze conversations for follow-up questions and return free-text response with customer references."""
 
-        # Build conversation context for follow-up
+        # Build conversation context for follow-up (limit to avoid token overflow)
         conversation_summaries = []
-        for conv in conversations:
+        max_conversations = min(len(conversations), 20)  # Limit to 20 conversations max
+
+        for conv in conversations[:max_conversations]:
             if conv.customer_email:
                 summary = self._summarize_conversation_for_followup(conv)
                 if summary:
@@ -786,9 +788,9 @@ class AIClient:
         Answer the follow-up question naturally and conversationally:
         """
 
-        # Use a simpler model for follow-up responses
+        # Use gpt-4-turbo for higher token limit and better performance
         response = await self.client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-4-turbo-preview",  # Higher token limit (128k vs 8k)
             messages=[
                 {"role": "system", "content": self._get_followup_system_prompt()},
                 {"role": "user", "content": followup_prompt},
@@ -815,26 +817,28 @@ class AIClient:
         if not customer_messages:
             return ""
 
-        # Primary issue from first customer message
-        primary_issue = customer_messages[0].body.strip()
-        summary += f"Primary Issue: {primary_issue}\n"
+        # Primary issue from first customer message (truncated)
+        primary_issue = customer_messages[0].body.strip()[:200]  # Limit to 200 chars
+        summary += f"Primary Issue: {primary_issue}{'...' if len(customer_messages[0].body) > 200 else ''}\n"
 
-        # Additional customer details (responses, clarifications)
+        # Additional customer details (responses, clarifications) - much shorter
         if len(customer_messages) > 1:
             additional_details = []
-            for msg in customer_messages[1:4]:  # Next 3 customer messages
-                if (
-                    msg.body.strip() and len(msg.body.strip()) > 10
-                ):  # Skip very short responses
-                    additional_details.append(msg.body.strip())
+            for msg in customer_messages[1:2]:  # Only next 1 message, not 3
+                if msg.body.strip() and len(msg.body.strip()) > 10:
+                    detail = msg.body.strip()[:100]  # Limit to 100 chars
+                    additional_details.append(
+                        detail + ("..." if len(msg.body) > 100 else "")
+                    )
 
             if additional_details:
                 summary += f"Additional Details: {' | '.join(additional_details)}\n"
 
-        # Support response/resolution if available
+        # Support response/resolution if available (truncated)
         if admin_messages:
             last_admin = admin_messages[-1]
-            summary += f"Support Response: {last_admin.body.strip()}\n"
+            response_text = last_admin.body.strip()[:150]  # Limit to 150 chars
+            summary += f"Support Response: {response_text}{'...' if len(last_admin.body) > 150 else ''}\n"
 
         # Add Intercom URL for easy access
         if self.app_id:

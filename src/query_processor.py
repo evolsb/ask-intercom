@@ -286,7 +286,7 @@ class QueryProcessor:
                 if progress_callback:
                     await progress_callback(
                         "analyzing",
-                        "Processing analysis results...",
+                        "✨ AI analysis complete, formatting results...",
                         90,
                     )
 
