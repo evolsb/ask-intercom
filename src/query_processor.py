@@ -437,11 +437,9 @@ class QueryProcessor:
 
         # Create mock cost info (we'll track this properly later)
         cost_info = CostInfo(
-            input_tokens=1000,  # Estimate
-            output_tokens=800,  # Estimate based on max_tokens
+            tokens_used=1800,  # Estimate: ~1000 input + 800 output
             estimated_cost_usd=0.05,  # Rough estimate
-            tokens_used=1800,
-            model_used="gpt-4",
+            model_used="gpt-4-turbo-preview",
         )
 
         # Create a conversational analysis result
