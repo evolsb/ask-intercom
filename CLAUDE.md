@@ -127,6 +127,11 @@ env -i HOME="$HOME" PATH="$PATH" ~/.local/bin/poetry run python tests/integratio
 - **Auto-fix then commit**: Let hooks fix issues, then `git add -A && git commit` again
 - **Critical hooks**: `detect-secrets` (security), `black`/`ruff` (code quality)
 
+### Development Safety Checks
+- **Before starting development**: `./scripts/dev-check.sh` 
+- **Checks for**: Stale servers, uncommitted changes, unsafe CostInfo usage, port conflicts
+- **Prevents**: Runtime errors from old code, parameter mismatches, server conflicts
+
 ### Testing & Quality Assurance
 - **Unit tests**: `~/.local/bin/poetry run pytest tests/unit/`
 - **Integration tests**: `~/.local/bin/poetry run pytest tests/integration/`

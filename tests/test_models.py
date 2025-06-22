@@ -203,7 +203,7 @@ class TestConversationFilters:
         assert filters.end_date is None
         assert filters.tags is None
         assert filters.customer_email is None
-        assert filters.limit == 50
+        assert filters.limit is None
 
     def test_filters_with_custom_values(self):
         """Test filters with custom values."""

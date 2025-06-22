@@ -578,10 +578,12 @@ class AIClient:
         output_cost = (usage.completion_tokens / 1000) * model_costs["output"]
         total_cost = input_cost + output_cost
 
-        return CostInfo(
-            tokens_used=usage.total_tokens,
-            estimated_cost_usd=total_cost,
-            model_used=model_name,
+        return CostInfo.from_usage(
+            usage_tokens=usage.total_tokens,
+            model=model_name,
+            cost_per_token=total_cost / usage.total_tokens
+            if usage.total_tokens > 0
+            else 0,
         )
 
     def _extract_insights(self, analysis_text: str) -> List[str]:

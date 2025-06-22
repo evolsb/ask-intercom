@@ -228,11 +228,7 @@ class QueryProcessor:
                     key_insights=[],
                     conversation_count=0,
                     time_range=timeframe,
-                    cost_info=CostInfo(
-                        tokens_used=0,
-                        estimated_cost_usd=0.0,
-                        model_used=self.config.model,
-                    ),
+                    cost_info=CostInfo.zero_cost(self.config.model),
                 )
 
             # Estimate processing metrics
@@ -435,11 +431,11 @@ class QueryProcessor:
         # Create a simplified result structure for follow-ups
         from src.models import CostInfo
 
-        # Create mock cost info (we'll track this properly later)
-        cost_info = CostInfo(
-            tokens_used=1800,  # Estimate: ~1000 input + 800 output
-            estimated_cost_usd=0.05,  # Rough estimate
-            model_used="gpt-4-turbo-preview",
+        # Create estimated cost info for follow-up (we'll track this properly later)
+        cost_info = CostInfo.from_usage(
+            usage_tokens=1800,  # Estimate: ~1000 input + 800 output
+            model="gpt-4-turbo-preview",
+            cost_per_token=0.00003,  # Rough estimate
         )
 
         # Create a conversational analysis result
@@ -523,11 +519,7 @@ class QueryProcessor:
 
         # Calculate cost info (approximate based on summary length)
         tokens_used = len(summary) // 4  # Rough approximation
-        cost_info = CostInfo(
-            tokens_used=tokens_used,
-            estimated_cost_usd=tokens_used * 0.00003,  # GPT-4 pricing estimate
-            model_used="gpt-4",
-        )
+        cost_info = CostInfo.from_usage(usage_tokens=tokens_used, model="gpt-4")
 
         return AnalysisResult(
             summary=summary,
