@@ -1,4 +1,4 @@
-# Multi-stage Docker build for Ask-Intercom web app
+# Multi-stage Docker build for Ask-Intercom web app with follow-up questions feature
 FROM node:18-alpine as frontend-builder
 
 # Build frontend
