@@ -14,23 +14,19 @@ const EXAMPLE_QUERIES = [
   "Show me bugs reported this week",
 ]
 
-const FOLLOWUP_SUGGESTIONS = [
-  "Tell me more about the verification issues",
-  "What about access to funds problems?",
-  "Show me more details on business account setup",
-  "Drill into the onboarding complaints",
-]
-
 export function QueryInput({ onSubmit }: QueryInputProps) {
-  const { currentQuery, setCurrentQuery, isLoading, canFollowup, isFollowupQuestion } = useAppStore()
+  const { currentQuery, setCurrentQuery, isLoading, lastResult, progress } = useAppStore()
   const [localQuery, setLocalQuery] = useState(currentQuery)
+  const [submittedQuery, setSubmittedQuery] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!localQuery.trim() || isLoading) return
     
-    setCurrentQuery(localQuery)
-    onSubmit(localQuery)
+    const queryToSubmit = localQuery.trim()
+    setSubmittedQuery(queryToSubmit)
+    setCurrentQuery(queryToSubmit)
+    onSubmit(queryToSubmit)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -57,9 +53,38 @@ export function QueryInput({ onSubmit }: QueryInputProps) {
 
   const handleExampleClick = (example: string) => {
     setLocalQuery(example)
+    setSubmittedQuery(example)
     setCurrentQuery(example)
     // Auto-submit when clicking example
     onSubmit(example)
+  }
+
+  // Show collapsed state when loading or has results
+  if (isLoading || lastResult) {
+    return (
+      <div className="bg-card border rounded-lg p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <div className="text-sm font-medium text-muted-foreground mb-1">
+              {isLoading ? 'Analyzing query:' : 'Query analyzed:'}
+            </div>
+            <div className="text-sm bg-muted px-3 py-2 rounded border">
+              "{submittedQuery || currentQuery}"
+            </div>
+          </div>
+          {isLoading && (
+            <div className="flex items-center space-x-2 text-sm text-muted-foreground ml-4">
+              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              <span>
+                {progress?.stage === 'analyzing' ? '✨ AI analyzing...' : 
+                 progress?.stage === 'fetching' ? 'Fetching conversations...' :
+                 progress?.message || 'Processing...'}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -108,44 +133,26 @@ export function QueryInput({ onSubmit }: QueryInputProps) {
         </div>
       </form>
       
-      <div className="space-y-2">
-        {canFollowup() ? (
-          <>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Ask follow-up questions:</p>
-            <div className="flex flex-wrap gap-2">
-              {FOLLOWUP_SUGGESTIONS.map((example, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleExampleClick(example)}
-                  disabled={isLoading}
-                  className="text-xs px-3 py-1.5 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full hover:bg-blue-200 dark:hover:bg-blue-800 transition-all disabled:opacity-50 flex items-center space-x-1.5 group"
-                  title="Click to submit this follow-up query"
-                >
-                  <span>{example}</span>
-                  <Send className="w-3 h-3 opacity-50 group-hover:opacity-100 transition-opacity" />
-                </button>
-              ))}
-            </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-3">Or try these examples:</p>
-          </>
-        ) : (
+      {/* Only show examples if no results yet */}
+      {!lastResult && (
+        <div className="space-y-2">
           <p className="text-sm text-gray-600 dark:text-gray-400">Try these examples:</p>
-        )}
-        <div className="flex flex-wrap gap-2">
-          {EXAMPLE_QUERIES.map((example, index) => (
-            <button
-              key={index}
-              onClick={() => handleExampleClick(example)}
-              disabled={isLoading}
-              className="text-xs px-3 py-1.5 bg-secondary text-secondary-foreground rounded-full hover:bg-secondary/80 transition-all disabled:opacity-50 flex items-center space-x-1.5 group"
-              title="Click to submit this query"
-            >
-              <span>{example}</span>
-              <Send className="w-3 h-3 opacity-50 group-hover:opacity-100 transition-opacity" />
-            </button>
-          ))}
+          <div className="flex flex-wrap gap-2">
+            {EXAMPLE_QUERIES.map((example, index) => (
+              <button
+                key={index}
+                onClick={() => handleExampleClick(example)}
+                disabled={isLoading}
+                className="text-xs px-3 py-1.5 bg-secondary text-secondary-foreground rounded-full hover:bg-secondary/80 transition-all disabled:opacity-50 flex items-center space-x-1.5 group"
+                title="Click to submit this query"
+              >
+                <span>{example}</span>
+                <Send className="w-3 h-3 opacity-50 group-hover:opacity-100 transition-opacity" />
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

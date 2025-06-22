@@ -133,21 +133,20 @@ export function ResultsDisplay() {
     )
   }
 
+  // Don't show ResultsDisplay for follow-up responses - they go to chat interface
+  if (lastResult.is_followup) {
+    return null
+  }
+
   return (
     <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             Analysis Results
-            {lastResult.is_followup && (
-              <Badge variant="secondary" className="text-xs">
-                Follow-up
-              </Badge>
-            )}
           </CardTitle>
           <CardDescription>
-            {lastResult.insights.length} insights from {lastResult.summary.total_conversations} conversations • {formatDuration(lastResult.response_time_ms)} • {formatCurrency(lastResult.cost)}
-            {lastResult.is_followup && " • Using cached conversation data"}
+            {lastResult.insights.length} insights from {lastResult.summary?.total_conversations || 'unknown'} conversations • {formatDuration(lastResult.response_time_ms)} • {formatCurrency(lastResult.cost)}
           </CardDescription>
         </CardHeader>
         
@@ -155,10 +154,10 @@ export function ResultsDisplay() {
           {lastResult.insights.length > 0 ? (
             <div className="space-y-4">
               {lastResult.insights
-                .sort((a, b) => b.priority_score - a.priority_score)
+                .sort((a, b) => (b.priority_score || 0) - (a.priority_score || 0))
                 .map((insight, index) => (
                 <AnalysisCard 
-                  key={insight.id} 
+                  key={insight.id || index} 
                   insight={insight}
                   defaultExpanded={index === 0}
                 />

@@ -802,14 +802,11 @@ async def generate_sse_events(
             yield send_event(
                 "complete",
                 {
-                    "insights": [result.summary],  # Conversational text response
-                    "summary": {
-                        "total_conversations": result.conversation_count,
-                        "total_messages": result.conversation_count * 5,  # Estimate
-                        "analysis_timestamp": datetime.now().isoformat(),
-                    },
+                    "insights": [],  # Empty for follow-ups, use chat interface instead
+                    "summary": result.summary,  # Conversational text response goes here
                     "cost": result.cost_info.estimated_cost_usd,
                     "response_time_ms": duration_ms,
+                    "conversation_count": result.conversation_count,
                     "session_id": session_id,
                     "request_id": request_id,
                     "session_state": session_state_to_dict(new_session),

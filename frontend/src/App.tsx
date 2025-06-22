@@ -297,17 +297,24 @@ function App() {
           
           {/* Chat interface appears after first result */}
           {lastResult && (
-            <ChatInterface 
-              onSubmit={handleQuery} 
-              onReset={() => {
-                reset()
-                // Cancel any ongoing request
-                if (abortControllerRef.current) {
-                  abortControllerRef.current.abort()
-                  abortControllerRef.current = null
-                }
-              }} 
-            />
+            <div>
+              <div className="text-xs text-gray-500 mb-2">DEBUG: Chat interface should appear (lastResult exists)</div>
+              <ChatInterface 
+                onSubmit={handleQuery} 
+                onReset={() => {
+                  reset()
+                  // Cancel any ongoing request
+                  if (abortControllerRef.current) {
+                    abortControllerRef.current.abort()
+                    abortControllerRef.current = null
+                  }
+                }} 
+              />
+            </div>
+          )}
+          
+          {!lastResult && (
+            <div className="text-xs text-gray-500">DEBUG: No lastResult yet</div>
           )}
         </div>
 

@@ -75,9 +75,7 @@ export function ChatInterface({ onSubmit, onReset }: ChatInterfaceProps) {
     }
   }, [isLoading])
 
-  if (chatMessages.length === 0) {
-    return null // Don't show chat interface until first follow-up
-  }
+  // Always show chat interface when component is rendered (after first result)
 
   return (
     <div className="bg-card border rounded-lg p-4 space-y-4">
