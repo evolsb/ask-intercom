@@ -2,7 +2,60 @@
 
 > **Planned improvements and future direction**
 
-## 🎯 Immediate Next Steps (v0.4 - In Progress)
+## ✅ v0.4 - COMPLETED (June 21, 2025)
+
+**All pre-merge requirements completed and merged to main:**
+- ✅ JSON parsing robustness with comprehensive unit tests
+- ✅ React error boundaries with user-friendly error UI
+- ✅ Real performance metrics reading from log data
+- ✅ Enhanced code quality and integration testing
+- ✅ Railway deployment updated and functional
+
+## 🎯 Current Work: v0.5 Conversational UI & Follow-up Questions (In Progress)
+
+**Current Status**: Major UI redesign for conversational experience
+
+### **NEW PLAN: Conversational Interface (June 22, 2025)**
+
+#### Phase 1: Backend Response Format Changes ✅ **COMPLETED**
+**Goal**: Enable rich conversational responses with customer references
+- ✅ **Session state management**: Full backend/frontend session handling
+- ✅ **Follow-up detection**: Pattern matching for conversational queries
+- ✅ **Conversation context**: Reuse previous conversations for follow-ups
+- 🚧 **Rich text responses**: Modify follow-up responses to include conversation IDs naturally
+
+#### Phase 2: Conversational UI Architecture (In Progress)
+**Goal**: Transform from structured cards to chat-like experience
+- ✅ **Frontend store fixes**: Resolved React hook errors, unified Zustand store
+- 🚧 **Chat interface**: Add conversational flow after initial structured response
+- ❌ **Response format switching**: Structured cards → free text for follow-ups
+- ❌ **Customer link detection**: Parse emails in responses, create interactive elements
+- ❌ **Card collapse**: Initial cards collapse when chat begins
+
+#### Phase 3: Interactive Customer References (Not Started)
+**Goal**: Clickable customer references with actions
+- ❌ **Rich text parsing**: Detect emails/conversation IDs in AI responses
+- ❌ **Customer components**: Hover popups with Copy/Open actions
+- ❌ **Conversation linking**: Direct links to Intercom conversations
+- ❌ **Reset functionality**: Clear conversation, start fresh
+
+#### Phase 4: Chat Experience Polish (Not Started)
+**Goal**: Clean, minimal, conversational interface
+- ❌ **Chat styling**: Light, airy design for conversation flow
+- ❌ **Session management**: Prominent but subtle reset functionality
+- ❌ **Response enhancement**: Ensure AI includes conversation references naturally
+- ❌ **Future features**: Save conversations, multiple chat sessions
+
+### **Technical Approach:**
+- **Rich text parsing**: AI returns natural text, frontend parses for interactive elements
+- **Customer detection**: Email patterns converted to React components with hover actions
+- **Conversation flow**: Initial query → structured cards → conversational chat interface
+- **Session scope**: One conversation thread per session with reset capability
+- **Response format**: Structured insights first, then free-text follow-ups with customer references
+
+---
+
+## 📋 Legacy Documentation Below
 
 ### Phase 1: Docker Experience ✅ **COMPLETED**
 **Goal**: Bulletproof one-command deployment for developers
@@ -153,4 +206,4 @@
 
 ---
 
-*Last updated: December 20, 2024 - Railway platform selected for deployment*
+*Last updated: June 22, 2025 - Conversational UI redesign in progress*

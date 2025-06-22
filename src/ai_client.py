@@ -752,3 +752,109 @@ class AIClient:
         """
 
         return analysis_prompt
+
+    async def analyze_conversations_followup(
+        self, conversations: List[Conversation], query: str, timeframe: TimeFrame
+    ) -> str:
+        """Analyze conversations for follow-up questions and return free-text response with customer references."""
+
+        # Build conversation context for follow-up
+        conversation_summaries = []
+        for conv in conversations:
+            if conv.customer_email:
+                summary = self._summarize_conversation_for_followup(conv)
+                if summary:
+                    conversation_summaries.append(summary)
+
+        # Create follow-up specific prompt
+        conversations_text = "\n\n".join(conversation_summaries)
+
+        followup_prompt = f"""
+        Based on the conversation data below, answer this follow-up question: {query}
+
+        CONVERSATION DATA:
+        {conversations_text}
+
+        INSTRUCTIONS:
+        - Provide a natural, conversational response
+        - When mentioning customers, include their email address and conversation ID in this format: "customer@email.com (conversation: conv_abc123)"
+        - Reference specific conversation details when relevant
+        - Be detailed but conversational
+        - Focus specifically on what the user is asking about
+        - Include conversation IDs for any customers you mention so they can be linked
+
+        Answer the follow-up question naturally and conversationally:
+        """
+
+        # Use a simpler model for follow-up responses
+        response = await self.client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": self._get_followup_system_prompt()},
+                {"role": "user", "content": followup_prompt},
+            ],
+            temperature=0.3,  # Slightly higher temperature for natural conversation
+            max_tokens=800,  # More tokens for detailed responses
+        )
+
+        return response.choices[0].message.content
+
+    def _summarize_conversation_for_followup(self, conv: Conversation) -> str:
+        """Create a detailed conversation summary for follow-up analysis."""
+        if not conv.messages or not conv.customer_email:
+            return ""
+
+        # Start with conversation header including email and ID
+        summary = f"Customer: {conv.customer_email} (conversation: {conv.id})\n"
+        summary += f"Date: {conv.created_at.strftime('%Y-%m-%d')}\n"
+
+        # Get customer messages
+        customer_messages = [m for m in conv.messages if m.author_type == "user"]
+        admin_messages = [m for m in conv.messages if m.author_type == "admin"]
+
+        if not customer_messages:
+            return ""
+
+        # Primary issue from first customer message
+        primary_issue = customer_messages[0].body.strip()
+        summary += f"Primary Issue: {primary_issue}\n"
+
+        # Additional customer details (responses, clarifications)
+        if len(customer_messages) > 1:
+            additional_details = []
+            for msg in customer_messages[1:4]:  # Next 3 customer messages
+                if (
+                    msg.body.strip() and len(msg.body.strip()) > 10
+                ):  # Skip very short responses
+                    additional_details.append(msg.body.strip())
+
+            if additional_details:
+                summary += f"Additional Details: {' | '.join(additional_details)}\n"
+
+        # Support response/resolution if available
+        if admin_messages:
+            last_admin = admin_messages[-1]
+            summary += f"Support Response: {last_admin.body.strip()}\n"
+
+        # Add Intercom URL for easy access
+        if self.app_id:
+            summary += f"Intercom URL: {conv.get_url(self.app_id)}\n"
+
+        return summary + "\n"
+
+    def _get_followup_system_prompt(self) -> str:
+        """Get system prompt for conversational follow-up responses."""
+        return """
+        You are an expert customer support analyst providing conversational follow-up insights.
+
+        CRITICAL INSTRUCTIONS:
+        1. Provide natural, conversational responses to follow-up questions
+        2. When mentioning customers, always include their email and conversation ID
+        3. Use this exact format: "customer@email.com (conversation: conv_abc123)"
+        4. Be specific and reference actual conversation details
+        5. Write in a friendly, professional tone
+        6. Focus on exactly what the user is asking about
+        7. Include conversation IDs so the frontend can make them clickable
+
+        Your goal is to help the user understand their customer conversations in depth.
+        """

@@ -1,10 +1,11 @@
 import { useRef } from 'react'
 import { useAppStore } from './store/useAppStore'
-import { ApiKeySetup } from './components/ApiKeySetup'
+import { FirstTimeSetup } from './components/FirstTimeSetup'
 import { QueryInput } from './components/QueryInput'
 import { ResultsDisplay } from './components/ResultsDisplay'
 import { ThemeToggle } from './components/ThemeToggle'
 import { Settings } from './components/Settings'
+import { ChatInterface } from './components/ChatInterface'
 
 function App() {
   const { 
@@ -18,7 +19,9 @@ function App() {
     setProgress,
     sessionState,
     isFollowupQuestion,
-    canFollowup
+    canFollowup,
+    lastResult,
+    reset
   } = useAppStore()
   
   const abortControllerRef = useRef<AbortController | null>(null)
@@ -269,8 +272,8 @@ function App() {
         <header className="mb-8">
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-purple-400">
-                Ask Intercom
+              <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-purple-400 flex items-center gap-2">
+                ✨ Ask Intercom
               </h1>
               <p className="text-muted-foreground">
                 Transform your Intercom conversations into actionable insights
@@ -284,13 +287,28 @@ function App() {
         </header>
 
         <div className="space-y-6">
-          <ApiKeySetup />
+          <FirstTimeSetup />
           
           <div className="bg-card border rounded-lg p-6 hover:shadow-lg transition-shadow duration-300">
             <QueryInput onSubmit={handleQuery} />
           </div>
           
           <ResultsDisplay />
+          
+          {/* Chat interface appears after first result */}
+          {lastResult && (
+            <ChatInterface 
+              onSubmit={handleQuery} 
+              onReset={() => {
+                reset()
+                // Cancel any ongoing request
+                if (abortControllerRef.current) {
+                  abortControllerRef.current.abort()
+                  abortControllerRef.current = null
+                }
+              }} 
+            />
+          )}
         </div>
 
         <footer className="text-center mt-12 text-xs text-muted-foreground">

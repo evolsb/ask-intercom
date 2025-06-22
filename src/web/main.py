@@ -796,8 +796,29 @@ async def generate_sse_events(
         # Get structured result if available
         structured_result = processor.get_last_structured_result()
 
-        if structured_result:
-            # Send structured result
+        # Handle different response formats based on follow-up status
+        if is_followup:
+            # For follow-ups, send the conversational response directly
+            yield send_event(
+                "complete",
+                {
+                    "insights": [result.summary],  # Conversational text response
+                    "summary": {
+                        "total_conversations": result.conversation_count,
+                        "total_messages": result.conversation_count * 5,  # Estimate
+                        "analysis_timestamp": datetime.now().isoformat(),
+                    },
+                    "cost": result.cost_info.estimated_cost_usd,
+                    "response_time_ms": duration_ms,
+                    "session_id": session_id,
+                    "request_id": request_id,
+                    "session_state": session_state_to_dict(new_session),
+                    "is_followup": True,
+                    "response_type": "conversational",  # Flag for frontend
+                },
+            )
+        elif structured_result:
+            # Send structured result for initial queries
             structured_insights = []
             for insight in structured_result.insights:
                 structured_insights.append(
