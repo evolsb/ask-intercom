@@ -63,17 +63,17 @@ export function QueryInput({ onSubmit }: QueryInputProps) {
   if (isLoading || lastResult) {
     return (
       <div className="bg-card border rounded-lg p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <div className="text-sm font-medium text-muted-foreground mb-1">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-medium text-muted-foreground mb-2">
               {isLoading ? 'Analyzing query:' : 'Query analyzed:'}
             </div>
-            <div className="text-sm bg-muted px-3 py-2 rounded border">
+            <div className="text-sm bg-muted px-3 py-2 rounded border break-words">
               "{submittedQuery || currentQuery}"
             </div>
           </div>
           {isLoading && (
-            <div className="flex items-center space-x-2 text-sm text-muted-foreground ml-4">
+            <div className="flex items-center space-x-2 text-sm text-muted-foreground shrink-0">
               <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
               <span>
                 {progress?.stage === 'analyzing' ? '✨ AI analyzing...' : 

@@ -5,7 +5,7 @@ import asyncio
 import json
 import os
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from time import time
 from typing import AsyncGenerator
@@ -1583,6 +1583,180 @@ async def analyze_conversations_structured(
         )
 
         raise HTTPException(status_code=500, detail=error_response.dict()) from e
+
+
+@app.get("/api/debug")
+async def debug_info():
+    """
+    Debug endpoint for system status and recent logs.
+    """
+    try:
+        # Get recent log files
+        logs_dir = Path(".ask-intercom-analytics/logs")
+        recent_logs = []
+
+        if logs_dir.exists():
+            for log_file in sorted(
+                logs_dir.glob("*.jsonl"), key=lambda f: f.stat().st_mtime, reverse=True
+            ):
+                if log_file.stat().st_size > 0:  # Only include non-empty files
+                    recent_logs.append(
+                        {
+                            "file": log_file.name,
+                            "size_bytes": log_file.stat().st_size,
+                            "modified": datetime.fromtimestamp(
+                                log_file.stat().st_mtime
+                            ).isoformat(),
+                            "lines": sum(1 for _ in open(log_file, "r")),
+                        }
+                    )
+
+        # Get recent sessions
+        sessions_dir = Path(".ask-intercom-analytics/sessions")
+        recent_sessions = []
+
+        if sessions_dir.exists():
+            for session_file in sorted(
+                sessions_dir.glob("*.json"),
+                key=lambda f: f.stat().st_mtime,
+                reverse=True,
+            )[:10]:
+                with open(session_file, "r") as f:
+                    session_data = json.load(f)
+                recent_sessions.append(
+                    {
+                        "session_id": session_data.get("session_id"),
+                        "start_time": session_data.get("start_time"),
+                        "last_activity": session_data.get("last_activity"),
+                        "query_count": len(session_data.get("queries", [])),
+                    }
+                )
+
+        # System info
+        system_info = {
+            "server_time": datetime.utcnow().isoformat() + "Z",
+            "environment": {
+                "intercom_token": "present"
+                if os.getenv("INTERCOM_ACCESS_TOKEN")
+                else "missing",
+                "openai_key": "present" if os.getenv("OPENAI_API_KEY") else "missing",
+            },
+            "logging": {
+                "analytics_dir_exists": Path(".ask-intercom-analytics").exists(),
+                "logs_dir_exists": logs_dir.exists(),
+                "sessions_dir_exists": sessions_dir.exists(),
+            },
+        }
+
+        return {
+            "status": "healthy",
+            "system": system_info,
+            "recent_logs": recent_logs[:5],  # Last 5 log files
+            "recent_sessions": recent_sessions[:5],  # Last 5 sessions
+        }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e),
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+        }
+
+
+@app.get("/api/debug/session/{session_id}")
+async def debug_session(session_id: str):
+    """
+    Get detailed information about a specific session.
+    """
+    try:
+        # Find session file
+        session_file = Path(f".ask-intercom-analytics/sessions/{session_id}.json")
+
+        if not session_file.exists():
+            raise HTTPException(
+                status_code=404, detail=f"Session {session_id} not found"
+            )
+
+        with open(session_file, "r") as f:
+            session_data = json.load(f)
+
+        # Find related log entries
+        logs_dir = Path(".ask-intercom-analytics/logs")
+        session_logs = []
+
+        if logs_dir.exists():
+            for log_file in logs_dir.glob("*.jsonl"):
+                try:
+                    with open(log_file, "r") as f:
+                        for line in f:
+                            if line.strip():
+                                log_entry = json.loads(line)
+                                if log_entry.get("session_id") == session_id:
+                                    session_logs.append(log_entry)
+                except (json.JSONDecodeError, Exception):
+                    continue
+
+        # Sort logs by timestamp
+        session_logs.sort(key=lambda x: x.get("timestamp", ""))
+
+        return {
+            "session_data": session_data,
+            "logs": session_logs,
+            "log_count": len(session_logs),
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error retrieving session: {str(e)}"
+        ) from e
+
+
+@app.get("/api/debug/logs")
+async def debug_logs(lines: int = 50, session_id: str = None):
+    """
+    Get recent log entries, optionally filtered by session ID.
+    """
+    try:
+        logs_dir = Path(".ask-intercom-analytics/logs")
+        all_logs = []
+
+        if logs_dir.exists():
+            # Get today's and yesterday's logs
+            for days_back in [0, 1]:
+                log_date = (datetime.now() - timedelta(days=days_back)).strftime(
+                    "%Y-%m-%d"
+                )
+                log_file = logs_dir / f"backend-{log_date}.jsonl"
+
+                if log_file.exists():
+                    try:
+                        with open(log_file, "r") as f:
+                            for line in f:
+                                if line.strip():
+                                    log_entry = json.loads(line)
+                                    if (
+                                        session_id is None
+                                        or log_entry.get("session_id") == session_id
+                                    ):
+                                        all_logs.append(log_entry)
+                    except (json.JSONDecodeError, Exception):
+                        continue
+
+        # Sort by timestamp and return most recent
+        all_logs.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+
+        return {
+            "logs": all_logs[:lines],
+            "total_found": len(all_logs),
+            "filter": {"session_id": session_id} if session_id else None,
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error retrieving logs: {str(e)}"
+        ) from e
 
 
 # Serve frontend static files (for production) - MUST be last to avoid catching API routes

@@ -316,6 +316,9 @@ function App() {
             Built with privacy in mind • Data stored locally • 
             Automatically deleted after 30 days
           </p>
+          <p className="mt-1 font-mono opacity-50">
+            Session: {useAppStore.getState().getSessionId()}
+          </p>
         </footer>
       </div>
     </div>
