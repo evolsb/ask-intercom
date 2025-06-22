@@ -137,9 +137,17 @@ export function ResultsDisplay() {
     <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
       <Card>
         <CardHeader>
-          <CardTitle>Analysis Results</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            Analysis Results
+            {lastResult.is_followup && (
+              <Badge variant="secondary" className="text-xs">
+                Follow-up
+              </Badge>
+            )}
+          </CardTitle>
           <CardDescription>
             {lastResult.insights.length} insights from {lastResult.summary.total_conversations} conversations • {formatDuration(lastResult.response_time_ms)} • {formatCurrency(lastResult.cost)}
+            {lastResult.is_followup && " • Using cached conversation data"}
           </CardDescription>
         </CardHeader>
         

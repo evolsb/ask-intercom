@@ -31,6 +31,7 @@ class QueryProcessor:
         # AI client will be initialized with app_id during query processing
         self.ai_client = None
         self._last_structured_result = None
+        self._last_conversations = None
 
     def _estimate_processing_time(self, conversation_count: int) -> float:
         """Estimate processing time based on conversation count."""
@@ -206,6 +207,9 @@ class QueryProcessor:
             # Wait for conversations to be fetched
             conversations = await fetch_task
             metrics.log_api_call("intercom", time() - intercom_start, True)
+
+            # Store conversations for session persistence
+            self._last_conversations = conversations
 
             # Report fetch completion with conversation count
             if progress_callback:

@@ -27,6 +27,7 @@ from ..logging import (
     session_manager,
     set_session_context,
 )
+from ..models import SessionState
 from ..query_processor import QueryProcessor
 
 # Load environment variables from .env file
@@ -180,6 +181,90 @@ async def validate_environment():
 # Store frontend directory for later mounting
 frontend_dir = Path(__file__).parent.parent.parent / "frontend" / "dist"
 
+# Simple in-memory session storage for web follow-up questions
+# Note: In production, this should use Redis or similar persistent storage
+_session_storage = {}
+_session_timestamps = {}  # Track when sessions were last accessed
+
+# Session expiration settings
+SESSION_TIMEOUT_MINUTES = 60  # Sessions expire after 1 hour of inactivity
+
+
+def cleanup_expired_sessions():
+    """Remove sessions that have been inactive for too long."""
+    current_time = datetime.now()
+    expired_sessions = []
+
+    for session_id, last_accessed in _session_timestamps.items():
+        time_diff = current_time - last_accessed
+        if time_diff.total_seconds() > (SESSION_TIMEOUT_MINUTES * 60):
+            expired_sessions.append(session_id)
+
+    for session_id in expired_sessions:
+        # Remove session data
+        _session_timestamps.pop(session_id, None)
+        keys_to_remove = [
+            f"{session_id}_conversations",
+            f"{session_id}_analysis",
+            f"{session_id}_timeframe",
+        ]
+        for key in keys_to_remove:
+            _session_storage.pop(key, None)
+
+    if expired_sessions:
+        session_logger.info(
+            f"Cleaned up {len(expired_sessions)} expired sessions",
+            event="session_cleanup",
+            data={"expired_count": len(expired_sessions)},
+        )
+
+
+def session_state_to_dict(session: SessionState) -> dict:
+    """Convert SessionState to dict for JSON serialization."""
+    if not session:
+        return None
+
+    return {
+        "last_query": session.last_query,
+        "has_conversations": session.last_conversations is not None,
+        "conversation_count": len(session.last_conversations)
+        if session.last_conversations
+        else 0,
+        "last_timeframe": {
+            "description": session.last_timeframe.description,
+            "start_date": session.last_timeframe.start_date.isoformat(),
+            "end_date": session.last_timeframe.end_date.isoformat(),
+        }
+        if session.last_timeframe
+        else None,
+    }
+
+
+def dict_to_session_state(
+    data: dict, conversations=None, analysis=None, timeframe=None
+) -> SessionState:
+    """Convert dict back to SessionState (conversations stored separately for efficiency)."""
+    if not data:
+        return SessionState()
+
+    from datetime import datetime
+
+    from ..models import TimeFrame
+
+    session = SessionState()
+    session.last_query = data.get("last_query")
+    session.last_conversations = conversations  # Passed separately to avoid JSON bloat
+    session.last_analysis = analysis  # Passed separately
+
+    if timeframe_data := data.get("last_timeframe"):
+        session.last_timeframe = TimeFrame(
+            description=timeframe_data["description"],
+            start_date=datetime.fromisoformat(timeframe_data["start_date"]),
+            end_date=datetime.fromisoformat(timeframe_data["end_date"]),
+        )
+
+    return session
+
 
 class HealthResponse(BaseModel):
     status: str
@@ -191,6 +276,7 @@ class AnalysisRequest(BaseModel):
     intercom_token: str | None = None
     openai_key: str | None = None
     max_conversations: int | None = None  # If None, no limit
+    session_state: dict | None = None  # For follow-up questions
 
 
 class AnalysisResponse(BaseModel):
@@ -201,6 +287,8 @@ class AnalysisResponse(BaseModel):
     conversation_count: int
     session_id: str
     request_id: str
+    session_state: dict | None = None  # Updated session state for follow-ups
+    is_followup: bool = False  # Indicates if this was a follow-up question
 
 
 class StructuredInsightCustomer(BaseModel):
@@ -240,6 +328,8 @@ class StructuredAnalysisResponse(BaseModel):
     response_time_ms: int
     session_id: str
     request_id: str
+    session_state: dict | None = None  # Updated session state for follow-ups
+    is_followup: bool = False  # Indicates if this was a follow-up question
 
 
 class ErrorResponse(BaseModel):
@@ -481,7 +571,12 @@ async def get_recent_logs(lines: int = 50):
 
 
 async def generate_sse_events(
-    query: str, config: Config, session_id: str, request_id: str
+    query: str,
+    config: Config,
+    session_id: str,
+    request_id: str,
+    session_state: SessionState = None,
+    is_followup: bool = False,
 ) -> AsyncGenerator[str, None]:
     """Generate SSE events during query processing."""
 
@@ -580,7 +675,9 @@ async def generate_sse_events(
 
         # Start processing in background with real progress callback
         processor_task = asyncio.create_task(
-            processor.process_query(query, progress_callback=progress_callback)
+            processor.process_query(
+                query, session_state, progress_callback=progress_callback
+            )
         )
 
         # Dynamic progress updates while processing
@@ -632,6 +729,32 @@ async def generate_sse_events(
 
         # Get the completed result
         result = await processor_task
+
+        # Save session state for follow-up questions
+        # Create new session state with the latest data
+        new_session = SessionState()
+        new_session.last_query = query
+        new_session.last_analysis = result
+        new_session.last_timeframe = result.time_range
+
+        # Store conversations and analysis separately to avoid large JSON payloads
+        if hasattr(processor, "_last_conversations") and processor._last_conversations:
+            new_session.last_conversations = processor._last_conversations
+            _session_storage[
+                f"{session_id}_conversations"
+            ] = processor._last_conversations
+
+        _session_storage[f"{session_id}_analysis"] = result
+        _session_storage[f"{session_id}_timeframe"] = result.time_range
+
+        # Update session timestamp for expiration tracking
+        _session_timestamps[session_id] = datetime.now()
+
+        # Periodically clean up expired sessions (every 10th request approximately)
+        import random
+
+        if random.randint(1, 10) == 1:
+            cleanup_expired_sessions()
 
         # Final progress update
         yield send_event(
@@ -715,6 +838,8 @@ async def generate_sse_events(
                     "response_time_ms": duration_ms,
                     "session_id": session_id,
                     "request_id": request_id,
+                    "session_state": session_state_to_dict(new_session),
+                    "is_followup": is_followup,
                 },
             )
         else:
@@ -729,6 +854,8 @@ async def generate_sse_events(
                     "conversation_count": result.conversation_count,
                     "session_id": session_id,
                     "request_id": request_id,
+                    "session_state": session_state_to_dict(new_session),
+                    "is_followup": is_followup,
                 },
             )
 
@@ -855,9 +982,41 @@ async def analyze_conversations_stream(request: AnalysisRequest, http_request: R
             event="sse_response_start",
         )
 
+        # Handle session state for follow-up questions
+        session_state = None
+        is_followup = False
+        if request.session_state:
+            session_state = dict_to_session_state(
+                request.session_state,
+                conversations=_session_storage.get(f"{session_id}_conversations"),
+                analysis=_session_storage.get(f"{session_id}_analysis"),
+                timeframe=_session_storage.get(f"{session_id}_timeframe"),
+            )
+            # Check if this is a follow-up question
+            processor = QueryProcessor(config)
+            has_cached_conversations = bool(
+                _session_storage.get(f"{session_id}_conversations")
+            )
+            is_followup = (
+                session_state
+                and has_cached_conversations
+                and processor._is_followup_question(request.query)
+            )
+
+        # Update session timestamp when accessed
+        if session_id in _session_timestamps:
+            _session_timestamps[session_id] = datetime.now()
+
         # Return SSE response
         return StreamingResponse(
-            generate_sse_events(request.query, config, session_id, request_id),
+            generate_sse_events(
+                request.query,
+                config,
+                session_id,
+                request_id,
+                session_state,
+                is_followup,
+            ),
             media_type="text/event-stream",
             headers={
                 "Cache-Control": "no-cache",
@@ -952,11 +1111,36 @@ async def analyze_conversations(request: AnalysisRequest, http_request: Request)
                 status_code=400,
             ) from e
 
+        # Handle session state for follow-up questions
+        session_state = None
+        is_followup = False
+        if request.session_state:
+            session_state = dict_to_session_state(
+                request.session_state,
+                conversations=_session_storage.get(f"{session_id}_conversations"),
+                analysis=_session_storage.get(f"{session_id}_analysis"),
+                timeframe=_session_storage.get(f"{session_id}_timeframe"),
+            )
+            # Check if this is a follow-up question
+            processor = QueryProcessor(config)
+            has_cached_conversations = bool(
+                _session_storage.get(f"{session_id}_conversations")
+            )
+            is_followup = (
+                session_state
+                and has_cached_conversations
+                and processor._is_followup_question(request.query)
+            )
+
+        # Update session timestamp when accessed
+        if session_id in _session_timestamps:
+            _session_timestamps[session_id] = datetime.now()
+
         # Process the query using existing CLI logic
         start_time = time()
         try:
             processor = QueryProcessor(config)
-            result = await processor.process_query(request.query)
+            result = await processor.process_query(request.query, session_state)
         except Exception as e:
             # Log the processing error
             session_logger.log_api_error(
@@ -1031,6 +1215,31 @@ async def analyze_conversations(request: AnalysisRequest, http_request: Request)
             duration_ms,
         )
 
+        # Save session state for follow-up questions
+        new_session = SessionState()
+        new_session.last_query = request.query
+        new_session.last_analysis = result
+        new_session.last_timeframe = result.time_range
+
+        # Store conversations and analysis separately to avoid large JSON payloads
+        if hasattr(processor, "_last_conversations") and processor._last_conversations:
+            new_session.last_conversations = processor._last_conversations
+            _session_storage[
+                f"{session_id}_conversations"
+            ] = processor._last_conversations
+
+        _session_storage[f"{session_id}_analysis"] = result
+        _session_storage[f"{session_id}_timeframe"] = result.time_range
+
+        # Update session timestamp for expiration tracking
+        _session_timestamps[session_id] = datetime.now()
+
+        # Periodically clean up expired sessions (every 10th request approximately)
+        import random
+
+        if random.randint(1, 10) == 1:
+            cleanup_expired_sessions()
+
         # Transform CLI result to API response
         return AnalysisResponse(
             insights=result.key_insights,
@@ -1040,6 +1249,8 @@ async def analyze_conversations(request: AnalysisRequest, http_request: Request)
             conversation_count=result.conversation_count,
             session_id=session_id,
             request_id=request_id,
+            session_state=session_state_to_dict(new_session),
+            is_followup=is_followup,
         )
 
     except APIError as e:

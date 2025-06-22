@@ -32,6 +32,8 @@ export interface AnalysisResult {
   response_time_ms: number
   session_id: string
   request_id: string
+  session_state?: any  // Session state for follow-up questions
+  is_followup?: boolean  // Whether this was a follow-up question
 }
 
 export interface ErrorResponse {
@@ -56,6 +58,17 @@ export interface ProgressState {
   percent: number
 }
 
+export interface SessionState {
+  last_query?: string
+  has_conversations?: boolean
+  conversation_count?: number
+  last_timeframe?: {
+    description: string
+    start_date: string
+    end_date: string
+  }
+}
+
 interface AppState {
   // API Configuration
   intercomToken: string
@@ -64,6 +77,7 @@ interface AppState {
   
   // Session Management
   sessionInfo: SessionInfo | null
+  sessionState: SessionState | null  // For follow-up questions
   
   // Query State
   currentQuery: string
@@ -93,6 +107,9 @@ interface AppState {
   reset: () => void
   generateSessionId: () => string
   getSessionId: () => string
+  setSessionState: (state: SessionState | null) => void
+  isFollowupQuestion: (query: string) => boolean
+  canFollowup: () => boolean
 }
 
 export const useAppStore = create<AppState>()(
@@ -103,6 +120,7 @@ export const useAppStore = create<AppState>()(
       openaiKey: '',
       maxConversations: null,  // No limit by default
       sessionInfo: null,
+      sessionState: null,
       currentQuery: '',
       isLoading: false,
       error: null,
@@ -119,8 +137,15 @@ export const useAppStore = create<AppState>()(
       setCurrentQuery: (query) => set({ currentQuery: query }),
       setLoading: (loading) => set({ isLoading: loading }),
       setError: (error) => set({ error }),
-      setResult: (result) => set({ lastResult: result, error: null }),
+      setResult: (result) => {
+        // Update session state from result if available
+        if (result.session_state) {
+          set({ sessionState: result.session_state })
+        }
+        set({ lastResult: result, error: null })
+      },
       setProgress: (progress) => set({ progress }),
+      setSessionState: (state) => set({ sessionState: state }),
       
       addToHistory: (query, result) => {
         const history = get().queryHistory
@@ -158,6 +183,32 @@ export const useAppStore = create<AppState>()(
         }
         return current.sessionId
       },
+      
+      isFollowupQuestion: (query: string) => {
+        const queryLower = query.toLowerCase()
+        const followupPatterns = [
+          'tell me more about',
+          'more details on',
+          'explain the',
+          'what about',
+          'drill into',
+          'elaborate on',
+          'expand on',
+          'show me more',
+          'details about',
+          'specifics on',
+          'verification',
+          'access to funds',
+          'business account',
+          'onboarding',
+        ]
+        return followupPatterns.some(pattern => queryLower.includes(pattern))
+      },
+      
+      canFollowup: () => {
+        const state = get()
+        return state.sessionState && state.sessionState.has_conversations
+      },
     }),
     {
       name: 'ask-intercom-storage',
@@ -166,6 +217,8 @@ export const useAppStore = create<AppState>()(
         openaiKey: state.openaiKey,
         maxConversations: state.maxConversations,
         queryHistory: state.queryHistory,
+        sessionState: state.sessionState,
+        sessionInfo: state.sessionInfo,
       }),
     }
   )

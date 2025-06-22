@@ -14,8 +14,15 @@ const EXAMPLE_QUERIES = [
   "Show me bugs reported this week",
 ]
 
+const FOLLOWUP_SUGGESTIONS = [
+  "Tell me more about the verification issues",
+  "What about access to funds problems?",
+  "Show me more details on business account setup",
+  "Drill into the onboarding complaints",
+]
+
 export function QueryInput({ onSubmit }: QueryInputProps) {
-  const { currentQuery, setCurrentQuery, isLoading } = useAppStore()
+  const { currentQuery, setCurrentQuery, isLoading, canFollowup, isFollowupQuestion } = useAppStore()
   const [localQuery, setLocalQuery] = useState(currentQuery)
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -102,7 +109,28 @@ export function QueryInput({ onSubmit }: QueryInputProps) {
       </form>
       
       <div className="space-y-2">
-        <p className="text-sm text-gray-600 dark:text-gray-400">Try these examples:</p>
+        {canFollowup() ? (
+          <>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Ask follow-up questions:</p>
+            <div className="flex flex-wrap gap-2">
+              {FOLLOWUP_SUGGESTIONS.map((example, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleExampleClick(example)}
+                  disabled={isLoading}
+                  className="text-xs px-3 py-1.5 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full hover:bg-blue-200 dark:hover:bg-blue-800 transition-all disabled:opacity-50 flex items-center space-x-1.5 group"
+                  title="Click to submit this follow-up query"
+                >
+                  <span>{example}</span>
+                  <Send className="w-3 h-3 opacity-50 group-hover:opacity-100 transition-opacity" />
+                </button>
+              ))}
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-3">Or try these examples:</p>
+          </>
+        ) : (
+          <p className="text-sm text-gray-600 dark:text-gray-400">Try these examples:</p>
+        )}
         <div className="flex flex-wrap gap-2">
           {EXAMPLE_QUERIES.map((example, index) => (
             <button

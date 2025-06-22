@@ -15,7 +15,10 @@ function App() {
     setResult, 
     addToHistory,
     maxConversations,
-    setProgress
+    setProgress,
+    sessionState,
+    isFollowupQuestion,
+    canFollowup
   } = useAppStore()
   
   const abortControllerRef = useRef<AbortController | null>(null)
@@ -61,6 +64,7 @@ function App() {
           intercom_token: intercomToken,
           openai_key: openaiKey,
           max_conversations: maxConversations,
+          session_state: sessionState,
         }),
         signal: abortControllerRef.current.signal
       })
@@ -162,7 +166,9 @@ function App() {
                     cost: data.cost,
                     response_time_ms: data.response_time_ms,
                     session_id: data.session_id,
-                    request_id: data.request_id
+                    request_id: data.request_id,
+                    session_state: data.session_state,
+                    is_followup: data.is_followup
                   }
                   setResult(structuredResult)
                   addToHistory(query, structuredResult)
@@ -191,7 +197,9 @@ function App() {
                     cost: data.cost,
                     response_time_ms: data.response_time_ms,
                     session_id: data.session_id,
-                    request_id: data.request_id
+                    request_id: data.request_id,
+                    session_state: data.session_state,
+                    is_followup: data.is_followup
                   }
                   setResult(structuredResult)
                   addToHistory(query, structuredResult)
