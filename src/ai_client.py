@@ -297,15 +297,25 @@ class AIClient:
 
         # Call OpenAI for analysis with JSON response format
         # Note: json_object response format requires gpt-4-turbo or newer
+        # Use the same model selection logic as regular analysis
+        selected_model = self._select_model_for_query(query, len(conversations))
+        # Ensure we use a model that supports JSON mode
+        if selected_model == "gpt-3.5-turbo":
+            selected_model = "gpt-3.5-turbo-1106"  # Version with JSON support
+        elif selected_model == "gpt-4":
+            selected_model = "gpt-4-turbo-preview"
+        
+        logger.info(f"Using model {selected_model} for structured analysis")
+        
         response = await self.client.chat.completions.create(
-            model="gpt-4-turbo-preview",  # Use turbo for JSON mode support
+            model=selected_model,
             messages=[
                 {"role": "system", "content": self._get_structured_system_prompt()},
                 {"role": "user", "content": prompt},
             ],
             temperature=0.1,  # Low temperature for consistent results
             response_format={"type": "json_object"},
-            max_tokens=2000,  # More tokens for structured output
+            max_tokens=4000,  # More tokens for structured output
         )
 
         # Parse JSON response

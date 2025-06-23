@@ -5,16 +5,26 @@ This backend integrates FastIntercomMCP's caching and intelligent sync
 capabilities into our universal adapter architecture.
 """
 
-import asyncio
 import os
 import subprocess
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from ..logger import get_logger
 
 logger = get_logger("fastintercom_backend")
+
+
+class SyncStateException(Exception):
+    """Exception raised when data sync state doesn't meet requirements."""
+
+    def __init__(
+        self, message: str, sync_state: str, last_sync: Optional[datetime] = None
+    ):
+        super().__init__(message)
+        self.sync_state = sync_state  # 'stale', 'partial', or 'fresh'
+        self.last_sync = last_sync
 
 
 class FastIntercomDatabase:
@@ -56,9 +66,8 @@ class FastIntercomDatabase:
     ) -> List[Dict[str, Any]]:
         """Search conversations using FastIntercomMCP's database."""
         try:
-            # Import FastIntercomMCP modules (requires package installation)
-            from fastintercom.database import DatabaseManager
-            from fastintercom.models import ConversationFilters
+            # Import FastIntercomMCP modules (already installed)
+            from fastintercom import ConversationFilters, DatabaseManager
 
             db = DatabaseManager(str(self.db_path))
 
@@ -119,7 +128,7 @@ class FastIntercomDatabase:
     async def get_sync_status(self) -> Dict[str, Any]:
         """Get database sync status."""
         try:
-            from fastintercom.database import DatabaseManager
+            from fastintercom import DatabaseManager
 
             db = DatabaseManager(str(self.db_path))
             status = db.get_sync_status()
@@ -229,6 +238,83 @@ class FastIntercomBackend:
             logger.error(f"Failed to initialize FastIntercomMCP backend: {e}")
             return False
 
+    async def _check_sync_state(
+        self, start_date: Optional[datetime], end_date: Optional[datetime]
+    ) -> Dict[str, Any]:
+        """
+        Check sync state relative to requested timeframe.
+
+        Returns:
+            Dict with sync_state ('stale', 'partial', 'fresh'),
+            last_sync timestamp, and any warnings/messages.
+        """
+        status = await self.db.get_sync_status()
+        last_sync_str = status.get("last_sync")
+
+        if not last_sync_str:
+            return {
+                "sync_state": "stale",
+                "last_sync": None,
+                "message": "No sync data available - database needs initial sync",
+                "should_sync": True,
+            }
+
+        try:
+            # Parse last sync time
+            last_sync = datetime.fromisoformat(last_sync_str.replace("Z", "+00:00"))
+            if last_sync.tzinfo:
+                last_sync = last_sync.replace(tzinfo=None)  # Make naive for comparison
+        except (ValueError, AttributeError):
+            return {
+                "sync_state": "stale",
+                "last_sync": None,
+                "message": f"Invalid sync timestamp: {last_sync_str}",
+                "should_sync": True,
+            }
+
+        # If no timeframe specified, just check if recent
+        if not start_date or not end_date:
+            recent_threshold = datetime.now() - timedelta(hours=1)
+            if last_sync >= recent_threshold:
+                return {"sync_state": "fresh", "last_sync": last_sync}
+            else:
+                return {
+                    "sync_state": "partial",
+                    "last_sync": last_sync,
+                    "message": f"Data may be stale - last sync: {last_sync.strftime('%Y-%m-%d %H:%M:%S')}",
+                }
+
+        # State 1: Stale - last sync before requested period
+        if last_sync < start_date:
+            return {
+                "sync_state": "stale",
+                "last_sync": last_sync,
+                "message": f"Data is stale - last sync {last_sync.strftime('%Y-%m-%d %H:%M:%S')} is before requested period {start_date.strftime('%Y-%m-%d %H:%M:%S')}",
+                "should_sync": True,
+            }
+
+        # State 2: Partial - last sync within requested period
+        if start_date <= last_sync < end_date:
+            return {
+                "sync_state": "partial",
+                "last_sync": last_sync,
+                "message": f"Analysis includes conversations up to {last_sync.strftime('%Y-%m-%d %H:%M:%S')} - may be missing recent conversations",
+                "should_sync": False,
+            }
+
+        # State 3: Fresh - last sync recent relative to end time
+        freshness_threshold = end_date - timedelta(minutes=5)
+        if last_sync >= freshness_threshold:
+            return {"sync_state": "fresh", "last_sync": last_sync, "should_sync": False}
+        else:
+            # Slightly stale but within acceptable range
+            return {
+                "sync_state": "partial",
+                "last_sync": last_sync,
+                "message": f"Analysis includes conversations up to {last_sync.strftime('%Y-%m-%d %H:%M:%S')} - may be missing very recent conversations",
+                "should_sync": False,
+            }
+
     async def call_tool(self, tool_name: str, params: Dict[str, Any]) -> Dict[str, Any]:
         """Call tool via FastIntercomMCP backend."""
         if not self.initialized:
@@ -246,7 +332,7 @@ class FastIntercomBackend:
             raise ValueError(f"Unknown tool: {tool_name}")
 
     async def _search_conversations(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Search conversations using FastIntercomMCP cache."""
+        """Search conversations using FastIntercomMCP cache with intelligent sync state checking."""
         query = params.get("query")
         limit = params.get("limit", 50)
 
@@ -258,18 +344,27 @@ class FastIntercomBackend:
             start_date = datetime.fromisoformat(
                 params["created_after"].replace("Z", "+00:00")
             )
+            if start_date.tzinfo:
+                start_date = start_date.replace(tzinfo=None)
+
         if params.get("created_before"):
             end_date = datetime.fromisoformat(
                 params["created_before"].replace("Z", "+00:00")
             )
+            if end_date.tzinfo:
+                end_date = end_date.replace(tzinfo=None)
 
-        # Check data freshness and trigger background sync if needed
-        if start_date and end_date:
-            # Check if we need to sync this timeframe
-            now = datetime.now()
-            if (now - end_date).total_seconds() < 3600:  # Last hour
-                # Trigger background sync for recent data
-                asyncio.create_task(self._background_sync())
+        # Use FastIntercomMCP's native sync state checking
+        sync_info = self.db.check_sync_state(start_date, end_date)
+        sync_state = sync_info["sync_state"]
+
+        logger.info(f"Sync state check: {sync_state}")
+        if sync_info.get("message"):
+            logger.info(f"Sync message: {sync_info['message']}")
+
+        # Handle different sync states using FastIntercomMCP's enhanced logic
+        # Note: The actual sync logic is now handled by FastIntercomMCP's SyncService
+        # This wrapper focuses on data retrieval and state reporting
 
         conversations = await self.db.search_conversations(
             query=query,
@@ -279,7 +374,20 @@ class FastIntercomBackend:
             limit=limit,
         )
 
-        return {"conversations": conversations}
+        # Include sync state information in response
+        result = {
+            "conversations": conversations,
+            "sync_info": {
+                "state": sync_state,
+                "last_sync": sync_info.get("last_sync").isoformat()
+                if sync_info.get("last_sync")
+                else None,
+                "message": sync_info.get("message"),
+                "data_complete": sync_info.get("data_complete", sync_state == "fresh"),
+            },
+        }
+
+        return result
 
     async def _get_conversation(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Get specific conversation."""

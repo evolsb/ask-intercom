@@ -146,6 +146,11 @@ class IntercomClient:
                     return conversations
 
                 except Exception as mcp_error:
+                    # Check if it's a sync state exception that should be re-raised
+                    from .mcp.fastintercom_backend import SyncStateException
+                    if isinstance(mcp_error, SyncStateException):
+                        logger.error(f"Data sync issue: {mcp_error}")
+                        raise  # Re-raise to inform user about sync requirements
                     logger.warning(f"MCP failed, falling back to REST: {mcp_error}")
                     logger.info("Using REST API fallback for conversation fetching")
                     return await self._fetch_via_rest(filters, progress_callback)

@@ -1,11 +1,11 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { useAppStore } from './store/useAppStore'
-import { FirstTimeSetup } from './components/FirstTimeSetup'
 import { QueryInput } from './components/QueryInput'
 import { ResultsDisplay } from './components/ResultsDisplay'
 import { ThemeToggle } from './components/ThemeToggle'
 import { Settings } from './components/Settings'
 import { ChatInterface } from './components/ChatInterface'
+import { CLIInterface } from './components/CLIInterface'
 
 function App() {
   const { 
@@ -24,6 +24,7 @@ function App() {
     reset
   } = useAppStore()
   
+  const [activeTab, setActiveTab] = useState<'main' | 'cli'>('main')
   const abortControllerRef = useRef<AbortController | null>(null)
 
   const handleQuery = async (query: string) => {
@@ -75,22 +76,38 @@ function App() {
       if (!response.ok) {
         let errorData: any
         try {
-          errorData = await response.json()
-        } catch (parseError) {
-          // If we can't parse as JSON, it's likely an HTML error page (500 error)
-          const errorText = await response.text()
-          setError({
-            error_category: 'server_error',
-            message: `Server error (${response.status}): ${response.statusText}`,
-            user_action: response.status === 500 
-              ? 'The server encountered an internal error. Please try again in a few moments or contact support.'
-              : 'Please try again or contact support if the problem persists',
-            retryable: true,
-            session_id: sessionId,
+          // Try to get the response text first (since we can only read it once)
+          const responseText = await response.text()
+          try {
+            // Try to parse as JSON
+            errorData = JSON.parse(responseText)
+          } catch (jsonParseError) {
+            // If JSON parsing fails, use the raw text
+            setError({
+              error_category: 'server_error',
+              message: `Server error (${response.status}): ${response.statusText}`,
+              user_action: response.status === 500 
+                ? 'The server encountered an internal error. Please try again in a few moments or contact support.'
+                : 'Please try again or contact support if the problem persists',
+              retryable: true,
+              session_id: sessionId,
             request_id: response.headers.get('X-Request-ID') || `req_${Date.now()}`,
             timestamp: new Date().toISOString()
           })
-          console.error('Server error response:', errorText.substring(0, 200))
+          console.error('Server error response:', responseText.substring(0, 200))
+          return
+          }
+        } catch (parseError) {
+          // If we can't read the response at all
+          setError({
+            error_category: 'connectivity_error',
+            message: `Server error (${response.status}): Unable to read response`,
+            user_action: 'Please check your internet connection and try again',
+            retryable: true,
+            session_id: sessionId,
+            request_id: `req_${Date.now()}`,
+            timestamp: new Date().toISOString()
+          })
           return
         }
         
@@ -286,30 +303,90 @@ function App() {
           </div>
         </header>
 
-        <div className="space-y-6">
-          <FirstTimeSetup />
-          
-          <div className="bg-card border rounded-lg p-6 hover:shadow-lg transition-shadow duration-300">
-            <QueryInput onSubmit={handleQuery} />
+        {/* Tab Navigation */}
+        <div className="mb-6">
+          <div className="border-b border-border">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab('main')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === 'main'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
+                }`}
+              >
+                ✨ Main Interface
+              </button>
+              <button
+                onClick={() => setActiveTab('cli')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === 'cli'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
+                }`}
+              >
+                🚀 CLI Testing
+              </button>
+            </nav>
           </div>
-          
-          <ResultsDisplay />
-          
-          {/* Chat interface appears after first result */}
-          {lastResult && (
-            <ChatInterface 
-              onSubmit={handleQuery} 
-              onReset={() => {
-                reset()
-                // Cancel any ongoing request
-                if (abortControllerRef.current) {
-                  abortControllerRef.current.abort()
-                  abortControllerRef.current = null
-                }
-              }} 
-            />
-          )}
         </div>
+
+        {/* Tab Content */}
+        {activeTab === 'main' && (
+          <div className="space-y-6">
+            <div className="bg-card border rounded-lg p-6 hover:shadow-lg transition-shadow duration-300">
+              <QueryInput onSubmit={handleQuery} />
+            </div>
+            
+            <ResultsDisplay />
+            
+            {/* Chat interface appears after first result */}
+            {lastResult && (
+              <ChatInterface 
+                onSubmit={handleQuery} 
+                onReset={() => {
+                  reset()
+                  // Cancel any ongoing request
+                  if (abortControllerRef.current) {
+                    abortControllerRef.current.abort()
+                    abortControllerRef.current = null
+                  }
+                }} 
+              />
+            )}
+          </div>
+        )}
+
+        {activeTab === 'cli' && (
+          <div className="space-y-6">
+            <CLIInterface onSubmit={handleQuery} />
+            
+            {/* Performance Summary for CLI */}
+            {lastResult && (
+              <div className="bg-card border rounded-lg p-4">
+                <h3 className="font-medium mb-3">⚡ Performance Summary</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div>
+                    <div className="text-muted-foreground">Total Time</div>
+                    <div className="font-mono">{((lastResult.processing_time_ms || 0)/1000).toFixed(1)}s</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Data Fetch</div>
+                    <div className="font-mono">{((lastResult.fetch_time_ms || 0)/1000).toFixed(1)}s</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">AI Analysis</div>
+                    <div className="font-mono">{((lastResult.analysis_time_ms || 0)/1000).toFixed(1)}s</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Cost</div>
+                    <div className="font-mono">${(lastResult.cost_info?.estimated_cost_usd || 0).toFixed(3)}</div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <footer className="text-center mt-12 text-xs text-muted-foreground">
           <p>

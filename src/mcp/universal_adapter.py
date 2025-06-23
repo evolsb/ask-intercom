@@ -20,7 +20,7 @@ from typing import Any, Dict, List, Optional
 from ..logger import get_logger
 from ..models import Conversation, ConversationFilters, Message
 from .client import MCPConnection
-from .fastintercom_backend import FastIntercomBackend
+from .fastintercom_backend import FastIntercomBackend, SyncStateException
 from .intercom_mcp_server import IntercomMCPServer
 
 logger = get_logger("universal_mcp_adapter")
@@ -174,6 +174,7 @@ class UniversalMCPAdapter:
         self.force_backend = force_backend
         self.backend: Optional[MCPBackend] = None
         self.available_backends: Dict[str, MCPBackend] = {}
+        self.last_sync_info: Optional[Dict] = None
 
     async def initialize(self):
         """Initialize and select the best backend."""
@@ -183,9 +184,7 @@ class UniversalMCPAdapter:
         if self.force_backend:
             logger.info(f"Forcing backend: {self.force_backend}")
             if self.force_backend == "official_mcp":
-                self.backend = OfficialMCPBackend(
-                    self.mcp_server_url, self.intercom_token
-                )
+                raise ValueError("Official MCP backend is dormant and not available for use")
             elif self.force_backend == "fastintercom":
                 self.backend = FastIntercomBackend(self.intercom_token)
             elif self.force_backend == "local_mcp":
@@ -211,13 +210,13 @@ class UniversalMCPAdapter:
                 ("fastintercom", FastIntercomBackend(self.intercom_token))
             )
 
-        # Add official MCP (dormant but keep for future)
-        backends_to_test.append(
-            (
-                "official_mcp",
-                OfficialMCPBackend(self.mcp_server_url, self.intercom_token),
-            )
-        )
+        # Official MCP is dormant - not used in active flows
+        # backends_to_test.append(
+        #     (
+        #         "official_mcp", 
+        #         OfficialMCPBackend(self.mcp_server_url, self.intercom_token),
+        #     )
+        # )
 
         # Add local MCP wrapper as fallback
         backends_to_test.append(("local_mcp", LocalMCPBackend(self.intercom_token)))
@@ -266,6 +265,23 @@ class UniversalMCPAdapter:
 
         # Call backend
         result = await self.backend.call_tool("search_conversations", params)
+
+        # Handle sync info if present (from FastIntercomMCP backend)
+        if "sync_info" in result:
+            sync_info = result["sync_info"]
+            sync_state = sync_info.get("state")
+            
+            if sync_state == "partial" and sync_info.get("message"):
+                logger.warning(f"Data freshness warning: {sync_info['message']}")
+            elif sync_state == "stale":
+                logger.warning(f"Data may be stale: {sync_info['message']}")
+            elif sync_state == "fresh":
+                logger.info("Using fresh cached data")
+                
+            # Store sync info for potential future use
+            self.last_sync_info = sync_info
+        else:
+            self.last_sync_info = None
 
         # Convert to Conversation objects
         conversations = []

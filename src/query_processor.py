@@ -200,13 +200,17 @@ class QueryProcessor:
 
             # Start fetching conversations and analyzing in parallel
             intercom_start = time()
+            logger.info(f"🚀 Starting data fetch at {intercom_start:.3f}s")
             fetch_task = asyncio.create_task(
                 self.intercom_client.fetch_conversations(filters, progress_callback)
             )
 
             # Wait for conversations to be fetched
             conversations = await fetch_task
-            metrics.log_api_call("intercom", time() - intercom_start, True)
+            fetch_duration_seconds = time() - intercom_start
+            fetch_duration_ms = fetch_duration_seconds * 1000
+            logger.info(f"📊 Data fetch completed: {fetch_duration_ms:.1f}ms for {len(conversations)} conversations")
+            metrics.log_api_call("intercom", fetch_duration_seconds, True)
 
             # Store conversations for session persistence
             self._last_conversations = conversations
@@ -262,10 +266,11 @@ class QueryProcessor:
                 flush=True,
             )
             analysis_start = time()
+            logger.info(f"🧠 Starting AI analysis at {analysis_start:.3f}s")
 
             # Try structured analysis first, fall back to legacy if needed
             try:
-                logger.info("Attempting structured JSON analysis...")
+                logger.info(f"🎯 Attempting structured JSON analysis for {len(conversations)} conversations")
                 if progress_callback:
                     await progress_callback(
                         "analyzing",
@@ -291,12 +296,12 @@ class QueryProcessor:
                 result = self._convert_structured_to_legacy(
                     structured_result, timeframe
                 )
-                logger.info("Successfully used structured analysis")
+                logger.info("✅ Successfully used structured analysis")
                 # Store structured result for web API access
                 self._last_structured_result = structured_result
             except Exception as e:
                 logger.warning(
-                    f"Structured analysis failed, falling back to legacy: {e}"
+                    f"❌ Structured analysis failed, falling back to legacy: {e}"
                 )
                 if progress_callback:
                     await progress_callback(
@@ -309,9 +314,17 @@ class QueryProcessor:
                 )
                 self._last_structured_result = None
 
-            metrics.log_api_call("openai_analysis", time() - analysis_start, True)
-            analysis_duration = time() - analysis_start
-            print(f"\r✅ Analysis complete ({analysis_duration:.1f}s)          ")
+            analysis_duration_seconds = time() - analysis_start
+            analysis_duration_ms = analysis_duration_seconds * 1000
+            logger.info(f"⚡ AI analysis completed: {analysis_duration_ms:.1f}ms")
+            metrics.log_api_call("openai_analysis", analysis_duration_seconds, True)
+            print(f"\r✅ Analysis complete ({analysis_duration_seconds:.1f}s)          ")
+
+            # Add timing information to result
+            total_processing_ms = (time() - start_time) * 1000
+            result.processing_time_ms = total_processing_ms
+            result.fetch_time_ms = fetch_duration_ms
+            result.analysis_time_ms = analysis_duration_ms
 
             # Report analysis completion
             if progress_callback:
