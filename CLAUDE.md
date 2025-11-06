@@ -12,6 +12,7 @@ This file provides essential guidance for Claude Code when working with this rep
 # 2. docs/05-Next-Steps.md (planned improvements and priorities)
 ```
 
+
 **Test the system:**
 ```bash
 env -i HOME="$HOME" PATH="$PATH" ~/.local/bin/poetry run python -m src.cli "show me issues from the last 24 hours"
@@ -30,7 +31,8 @@ tail -f .ask-intercom-analytics/logs/backend-$(date +%Y-%m-%d).jsonl
 ## Project Overview
 
 Ask-Intercom is an AI-powered tool that turns Intercom conversations into actionable product insights with:
-- **MCP Architecture**: Universal adapter supporting multiple backends (FastIntercom, official, local, REST)
+- **REST API Integration**: Direct Intercom API access for conversation data
+- **MCP Support**: Optional Model Context Protocol integration for enhanced capabilities
 - **Web Interface**: React frontend with real-time progress tracking
 - **CLI Interface**: Python CLI for direct queries
 - **Structured Logging**: Full observability for debugging
@@ -39,6 +41,7 @@ Ask-Intercom is an AI-powered tool that turns Intercom conversations into action
 
 ### Dependencies & Commands
 - **Python**: 3.13+ with Poetry at `~/.local/bin/poetry`
+- **Dependency Check**: `~/.local/bin/poetry run python scripts/check-dependencies.py`
 - **Testing**: `~/.local/bin/poetry run pytest -v`
 - **CLI**: `~/.local/bin/poetry run python -m src.cli "your query"`
 - **Web**: `uvicorn src.web.main:app --port 8000 --reload`
@@ -59,13 +62,22 @@ env -i HOME="$HOME" PATH="$PATH" ~/.local/bin/poetry run python -m src.cli "quer
 - **Configuration**: `src/config.py` - Settings and validation
 - **Environment Config**: `.env` - Contains API keys
 
-### MCP Configuration
+### MCP Configuration - Optional
 ```bash
-# Enable MCP functionality
-ENABLE_MCP=true
-MCP_BACKEND=fastintercom|official|local|auto
+# Enable MCP functionality (optional, disabled by default)
+ENABLE_MCP=false
 
-# Fallback chain: official → fastintercom → local → REST
+# When enabled, the system can use:
+# - Official Intercom MCP server (if available)
+# - Local MCP wrapper for development/testing
+# - Falls back to REST API if MCP unavailable
+
+# MCP server endpoint (official Intercom MCP)
+# MCP_SERVER_URL=https://mcp.intercom.com/sse
+
+# MCP OAuth credentials (if required)
+# MCP_OAUTH_CLIENT_ID=your_oauth_client_id
+# MCP_OAUTH_CLIENT_SECRET=your_oauth_client_secret
 ```
 
 ### Debugging & Logs
@@ -92,13 +104,13 @@ MCP_BACKEND=fastintercom|official|local|auto
 
 ## Key Technical Decisions
 
-### MCP-First Architecture
-- **Universal Adapter**: Supports multiple MCP backends with graceful fallbacks
-- **Performance**: FastIntercom MCP provides 400x speedup for cached queries
-- **Reliability**: Automatic fallback chain ensures queries always succeed
+### REST-First Architecture
+- **Direct API Integration**: Primary integration uses Intercom REST API
+- **MCP Support**: Optional MCP integration for enhanced capabilities
+- **Reliability**: Robust REST API implementation with built-in error handling
 
 ### Error Handling Strategy
-- **API failures**: Graceful fallbacks through MCP → FastIntercom → Local → REST
+- **API failures**: Graceful error handling and retry logic for Intercom API
 - **Rate limiting**: Respect Intercom limits with built-in retry logic
 - **Cost control**: Optimize prompts, warn on expensive queries
 

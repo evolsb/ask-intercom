@@ -1,6 +1,7 @@
 """
 Claude integration tools for log analysis and debugging.
 """
+
 import json
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional

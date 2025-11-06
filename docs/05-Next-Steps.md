@@ -1,6 +1,8 @@
 # Next Steps
 
-> **Planned improvements and future direction**
+> **Current development priorities and immediate roadmap**
+
+*For our complete long-term vision and version strategy, see [00-Vision.md](00-Vision.md)*
 
 ## ✅ v0.4 - COMPLETED (June 21, 2025)
 

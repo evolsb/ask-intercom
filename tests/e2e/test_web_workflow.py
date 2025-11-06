@@ -245,9 +245,10 @@ class TestWebAppWorkflow:
     @pytest.mark.asyncio
     async def test_max_conversations_limit(self, test_server, mock_analysis_result):
         """Test that max conversations is properly limited."""
-        with patch("src.web.main.QueryProcessor") as mock_processor_class, patch(
-            "src.web.main.Config"
-        ) as mock_config_class:
+        with (
+            patch("src.web.main.QueryProcessor") as mock_processor_class,
+            patch("src.web.main.Config") as mock_config_class,
+        ):
             mock_processor = AsyncMock()
             mock_processor.process_query.return_value = mock_analysis_result
             mock_processor_class.return_value = mock_processor

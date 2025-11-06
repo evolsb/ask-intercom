@@ -17,10 +17,11 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+from ..config import Config
 from ..logger import get_logger
 from ..models import Conversation, ConversationFilters, Message
 from .client import MCPConnection
-from .fastintercom_backend import FastIntercomBackend, SyncStateException
+from .http_mcp_backend import HTTPMCPBackend
 from .intercom_mcp_server import IntercomMCPServer
 
 logger = get_logger("universal_mcp_adapter")
@@ -163,14 +164,14 @@ class UniversalMCPAdapter:
 
     def __init__(
         self,
-        intercom_token: str,
+        config: Optional[Config] = None,
+        intercom_token: Optional[str] = None,
         mcp_server_url: str = "https://mcp.intercom.com/sse",
-        prefer_fastintercom: bool = True,
         force_backend: Optional[str] = None,
     ):
-        self.intercom_token = intercom_token
+        self.config = config or Config.from_env()
+        self.intercom_token = intercom_token or self.config.intercom_token
         self.mcp_server_url = mcp_server_url
-        self.prefer_fastintercom = prefer_fastintercom
         self.force_backend = force_backend
         self.backend: Optional[MCPBackend] = None
         self.available_backends: Dict[str, MCPBackend] = {}
@@ -184,9 +185,11 @@ class UniversalMCPAdapter:
         if self.force_backend:
             logger.info(f"Forcing backend: {self.force_backend}")
             if self.force_backend == "official_mcp":
-                raise ValueError("Official MCP backend is dormant and not available for use")
-            elif self.force_backend == "fastintercom":
-                self.backend = FastIntercomBackend(self.intercom_token)
+                raise ValueError(
+                    "Official MCP backend is dormant and not available for use"
+                )
+            elif self.force_backend == "http_mcp":
+                self.backend = HTTPMCPBackend(self.config)
             elif self.force_backend == "local_mcp":
                 self.backend = LocalMCPBackend(self.intercom_token)
             else:
@@ -205,21 +208,13 @@ class UniversalMCPAdapter:
         # Test MCP backends in priority order
         backends_to_test = []
 
-        if self.prefer_fastintercom:
-            backends_to_test.append(
-                ("fastintercom", FastIntercomBackend(self.intercom_token))
-            )
-
-        # Official MCP is dormant - not used in active flows
-        # backends_to_test.append(
-        #     (
-        #         "official_mcp", 
-        #         OfficialMCPBackend(self.mcp_server_url, self.intercom_token),
-        #     )
-        # )
-
-        # Add local MCP wrapper as fallback
-        backends_to_test.append(("local_mcp", LocalMCPBackend(self.intercom_token)))
+        # Choose backend based on transport configuration
+        if self.config.mcp_transport == "http":
+            # Use HTTP MCP backend for external servers
+            backends_to_test.append(("http_mcp", HTTPMCPBackend(self.config)))
+        else:
+            # Use local MCP wrapper for stdio transport
+            backends_to_test.append(("local_mcp", LocalMCPBackend(self.intercom_token)))
 
         # Test each backend
         for backend_name, backend_instance in backends_to_test:
@@ -270,14 +265,14 @@ class UniversalMCPAdapter:
         if "sync_info" in result:
             sync_info = result["sync_info"]
             sync_state = sync_info.get("state")
-            
+
             if sync_state == "partial" and sync_info.get("message"):
                 logger.warning(f"Data freshness warning: {sync_info['message']}")
             elif sync_state == "stale":
                 logger.warning(f"Data may be stale: {sync_info['message']}")
             elif sync_state == "fresh":
                 logger.info("Using fresh cached data")
-                
+
             # Store sync info for potential future use
             self.last_sync_info = sync_info
         else:
@@ -384,14 +379,14 @@ class UniversalMCPAdapter:
 
 # Factory function for easy usage
 async def create_universal_adapter(
-    intercom_token: str,
-    prefer_fastintercom: bool = True,
+    intercom_token: Optional[str] = None,
+    config: Optional[Config] = None,
     force_backend: Optional[str] = None,
 ) -> UniversalMCPAdapter:
     """Create and initialize a universal adapter."""
     adapter = UniversalMCPAdapter(
+        config=config,
         intercom_token=intercom_token,
-        prefer_fastintercom=prefer_fastintercom,
         force_backend=force_backend,
     )
     await adapter.initialize()

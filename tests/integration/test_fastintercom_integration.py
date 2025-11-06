@@ -79,7 +79,7 @@ class TestFastIntercomIntegration:
         """Test that FastIntercomMCP is tried in correct priority order."""
         adapter = await create_universal_adapter(
             intercom_token=self.access_token,
-            prefer_official=True,  # Should try: official -> fastintercom -> local -> rest
+            prefer_fastintercom=False,  # Should try: official -> fastintercom -> local -> rest
         )
 
         # Should fall back to a working backend
@@ -141,11 +141,11 @@ class TestFastIntercomIntegration:
 
     async def test_performance_comparison_setup(self):
         """Test that we can set up performance comparison between backends."""
-        # Test REST backend
-        adapter_rest = await create_universal_adapter(
-            intercom_token=self.access_token, force_backend="direct_rest"
+        # Test local MCP backend as comparison
+        adapter_local = await create_universal_adapter(
+            intercom_token=self.access_token, force_backend="local_mcp"
         )
-        assert adapter_rest.current_backend == "direct_rest"
+        assert adapter_local.current_backend == "local_mcp"
 
         # Test that we can measure performance
         start_time = datetime.now()
@@ -155,19 +155,19 @@ class TestFastIntercomIntegration:
             filters = type(
                 "obj", (object,), {"limit": 5, "start_date": None, "end_date": None}
             )()
-            conversations = await adapter_rest.search_conversations(filters)
+            conversations = await adapter_local.search_conversations(filters)
 
             end_time = datetime.now()
-            rest_duration = (end_time - start_time).total_seconds()
+            local_duration = (end_time - start_time).total_seconds()
 
-            assert rest_duration > 0
+            assert local_duration > 0
             assert isinstance(conversations, list)
 
         except Exception:
             # API might fail, that's ok for this test
             pass
 
-        await adapter_rest.close()
+        await adapter_local.close()
 
         # Now test FastIntercomMCP backend if available
         try:

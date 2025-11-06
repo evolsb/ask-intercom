@@ -15,11 +15,8 @@ from src.query_processor import QueryProcessor
 def mock_fastintercom_available():
     """Mock FastIntercomMCP as available."""
     with patch.object(FastIntercomBackend, "initialize", return_value=True):
-        with patch("src.mcp.fastintercom_backend.fastintercom") as mock_package:
-            mock_package.database.DatabaseManager.return_value.search_conversations.return_value = (
-                []
-            )
-            yield mock_package
+        with patch("importlib.util.find_spec", return_value=True):
+            yield True
 
 
 @pytest.mark.asyncio
@@ -56,7 +53,7 @@ async def test_fastintercom_e2e_workflow(mock_fastintercom_available):
         mock_call_tool.return_value = {"conversations": mock_conversations}
 
         # Mock AI response
-        with patch("src.ai_client.OpenAI") as mock_openai:
+        with patch("src.ai_client.AsyncOpenAI") as mock_openai:
             mock_openai.return_value.chat.completions.create.return_value.choices[
                 0
             ].message.content = """

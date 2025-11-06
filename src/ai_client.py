@@ -304,9 +304,9 @@ class AIClient:
             selected_model = "gpt-3.5-turbo-1106"  # Version with JSON support
         elif selected_model == "gpt-4":
             selected_model = "gpt-4-turbo-preview"
-        
+
         logger.info(f"Using model {selected_model} for structured analysis")
-        
+
         response = await self.client.chat.completions.create(
             model=selected_model,
             messages=[

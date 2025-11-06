@@ -203,9 +203,10 @@ class TestCompleteWorkflows:
 
     def test_conversation_limit_enforcement(self, client, mock_analysis_result):
         """Test that conversation limits are properly enforced."""
-        with patch("src.web.main.QueryProcessor") as mock_processor_class, patch(
-            "src.web.main.Config"
-        ) as mock_config_class:
+        with (
+            patch("src.web.main.QueryProcessor") as mock_processor_class,
+            patch("src.web.main.Config") as mock_config_class,
+        ):
             mock_processor = AsyncMock()
             mock_processor.process_query.return_value = mock_analysis_result
             mock_processor_class.return_value = mock_processor

@@ -16,7 +16,8 @@ class TestAIClientTimeframeInterpretation:
     def ai_client(self):
         """Create AI client for testing."""
         return AIClient(
-            api_key="sk-test_key_123456", model="gpt-4"  # pragma: allowlist secret
+            api_key="sk-test_key_123456",
+            model="gpt-4",  # pragma: allowlist secret
         )
 
     @pytest.mark.asyncio
@@ -118,7 +119,8 @@ class TestAIClientConversationAnalysis:
     def ai_client(self):
         """Create AI client for testing."""
         return AIClient(
-            api_key="sk-test_key_123456", model="gpt-4"  # pragma: allowlist secret
+            api_key="sk-test_key_123456",
+            model="gpt-4",  # pragma: allowlist secret
         )
 
     @pytest.fixture
@@ -284,7 +286,8 @@ class TestAIClientCostCalculation:
     def ai_client(self):
         """Create AI client for testing."""
         return AIClient(
-            api_key="sk-test_key_123456", model="gpt-4"  # pragma: allowlist secret
+            api_key="sk-test_key_123456",
+            model="gpt-4",  # pragma: allowlist secret
         )
 
     def test_calculate_cost_gpt4(self, ai_client):
@@ -310,7 +313,8 @@ class TestAIClientCostCalculation:
     def test_calculate_cost_gpt35(self):
         """Test cost calculation for GPT-3.5."""
         ai_client = AIClient(
-            api_key="sk-test_key", model="gpt-3.5-turbo"  # pragma: allowlist secret
+            api_key="sk-test_key",
+            model="gpt-3.5-turbo",  # pragma: allowlist secret
         )
 
         mock_usage = type(
@@ -333,7 +337,8 @@ class TestAIClientCostCalculation:
     def test_calculate_cost_unknown_model(self):
         """Test cost calculation for unknown model (defaults to GPT-4)."""
         ai_client = AIClient(
-            api_key="sk-test_key", model="unknown-model"  # pragma: allowlist secret
+            api_key="sk-test_key",
+            model="unknown-model",  # pragma: allowlist secret
         )
 
         mock_usage = type(
@@ -361,7 +366,8 @@ class TestAIClientJSONCleanup:
     def ai_client(self):
         """Create AI client for testing."""
         return AIClient(
-            api_key="sk-test_key_123456", model="gpt-4"  # pragma: allowlist secret
+            api_key="sk-test_key_123456",
+            model="gpt-4",  # pragma: allowlist secret
         )
 
     def test_cleanup_json_valid_json(self, ai_client):
@@ -495,7 +501,8 @@ class TestAIClientInsightExtraction:
     def ai_client(self):
         """Create AI client for testing."""
         return AIClient(
-            api_key="sk-test_key_123456", model="gpt-4"  # pragma: allowlist secret
+            api_key="sk-test_key_123456",
+            model="gpt-4",  # pragma: allowlist secret
         )
 
     def test_extract_insights_bullet_points(self, ai_client):

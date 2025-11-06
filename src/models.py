@@ -127,6 +127,11 @@ class AnalysisResult:
     time_range: TimeFrame
     cost_info: CostInfo
 
+    # Timing information for performance analysis
+    processing_time_ms: Optional[float] = None
+    fetch_time_ms: Optional[float] = None
+    analysis_time_ms: Optional[float] = None
+
 
 @dataclass
 class ConversationFilters:

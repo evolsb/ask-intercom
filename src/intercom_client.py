@@ -34,14 +34,11 @@ class IntercomClient:
             try:
                 from .mcp.universal_adapter import create_universal_adapter
 
-                # Create universal adapter with configured backend preference
-                force_backend = self.config.mcp_backend
-
+                # Create universal adapter
                 self.universal_adapter = asyncio.create_task(
                     create_universal_adapter(
+                        config=self.config,
                         intercom_token=access_token,
-                        prefer_fastintercom=(self.config.mcp_backend == "fastintercom"),
-                        force_backend=force_backend,
                     )
                 )
                 logger.info("Universal MCP adapter initializing...")
@@ -135,6 +132,25 @@ class IntercomClient:
                 try:
                     # Wait for adapter to be ready
                     adapter = await self.universal_adapter
+
+                    # Check if MCP data is fresh enough via MCP protocol
+                    from .mcp.mcp_freshness_checker import should_use_mcp_for_query
+
+                    use_mcp, reason, metadata = await should_use_mcp_for_query(
+                        adapter,
+                        filters,
+                        max_staleness_minutes=getattr(
+                            self.config, "fastintercom_max_staleness_minutes", 60
+                        ),
+                    )
+
+                    if not use_mcp:
+                        logger.info(f"Skipping MCP: {reason}")
+                        logger.debug(f"MCP metadata: {metadata}")
+                        # Fall through to REST API
+                        return await self._fetch_via_rest(filters, progress_callback)
+
+                    logger.info(f"Using MCP: {reason}")
                     conversations = await adapter.search_conversations(filters)
 
                     if progress_callback:
@@ -146,17 +162,11 @@ class IntercomClient:
                     return conversations
 
                 except Exception as mcp_error:
-                    # Check if it's a sync state exception that should be re-raised
-                    from .mcp.fastintercom_backend import SyncStateException
-                    if isinstance(mcp_error, SyncStateException):
-                        logger.error(f"Data sync issue: {mcp_error}")
-                        raise  # Re-raise to inform user about sync requirements
-                    logger.warning(f"MCP failed, falling back to REST: {mcp_error}")
-                    logger.info("Using REST API fallback for conversation fetching")
-                    return await self._fetch_via_rest(filters, progress_callback)
+                    logger.error(f"MCP failed and no fallback configured: {mcp_error}")
+                    raise RuntimeError(f"MCP service unavailable: {mcp_error}")
             else:
-                logger.info("Using REST API for conversation fetching")
-                return await self._fetch_via_rest(filters, progress_callback)
+                logger.error("MCP is disabled but required for operation")
+                raise RuntimeError("MCP must be enabled - set ENABLE_MCP=true")
         except Exception as e:
             logger.error(f"Failed to fetch conversations: {e}", exc_info=True)
             raise

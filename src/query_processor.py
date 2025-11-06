@@ -209,7 +209,9 @@ class QueryProcessor:
             conversations = await fetch_task
             fetch_duration_seconds = time() - intercom_start
             fetch_duration_ms = fetch_duration_seconds * 1000
-            logger.info(f"📊 Data fetch completed: {fetch_duration_ms:.1f}ms for {len(conversations)} conversations")
+            logger.info(
+                f"📊 Data fetch completed: {fetch_duration_ms:.1f}ms for {len(conversations)} conversations"
+            )
             metrics.log_api_call("intercom", fetch_duration_seconds, True)
 
             # Store conversations for session persistence
@@ -270,7 +272,9 @@ class QueryProcessor:
 
             # Try structured analysis first, fall back to legacy if needed
             try:
-                logger.info(f"🎯 Attempting structured JSON analysis for {len(conversations)} conversations")
+                logger.info(
+                    f"🎯 Attempting structured JSON analysis for {len(conversations)} conversations"
+                )
                 if progress_callback:
                     await progress_callback(
                         "analyzing",

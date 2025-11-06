@@ -1,8 +1,8 @@
 # Ask-Intercom
 
-> **Transform your Intercom conversations into actionable insights**
+> **Your always-on customer insights engine**
 
-AI-powered analysis tool with web interface and CLI. Ask natural language questions like "show me issues from last week" and get structured insights with customer details.
+Transform customer conversations into product decisions. Start with Intercom analysis today, evolve into your complete customer intelligence platform tomorrow. Ask natural language questions like "show me issues from last week" and get structured insights with customer details.
 
 ## 🚀 Quick Start
 
@@ -78,11 +78,12 @@ MCP_BACKEND=fastintercom  # or 'official', 'local', 'auto'
 ## 📚 Documentation
 
 ### Core Documentation
-- **[📖 Getting Started](docs/01-README.md)** - Project overview
+- **[🎯 Vision](docs/00-Vision.md)** - Long-term vision and roadmap
 - **[⚙️ Setup Guide](docs/02-Setup.md)** - Development environment  
 - **[🏗️ Architecture](docs/03-Architecture.md)** - System design
-- **[📊 Current Status](docs/04-Current-Status.md)** - What works now
-- **[🎯 Next Steps](docs/05-Next-Steps.md)** - Future plans
+- **[📊 Current Status](docs/04-Current-Status.md)** - What works now + production deployment
+- **[🎯 Next Steps](docs/05-Next-Steps.md)** - Current development priorities
+- **[🎯 Decisions](docs/06-Decisions.md)** - Key technical decisions
 
 ### MCP Architecture
 - **[🚀 MCP Universal Architecture](docs/mcp-universal-architecture.md)** - Multi-backend design

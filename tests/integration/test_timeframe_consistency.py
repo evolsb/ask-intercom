@@ -184,7 +184,7 @@ class TimeframeConsistencyTest:
 
             # Show query progress
             print_progress_bar(i, total_queries, "  Query progress:", 15)
-            print(f"  {i+1}. Testing: '{query}' (⏱️ {remaining_time}s remaining)")
+            print(f"  {i + 1}. Testing: '{query}' (⏱️ {remaining_time}s remaining)")
 
             try:
                 # Extract just the timeframe interpretation (without full analysis)
@@ -307,7 +307,7 @@ class TimeframeConsistencyTest:
             # Check conversation count
             if result["conversation_count"] != base_result["conversation_count"]:
                 inconsistencies.append(
-                    f"Query {i+1} returned {result['conversation_count']} conversations, "
+                    f"Query {i + 1} returned {result['conversation_count']} conversations, "
                     f"but query 1 returned {base_result['conversation_count']}"
                 )
 
@@ -319,14 +319,14 @@ class TimeframeConsistencyTest:
                     )
                 )
                 inconsistencies.append(
-                    f"Query {i+1} returned different conversations ({different_convs} different IDs)"
+                    f"Query {i + 1} returned different conversations ({different_convs} different IDs)"
                 )
 
             # Check timeframe duration (with tolerance)
             duration_diff = abs(result["timeframe"]["duration_hours"] - base_duration)
             if duration_diff > duration_tolerance:
                 inconsistencies.append(
-                    f"Query {i+1} has timeframe duration {result['timeframe']['duration_hours']:.1f}h, "
+                    f"Query {i + 1} has timeframe duration {result['timeframe']['duration_hours']:.1f}h, "
                     f"but query 1 has {base_duration:.1f}h (diff: {duration_diff:.1f}h)"
                 )
 
@@ -382,7 +382,7 @@ class TimeframeConsistencyTest:
         print(f"  Model: {self.config.model}")
         print(f"  Max conversations: {self.config.max_conversations}")
         print(
-            f"  Test timeout: {self.timeout_seconds} seconds ({self.timeout_seconds//60} minutes)"
+            f"  Test timeout: {self.timeout_seconds} seconds ({self.timeout_seconds // 60} minutes)"
         )
         print(f"  Test time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print(
@@ -562,7 +562,7 @@ async def main():
 
     timeout = int(os.getenv("TEST_TIMEOUT", "600"))  # Default 10 minutes
 
-    print(f"🔧 Test timeout set to {timeout} seconds ({timeout//60} minutes)")
+    print(f"🔧 Test timeout set to {timeout} seconds ({timeout // 60} minutes)")
     print("💡 Set TEST_TIMEOUT environment variable to customize")
     print()
 

@@ -32,9 +32,17 @@ class Config(BaseModel):
         default="", description="MCP OAuth client secret"
     )
     mcp_timeout: int = Field(default=30, description="MCP connection timeout")
-    mcp_backend: str = Field(
-        default="fastintercom",
-        description="MCP backend to use: fastintercom, official, local",
+
+    # MCP Transport Configuration
+    mcp_transport: str = Field(
+        default="stdio",
+        description="MCP transport type: stdio (local Docker) or http (external server)",
+    )
+    mcp_http_url: str = Field(
+        default="", description="HTTP endpoint for external MCP server"
+    )
+    mcp_api_key: str = Field(
+        default="", description="Bearer token for HTTP MCP authentication"
     )
 
     model_config = ConfigDict(
@@ -71,6 +79,22 @@ class Config(BaseModel):
             raise ValueError("max_conversations must be between 1 and 10000")
         return v
 
+    @field_validator("mcp_transport")
+    @classmethod
+    def validate_mcp_transport(cls, v):
+        if v not in ["stdio", "http"]:
+            raise ValueError("mcp_transport must be either 'stdio' or 'http'")
+        return v
+
+    def model_post_init(self, __context) -> None:
+        """Post-initialization validation for interdependent fields."""
+        # Validate HTTP transport configuration
+        if self.mcp_transport == "http":
+            if not self.mcp_http_url:
+                raise ValueError("MCP_HTTP_URL must be set when using HTTP transport")
+            if not self.mcp_api_key:
+                raise ValueError("MCP_API_KEY must be set when using HTTP transport")
+
     @classmethod
     def from_env(cls) -> "Config":
         """Load configuration from environment variables."""
@@ -105,7 +129,10 @@ class Config(BaseModel):
             mcp_oauth_client_id=os.getenv("MCP_OAUTH_CLIENT_ID", ""),
             mcp_oauth_client_secret=os.getenv("MCP_OAUTH_CLIENT_SECRET", ""),
             mcp_timeout=int(os.getenv("MCP_TIMEOUT", "30")),
-            mcp_backend=os.getenv("MCP_BACKEND", "fastintercom"),
+            # MCP Transport settings
+            mcp_transport=os.getenv("MCP_TRANSPORT", "stdio"),
+            mcp_http_url=os.getenv("MCP_HTTP_URL", ""),
+            mcp_api_key=os.getenv("MCP_API_KEY", ""),
         )
 
     def validate(self) -> None:

@@ -9,7 +9,7 @@ packages = [{include = "src"}]
 [tool.poetry.dependencies]
 python = "^3.11"
 openai = "^1.0.0"
-httpx = "^0.28.0"
+httpx = "^0.27.0"
 python-dotenv = "^1.0.0"
 pydantic = "^2.0.0"
 rich = "^13.0.0"
@@ -19,14 +19,15 @@ mcp = "^1.1.2"
 httpx-sse = "^0.4.0"
 aiohttp = "^3.11.11"
 websockets = "^15.0.1"
-# fastintercom = "^1.0.0"  # Commented out until package is available
+# Removed: fast-intercom-mcp (now external Docker service)
+# fast-intercom-mcp = {git = "https://github.com/evolsb/FastIntercomMCP.git"}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"
 pytest-asyncio = "^0.21.0"
 black = "^23.0.0"
 ruff = "^0.1.0"
-pytest-httpx = "^0.35.0"
+pytest-httpx = "^0.30.0"
 pytest-mock = "^3.14.1"
 requests = "^2.32.4"
 

@@ -1,6 +1,7 @@
 """
 FastAPI web application wrapping the Ask-Intercom CLI functionality.
 """
+
 import asyncio
 import json
 import os
@@ -812,6 +813,12 @@ async def generate_sse_events(
                     "session_state": session_state_to_dict(new_session),
                     "is_followup": True,
                     "response_type": "conversational",  # Flag for frontend
+                    "timing": {
+                        "total_ms": duration_ms,
+                        "fetch_ms": getattr(result, "fetch_time_ms", None),
+                        "analysis_ms": getattr(result, "analysis_time_ms", None),
+                        "processing_ms": getattr(result, "processing_time_ms", None),
+                    },
                 },
             )
         elif structured_result:
@@ -858,6 +865,12 @@ async def generate_sse_events(
                     "request_id": request_id,
                     "session_state": session_state_to_dict(new_session),
                     "is_followup": is_followup,
+                    "timing": {
+                        "total_ms": duration_ms,
+                        "fetch_ms": getattr(result, "fetch_time_ms", None),
+                        "analysis_ms": getattr(result, "analysis_time_ms", None),
+                        "processing_ms": getattr(result, "processing_time_ms", None),
+                    },
                 },
             )
         else:
@@ -874,6 +887,12 @@ async def generate_sse_events(
                     "request_id": request_id,
                     "session_state": session_state_to_dict(new_session),
                     "is_followup": is_followup,
+                    "timing": {
+                        "total_ms": duration_ms,
+                        "fetch_ms": getattr(result, "fetch_time_ms", None),
+                        "analysis_ms": getattr(result, "analysis_time_ms", None),
+                        "processing_ms": getattr(result, "processing_time_ms", None),
+                    },
                 },
             )
 

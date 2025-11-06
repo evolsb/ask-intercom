@@ -1,6 +1,7 @@
 """
 Enhanced logging system with session management and structured output.
 """
+
 import json
 import logging
 import uuid

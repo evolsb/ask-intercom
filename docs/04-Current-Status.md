@@ -29,6 +29,14 @@
 - **CI/CD Pipeline**: GitHub Actions workflow with automated testing and Docker validation
 - **Developer Experience**: Bulletproof one-command deployment (`docker-compose up`)
 
+### Production Deployment
+- **Live App**: https://ask-intercom-production.up.railway.app/
+- **Debug Endpoints**:
+  - Logs: `https://ask-intercom-production.up.railway.app/api/logs?lines=50`
+  - Health: `https://ask-intercom-production.up.railway.app/api/health`
+  - Debug info: `https://ask-intercom-production.up.railway.app/api/debug`
+- **Railway CLI**: `railway logs | grep -i "error\|json\|parse"`
+
 ## 🎯 Recent Major Changes
 
 ### v0.4: Docker Deployment (✅ COMPLETED)

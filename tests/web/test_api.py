@@ -140,12 +140,15 @@ class TestAnalysisEndpoint:
 
     def test_analyze_with_env_keys(self, client, mock_analysis_result):
         """Test analysis endpoint with API keys from environment."""
-        with patch("src.web.main.QueryProcessor") as mock_processor_class, patch.dict(
-            os.environ,
-            {
-                "INTERCOM_ACCESS_TOKEN": "dG9rZW5fZXhhbXBsZTEyMzQ1Njc4OTA=  # pragma: allowlist secret",
-                "OPENAI_API_KEY": "sk-test123456789012345678901234567890123456789012345678  # pragma: allowlist secret",  # pragma: allowlist secret
-            },
+        with (
+            patch("src.web.main.QueryProcessor") as mock_processor_class,
+            patch.dict(
+                os.environ,
+                {
+                    "INTERCOM_ACCESS_TOKEN": "dG9rZW5fZXhhbXBsZTEyMzQ1Njc4OTA=  # pragma: allowlist secret",
+                    "OPENAI_API_KEY": "sk-test123456789012345678901234567890123456789012345678  # pragma: allowlist secret",  # pragma: allowlist secret
+                },
+            ),
         ):
             mock_processor = AsyncMock()
             mock_processor.process_query.return_value = mock_analysis_result
@@ -161,9 +164,10 @@ class TestAnalysisEndpoint:
 
     def test_analyze_max_conversations_limit(self, client, mock_analysis_result):
         """Test that max_conversations is capped at 200."""
-        with patch("src.web.main.QueryProcessor") as mock_processor_class, patch(
-            "src.web.main.Config"
-        ) as mock_config_class:
+        with (
+            patch("src.web.main.QueryProcessor") as mock_processor_class,
+            patch("src.web.main.Config") as mock_config_class,
+        ):
             mock_processor = AsyncMock()
             mock_processor.process_query.return_value = mock_analysis_result
             mock_processor_class.return_value = mock_processor

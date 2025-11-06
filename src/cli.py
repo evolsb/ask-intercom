@@ -104,7 +104,7 @@ async def check_large_dataset(
             f"📊 Found [bold]{conversation_count}[/bold] conversations in {timeframe.description}"
         )
         console.print(
-            f"⏱️  Estimated processing time: [bold]{estimated_time:.1f} seconds[/bold] ({estimated_time/60:.1f} minutes)"
+            f"⏱️  Estimated processing time: [bold]{estimated_time:.1f} seconds[/bold] ({estimated_time / 60:.1f} minutes)"
         )
         console.print(f"💰 Estimated cost: [bold]${estimated_cost:.2f}[/bold]")
 
@@ -187,6 +187,45 @@ async def run_query(
         console.print("\r✅ Complete!   ", style="bold green")
 
         duration = (datetime.now() - start_time).total_seconds()
+
+        # Show comprehensive timing breakdown
+        console.print("\n⏱️  [bold]Performance Summary[/bold]")
+        console.print(f"   • [cyan]Total Request Time:[/cyan] {duration:.2f}s")
+
+        # Add timing details if available
+        if hasattr(result, "processing_time_ms"):
+            console.print("   • [cyan]Processing Phases:[/cyan]")
+            if hasattr(result, "fetch_time_ms"):
+                console.print(f"     - Data Fetch: {result.fetch_time_ms:.0f}ms")
+            if hasattr(result, "analysis_time_ms"):
+                console.print(f"     - AI Analysis: {result.analysis_time_ms:.0f}ms")
+            console.print(f"     - Total Backend: {result.processing_time_ms:.0f}ms")
+
+        console.print(
+            f"   • [cyan]Conversations Analyzed:[/cyan] {result.conversation_count}"
+        )
+        if hasattr(result, "cost_info") and result.cost_info:
+            console.print(
+                f"   • [cyan]Estimated Cost:[/cyan] ${result.cost_info.estimated_cost_usd:.3f}"
+            )
+            console.print(
+                f"   • [cyan]Tokens Used:[/cyan] {result.cost_info.tokens_used:,}"
+            )
+            console.print(f"   • [cyan]Model:[/cyan] {result.cost_info.model_used}")
+
+        # Performance indicators
+        fetch_speed = "⚡ FastIntercomMCP" if duration < 10 else "🐌 Slower backend"
+        console.print(f"   • [cyan]Backend:[/cyan] {fetch_speed}")
+
+        if duration < 5:
+            perf_emoji = "🚀"
+        elif duration < 15:
+            perf_emoji = "⚡"
+        else:
+            perf_emoji = "⏳"
+        console.print(
+            f"   • [cyan]Performance:[/cyan] {perf_emoji} {duration:.2f}s end-to-end"
+        )
 
         # Log success
         if request_id:
